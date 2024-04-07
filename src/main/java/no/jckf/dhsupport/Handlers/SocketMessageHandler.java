@@ -26,11 +26,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import no.jckf.dhsupport.DhSupport;
 import no.jckf.dhsupport.MessageTypeRegistry;
-import no.jckf.dhsupport.SocketMessages.SocketMessage;
-import no.jckf.dhsupport.SocketMessages.CloseSocketMessage;
-import no.jckf.dhsupport.SocketMessages.HelloSocketMessage;
+import no.jckf.dhsupport.SocketMessages.*;
 import no.jckf.dhsupport.SocketServer.SocketServer;
 import no.jckf.dhsupport.Utils;
+import org.bukkit.entity.Player;
 
 public class SocketMessageHandler
 {
@@ -53,6 +52,10 @@ public class SocketMessageHandler
         this.messageTypeRegistry.registerMessageType(0, null);
         this.messageTypeRegistry.registerMessageType(1, HelloSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(2, CloseSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(3, null);
+        this.messageTypeRegistry.registerMessageType(4, null);
+        this.messageTypeRegistry.registerMessageType(5, null);
+        this.messageTypeRegistry.registerMessageType(6, PlayerUuidSocketMessage.class);
 
         this.socketServer = new SocketServer(this.plugin);
 
@@ -90,6 +93,23 @@ public class SocketMessageHandler
             HelloSocketMessage response = new HelloSocketMessage();
             response.setVersion(this.protocolVersion);
             this.sendSocketMessage(socket, 1, response.encode());
+            return;
+        }
+
+        if (message instanceof PlayerUuidSocketMessage) {
+            PlayerUuidSocketMessage playerUuid = (PlayerUuidSocketMessage) message;
+
+            this.plugin.info("UUID: " + playerUuid.getUuid());
+
+            Player player = this.plugin.getServer().getPlayer(playerUuid.getUuid());
+
+            if (player == null) {
+                this.plugin.warning("UUID does not match any online player.");
+                return;
+            }
+
+            this.plugin.info("Socket belongs to player " + player.getName());
+            return;
         }
     }
 
@@ -118,6 +138,15 @@ public class SocketMessageHandler
 
         try {
             message = messageClass.getConstructor().newInstance();
+
+            if (message instanceof TrackableSocketMessage) {
+                TrackableSocketMessage trackable = (TrackableSocketMessage) message;
+
+                trackable.setTracker(reader.readInt());
+
+                this.plugin.info("Message is trackable: " + trackable.getTracker());
+            }
+
             message.decode(reader);
         } catch (Exception exception) {
             this.plugin.warning("Failed to init message class: " + exception.getClass() + " - " + exception.getMessage());
