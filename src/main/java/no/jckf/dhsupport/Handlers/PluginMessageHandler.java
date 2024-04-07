@@ -76,7 +76,7 @@ public class PluginMessageHandler implements PluginMessageListener
         try {
             message = this.readPluginMessage(data);
         } catch (Exception exception) {
-            this.plugin.warning("Error while parsing incoming plugin message: " + exception.getMessage());
+            this.plugin.warning("Error while parsing incoming plugin message: " + exception.getClass() + " - " + exception.getMessage());
             return;
         }
 
@@ -91,7 +91,7 @@ public class PluginMessageHandler implements PluginMessageListener
 
     protected PluginMessage readPluginMessage(byte[] data)
     {
-        this.plugin.info("DH plugin message received. Length: " + data.length);
+        this.plugin.info("Plugin message received. Length: " + data.length);
 
         ByteArrayDataInput reader = ByteStreams.newDataInput(data);
 
@@ -109,7 +109,7 @@ public class PluginMessageHandler implements PluginMessageListener
         // Read the message type ID.
         short messageTypeId = reader.readShort();
 
-        Class<? extends PluginMessage> messageClass = this.messageTypeRegistry.getMessageType(messageTypeId);
+        Class<? extends PluginMessage> messageClass = (Class<? extends PluginMessage>) this.messageTypeRegistry.getMessageType(messageTypeId);
 
         this.plugin.info("Looks like a " + messageClass.getSimpleName());
 
@@ -117,12 +117,11 @@ public class PluginMessageHandler implements PluginMessageListener
 
         try {
             message = messageClass.getConstructor().newInstance();
+            message.decode(reader);
         } catch (Exception exception) {
-            this.plugin.warning("Failed to init message class: " + exception.getMessage());
+            this.plugin.warning("Failed to init message class: " + exception.getClass() + " - " + exception.getMessage());
             return null;
         }
-
-        message.decode(reader);
 
         return message;
     }

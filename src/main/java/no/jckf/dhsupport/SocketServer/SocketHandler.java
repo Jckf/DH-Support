@@ -40,7 +40,7 @@ public class SocketHandler extends ChannelInboundHandlerAdapter
         byte[] bytes = new byte[buf.readableBytes()];
         buf.getBytes(buf.readerIndex(), bytes);
 
-        this.plugin.socketMessageHandler.onSocketMessageReceived(bytes);
+        this.plugin.socketMessageHandler.onSocketMessageReceived(context.channel(), bytes);
     }
 
     @Override

@@ -18,22 +18,9 @@
 
 package no.jckf.dhsupport.PluginMessages;
 
-import com.google.common.io.ByteArrayDataInput;
+import no.jckf.dhsupport.DhMessage;
 
-public abstract class PluginMessage
+public abstract class PluginMessage extends DhMessage
 {
-    public PluginMessage()
-    {
-        // Do nothing.
-    }
 
-    public void decode(ByteArrayDataInput reader)
-    {
-
-    }
-
-    public byte[] encode()
-    {
-        return new byte[0];
-    }
 }

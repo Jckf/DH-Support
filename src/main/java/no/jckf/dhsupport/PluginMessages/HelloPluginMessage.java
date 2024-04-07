@@ -18,7 +18,19 @@
 
 package no.jckf.dhsupport.PluginMessages;
 
+import com.google.common.io.ByteArrayDataInput;
+
 public class HelloPluginMessage extends PluginMessage
 {
+    @Override
+    public byte[] encode()
+    {
+        return new byte[0];
+    }
 
+    @Override
+    public void decode(ByteArrayDataInput reader)
+    {
+
+    }
 }

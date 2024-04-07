@@ -26,11 +26,13 @@ public class HelloSocketMessage extends SocketMessage
 {
     protected int version;
 
+    @Override
     public void decode(ByteArrayDataInput reader)
     {
         this.version = reader.readInt();
     }
 
+    @Override
     public byte[] encode()
     {
         ByteArrayDataOutput writer = ByteStreams.newDataOutput();

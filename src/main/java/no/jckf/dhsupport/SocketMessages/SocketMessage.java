@@ -18,22 +18,9 @@
 
 package no.jckf.dhsupport.SocketMessages;
 
-import com.google.common.io.ByteArrayDataInput;
+import no.jckf.dhsupport.DhMessage;
 
-public abstract class SocketMessage
+public abstract class SocketMessage extends DhMessage
 {
-    public SocketMessage()
-    {
-        // Do nothing.
-    }
 
-    public void decode(ByteArrayDataInput reader)
-    {
-
-    }
-
-    public byte[] encode()
-    {
-        return new byte[0];
-    }
 }

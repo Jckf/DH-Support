@@ -16,42 +16,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.PluginMessages;
+package no.jckf.dhsupport.SocketMessages;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
 import java.nio.charset.StandardCharsets;
 
-public class ServerConnectInfoMessage extends PluginMessage
+public class CloseSocketMessage extends SocketMessage
 {
-    protected String address;
-
-    protected int port;
+    protected String message;
 
     @Override
     public byte[] encode()
     {
         ByteArrayDataOutput writer = ByteStreams.newDataOutput();
 
-        writer.writeBoolean(this.address != null);
-        if (this.address != null) {
-            writer.writeShort(this.address.length());
-            writer.write(this.address.getBytes(StandardCharsets.UTF_8));
-        }
-
-        writer.writeShort(this.port);
+        writer.writeShort(this.message.length());
+        writer.write(this.message.getBytes(StandardCharsets.UTF_8));
 
         return writer.toByteArray();
     }
 
-    public void setAddress(String address)
+    public void setMessage(String message)
     {
-        this.address = address;
-    }
-
-    public void setPort(int port)
-    {
-        this.port = port;
+        this.message = message;
     }
 }

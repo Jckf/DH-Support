@@ -68,11 +68,11 @@ public class DhSupport extends JavaPlugin
 
     public void info(String message)
     {
-        this.getServer().getLogger().info(message);
+        this.getLogger().info(message);
     }
 
     public void warning(String message)
     {
-        this.getServer().getLogger().warning(message);
+        this.getLogger().warning(message);
     }
 }

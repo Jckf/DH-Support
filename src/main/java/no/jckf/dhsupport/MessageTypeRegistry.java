@@ -18,21 +18,19 @@
 
 package no.jckf.dhsupport;
 
-import no.jckf.dhsupport.PluginMessages.PluginMessage;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class MessageTypeRegistry
 {
-    protected List<Class<? extends PluginMessage>> messageTypes = new ArrayList<>();
+    protected List<Class<? extends DhMessage>> messageTypes = new ArrayList<>();
 
-    public void registerMessageType(int id, Class<? extends PluginMessage> messageClass)
+    public void registerMessageType(int id, Class<? extends DhMessage> messageClass)
     {
         this.messageTypes.add(id, messageClass);
     }
 
-    public Class<? extends PluginMessage> getMessageType(int id)
+    public Class<? extends DhMessage> getMessageType(int id)
     {
         return this.messageTypes.get(id);
     }
