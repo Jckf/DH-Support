@@ -22,6 +22,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Bytes;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import no.jckf.dhsupport.DhSupport;
 import no.jckf.dhsupport.MessageTypeRegistry;
@@ -137,7 +138,7 @@ public class SocketMessageHandler
 
         this.plugin.info("Sending: " + Utils.bytesToHex(fullMessage));
 
-        socket.write(fullMessage);
+        socket.write(Unpooled.wrappedBuffer(fullMessage));
         socket.flush();
     }
 }
