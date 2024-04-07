@@ -40,7 +40,7 @@ public class SocketMessageHandler
 
     protected SocketServer socketServer;
 
-    protected final int protocolVersion = 1337;
+    protected final int protocolVersion = 2;
 
     public SocketMessageHandler(DhSupport plugin)
     {
