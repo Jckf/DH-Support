@@ -56,6 +56,7 @@ public class SocketMessageHandler
         this.messageTypeRegistry.registerMessageType(4, null);
         this.messageTypeRegistry.registerMessageType(5, null);
         this.messageTypeRegistry.registerMessageType(6, PlayerUuidSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(7, PlayerConfigSocketMessage.class);
 
         this.socketServer = new SocketServer(this.plugin);
 
@@ -120,6 +121,17 @@ public class SocketMessageHandler
             this.sendSocketMessage(socket, response);
             return;
         }
+
+        if (message instanceof PlayerConfigSocketMessage) {
+            PlayerConfigSocketMessage config = (PlayerConfigSocketMessage) message;
+
+            // TODO: Clamp values according to server config.
+            this.sendSocketMessage(socket, config);
+            return;
+        }
+
+        // TODO: Some sort of event bus for handlers, instead of a million ifs 👆
+        this.plugin.warning("Message was successfully parsed, but there is no code to handle it.");
     }
 
     protected SocketMessage readSocketMessage(byte[] data)
