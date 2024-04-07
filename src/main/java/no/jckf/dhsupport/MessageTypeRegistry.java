@@ -32,6 +32,6 @@ public class MessageTypeRegistry
 
     public Class<? extends DhMessage> getMessageType(int id)
     {
-        return this.messageTypes.get(id);
+        return this.messageTypes.size() - 1 >= id ? this.messageTypes.get(id) : null;
     }
 }
