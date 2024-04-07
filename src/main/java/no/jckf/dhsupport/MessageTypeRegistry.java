@@ -30,8 +30,13 @@ public class MessageTypeRegistry
         this.messageTypes.add(id, messageClass);
     }
 
-    public Class<? extends DhMessage> getMessageType(int id)
+    public Class<? extends DhMessage> getMessageClass(int id)
     {
         return this.messageTypes.size() - 1 >= id ? this.messageTypes.get(id) : null;
+    }
+
+    public int getMessageTypeId(Class<? extends DhMessage> messageClass)
+    {
+        return this.messageTypes.indexOf(messageClass);
     }
 }

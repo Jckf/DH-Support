@@ -52,7 +52,7 @@ public class SocketMessageHandler
         this.messageTypeRegistry.registerMessageType(0, null);
         this.messageTypeRegistry.registerMessageType(1, HelloSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(2, CloseSocketMessage.class);
-        this.messageTypeRegistry.registerMessageType(3, null);
+        this.messageTypeRegistry.registerMessageType(3, AckSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(4, null);
         this.messageTypeRegistry.registerMessageType(5, null);
         this.messageTypeRegistry.registerMessageType(6, PlayerUuidSocketMessage.class);
@@ -86,13 +86,13 @@ public class SocketMessageHandler
             if (clientHello.getVersion() != this.protocolVersion) {
                 CloseSocketMessage response = new CloseSocketMessage();
                 response.setMessage("Incompatible Distant Horizons version. Server speaks protocol version " + this.protocolVersion + ", but client sent protocol version " + clientHello.getVersion());
-                this.sendSocketMessage(socket, 2, response.encode());
+                this.sendSocketMessage(socket, response);
                 return;
             }
 
             HelloSocketMessage response = new HelloSocketMessage();
             response.setVersion(this.protocolVersion);
-            this.sendSocketMessage(socket, 1, response.encode());
+            this.sendSocketMessage(socket, response);
             return;
         }
 
@@ -103,12 +103,21 @@ public class SocketMessageHandler
 
             Player player = this.plugin.getServer().getPlayer(playerUuid.getUuid());
 
+            // TODO: Also check if player is using DH at all or has already connected.
             if (player == null) {
                 this.plugin.warning("UUID does not match any online player.");
+
+                CloseSocketMessage response = new CloseSocketMessage();
+                response.setMessage("Invalid UUID.");
+                this.sendSocketMessage(socket, response);
                 return;
             }
 
             this.plugin.info("Socket belongs to player " + player.getName());
+
+            AckSocketMessage response = new AckSocketMessage();
+            response.setTracker(playerUuid.getTracker());
+            this.sendSocketMessage(socket, response);
             return;
         }
     }
@@ -122,7 +131,7 @@ public class SocketMessageHandler
 
         short messageTypeId = reader.readShort();
 
-        Class<? extends SocketMessage> messageClass = (Class<? extends SocketMessage>) this.messageTypeRegistry.getMessageType(messageTypeId);
+        Class<? extends SocketMessage> messageClass = (Class<? extends SocketMessage>) this.messageTypeRegistry.getMessageClass(messageTypeId);
 
         if (messageClass == null) {
             byte[] body = new byte[length];
@@ -156,12 +165,40 @@ public class SocketMessageHandler
         return message;
     }
 
-    protected void sendSocketMessage(Channel socket, int messageTypeId, byte[] data)
+    protected void sendSocketMessage(Channel socket, SocketMessage message)
     {
+        int messageTypeId = this.messageTypeRegistry.getMessageTypeId(message.getClass());
+
+        if (messageTypeId == -1) {
+            this.plugin.warning("Trying to send unknown message type: " + message.getClass());
+            return;
+        }
+
+        byte[] data;
+
+        try {
+            data = message.encode();
+        } catch (Exception exception) {
+            this.plugin.warning("Failed to encode " + message.getClass() + ": " + exception.getClass() + " - " + exception.getMessage());
+            return;
+        }
+
+        int tracker = -1;
+
+        if (message instanceof TrackableSocketMessage) {
+            TrackableSocketMessage trackable = (TrackableSocketMessage) message;
+
+            tracker = trackable.getTracker();
+        }
+
         ByteArrayDataOutput writer = ByteStreams.newDataOutput();
 
-        writer.writeInt(data.length + 2);
+        writer.writeInt(data.length + 2 + (tracker == -1 ? 0 : 4));
         writer.writeShort(messageTypeId);
+
+        if (tracker != -1) {
+            writer.writeInt(tracker);
+        }
 
         byte[] fullMessage = Bytes.concat(writer.toByteArray(), data);
 

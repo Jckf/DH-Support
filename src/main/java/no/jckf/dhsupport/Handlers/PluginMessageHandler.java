@@ -85,7 +85,7 @@ public class PluginMessageHandler implements PluginMessageListener
             //response.setAddress("google.com");
             response.setPort(this.plugin.getConfig().getInt("port"));
 
-            this.sendPluginMessage(player, 3, response.encode());
+            this.sendPluginMessage(player, response);
         }
     }
 
@@ -109,7 +109,7 @@ public class PluginMessageHandler implements PluginMessageListener
         // Read the message type ID.
         short messageTypeId = reader.readShort();
 
-        Class<? extends PluginMessage> messageClass = (Class<? extends PluginMessage>) this.messageTypeRegistry.getMessageType(messageTypeId);
+        Class<? extends PluginMessage> messageClass = (Class<? extends PluginMessage>) this.messageTypeRegistry.getMessageClass(messageTypeId);
 
         this.plugin.info("Looks like a " + messageClass.getSimpleName());
 
@@ -126,8 +126,24 @@ public class PluginMessageHandler implements PluginMessageListener
         return message;
     }
 
-    protected void sendPluginMessage(Player player, int messageTypeId, byte[] data)
+    protected void sendPluginMessage(Player player, PluginMessage message)
     {
+        int messageTypeId = this.messageTypeRegistry.getMessageTypeId(message.getClass());
+
+        if (messageTypeId == -1) {
+            this.plugin.warning("Trying to send unknown message type: " + message.getClass());
+            return;
+        }
+
+        byte[] data;
+
+        try {
+            data = message.encode();
+        } catch (Exception exception) {
+            this.plugin.warning("Failed to encode " + message.getClass() + ": " + exception.getClass() + " - " + exception.getMessage());
+            return;
+        }
+
         ByteArrayDataOutput writer = ByteStreams.newDataOutput();
 
         writer.writeByte(0);
