@@ -1,5 +1,7 @@
 # Distant Horizons Protocol
 
+Based on information from [here](https://gitlab.com/s809/minecraft-lod-mod/-/wikis/Protocol) and the Distant Horizons source code.
+
 ## Plugin messages
 
 Common header sent with all messages.

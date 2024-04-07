@@ -4,16 +4,6 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
-/**
- * (int) render distance
- * (bool) distant generation enabled
- * (int) full data request concurrency limit
- * (int) generation task priority request rate limit
- * (bool) real time updates enabled
- * (bool) login data sync enabled
- * (int) login data sync rate/concurrency limit
- * (bool) generate multiple dimensions
- */
 public class PlayerConfigSocketMessage extends SocketMessage
 {
     protected int renderDistance;
