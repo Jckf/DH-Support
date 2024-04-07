@@ -31,6 +31,9 @@ Common header sent with all messages.
 * (int) length
 * (short) packet type
 
+Additional header data for trackable messages.
+* (int) tracker (referred to as "future ID" by DH, which is a Netty term)
+
 ### 0x0001 Hello
 
 * (int) protocol version
@@ -40,21 +43,21 @@ Common header sent with all messages.
 * (short) reason length
 * (string) reason
 
-### 0x0003 Ack
+### 0x0003 Ack (trackable)
 
 No additional data.
 
-### 0x0004 Cancel
+### 0x0004 Cancel (trackable)
 
 No additional data.
 
-### 0x0005 Exception
+### 0x0005 Exception (trackable)
 
 * (int) exception type
 * (short) message length
 * (string) message
 
-### 0x0006 Player UUID
+### 0x0006 Player UUID (trackable)
 
 * (long) UUID most significant bits
 * (long) UUID least significant bits
@@ -70,7 +73,7 @@ No additional data.
 * (int) login data sync rate/concurrency limit
 * (bool) generate multiple dimensions
 
-### 0x0008 Full data request
+### 0x0008 Full data request (trackable)
 
 * (int) level hash code (hash codes of detail level, x, and z XOR-ed together)
 * (byte) detail level
@@ -79,7 +82,7 @@ No additional data.
 * (bool) checksum presence
    * (int) checksum
 
-### 0x0009 Full data response
+### 0x0009 Full data response (trackable)
 
 * (bool) is full
 * (byte) format version
@@ -94,13 +97,13 @@ No additional data.
 * (int) data length
 * data
 
-### 0x000b Generation task priority request
+### 0x000b Generation task priority request (trackable)
 
 * (int) level has code
 * (int) position list length
 * position list
 
-### 0x000c Generation task priority response
+### 0x000c Generation task priority response (trackable)
 
 * (int) position list length
 * position list
