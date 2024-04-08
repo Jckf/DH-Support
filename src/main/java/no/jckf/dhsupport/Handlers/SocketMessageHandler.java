@@ -117,7 +117,7 @@ public class SocketMessageHandler
             this.plugin.info("Socket belongs to player " + player.getName());
 
             AckSocketMessage response = new AckSocketMessage();
-            response.setTracker(playerUuid.getTracker());
+            response.isResponseTo(playerUuid);
             this.sendSocketMessage(socket, response);
             return;
         }

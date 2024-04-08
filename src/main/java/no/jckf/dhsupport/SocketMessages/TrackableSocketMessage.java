@@ -31,4 +31,9 @@ public abstract class TrackableSocketMessage extends SocketMessage
     {
         return this.tracker;
     }
+
+    public void isResponseTo(TrackableSocketMessage message)
+    {
+        this.setTracker(message.getTracker());
+    }
 }
