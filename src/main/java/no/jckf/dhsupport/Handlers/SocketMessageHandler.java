@@ -80,6 +80,7 @@ public class SocketMessageHandler
             message = this.readSocketMessage(data);
         } catch (Exception exception) {
             this.plugin.warning("Error while parsing incoming socket message: " + exception.getClass() + " - " + exception.getMessage());
+            this.plugin.warning("Data was: " + Utils.bytesToHex(data));
             return;
         }
 
@@ -153,8 +154,8 @@ public class SocketMessageHandler
     {
         ByteArrayDataInput reader = ByteStreams.newDataInput(data);
 
-        // Message length, minus type ID.
-        int length = reader.readInt() - 2;
+        // Message body length = message length - length field - type ID
+        int length = data.length - Integer.BYTES - Short.BYTES;
 
         short messageTypeId = reader.readShort();
 
