@@ -53,10 +53,12 @@ public class SocketMessageHandler
         this.messageTypeRegistry.registerMessageType(1, HelloSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(2, CloseSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(3, AckSocketMessage.class);
-        this.messageTypeRegistry.registerMessageType(4, null);
-        this.messageTypeRegistry.registerMessageType(5, null);
+        this.messageTypeRegistry.registerMessageType(4, CancelSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(5, null); // Exception
         this.messageTypeRegistry.registerMessageType(6, PlayerUuidSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(7, PlayerConfigSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(8, FullDataRequestSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(9, FullDataResponseSocketMessage.class);
 
         this.socketServer = new SocketServer(this.plugin);
 
@@ -134,6 +136,15 @@ public class SocketMessageHandler
             return;
         }
 
+        if (message instanceof FullDataRequestSocketMessage) {
+            FullDataRequestSocketMessage dataRequest = (FullDataRequestSocketMessage) message;
+
+            FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
+            response.isResponseTo(dataRequest);
+            //this.sendSocketMessage(socket, response); // TODO: Actually respond with some data. Disabled for now to stop the client from spamming requests.
+            return;
+        }
+
         // TODO: Some sort of event bus for handlers, instead of a million ifs 👆
         this.plugin.warning("Message was successfully parsed, but there is no code to handle it.");
     }
@@ -206,6 +217,8 @@ public class SocketMessageHandler
 
             tracker = trackable.getTracker();
         }
+
+        // TODO: Keep track of trackable messages.
 
         ByteArrayDataOutput writer = ByteStreams.newDataOutput();
 
