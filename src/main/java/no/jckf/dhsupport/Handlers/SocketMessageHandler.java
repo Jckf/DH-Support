@@ -154,14 +154,14 @@ public class SocketMessageHandler
     {
         ByteArrayDataInput reader = ByteStreams.newDataInput(data);
 
-        // Message body length = message length - length field - type ID
-        int length = data.length - Integer.BYTES - Short.BYTES;
-
         short messageTypeId = reader.readShort();
 
         Class<? extends SocketMessage> messageClass = (Class<? extends SocketMessage>) this.messageTypeRegistry.getMessageClass(messageTypeId);
 
         if (messageClass == null) {
+            // Message body length = message length - type ID
+            int length = data.length - Short.BYTES;
+
             byte[] body = new byte[length];
             reader.readFully(body, 0, length);
 
