@@ -81,6 +81,10 @@ public class SocketMessageHandler
             return;
         }
 
+        if (message == null) {
+            return;
+        }
+
         if (message instanceof HelloSocketMessage) {
             HelloSocketMessage clientHello = (HelloSocketMessage) message;
 
