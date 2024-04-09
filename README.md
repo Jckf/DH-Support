@@ -3,6 +3,8 @@ Server-side support for [Distant Horizons](https://gitlab.com/jeseibel/distant-h
 
 [Join us on Discord!](https://discord.gg/WzCvvJUf)
 
+<span style="font-size: 2em; color:red">Currently NOT in a working state!</span>
+
 ## What is it?
 
 DH Support is a Bukkit/Spigot/Paper server plugin that transmits LODs to connected clients in order to provide a much higher view distance than Minecraft normally would allow. Distant Horizons _will_ work fine without this plugin, but then each client will have to be within normal view distance of chunks to load them, and they will not receive updates for distant chunks when they change. 
