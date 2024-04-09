@@ -159,13 +159,7 @@ public class SocketMessageHandler
         Class<? extends SocketMessage> messageClass = (Class<? extends SocketMessage>) this.messageTypeRegistry.getMessageClass(messageTypeId);
 
         if (messageClass == null) {
-            // Message body length = message length - type ID
-            int length = data.length - Short.BYTES;
-
-            byte[] body = new byte[length];
-            reader.readFully(body, 0, length);
-
-            this.plugin.warning("Unknown message type " + messageTypeId + " with body " + Utils.bytesToHex(body));
+            this.plugin.warning("Unknown message type " + messageTypeId + " with body " + Utils.bytesToHex(data));
             return null;
         }
 
