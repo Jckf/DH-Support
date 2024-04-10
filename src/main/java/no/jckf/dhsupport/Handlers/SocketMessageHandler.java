@@ -43,16 +43,16 @@ public class SocketMessageHandler
     public void onEnable() throws Exception
     {
         this.messageTypeRegistry = new MessageTypeRegistry();
-        this.messageTypeRegistry.registerMessageType(0, null);
-        this.messageTypeRegistry.registerMessageType(1, HelloSocketMessage.class);
-        this.messageTypeRegistry.registerMessageType(2, CloseSocketMessage.class);
-        this.messageTypeRegistry.registerMessageType(3, AckSocketMessage.class);
-        this.messageTypeRegistry.registerMessageType(4, CancelSocketMessage.class);
-        this.messageTypeRegistry.registerMessageType(5, null); // Exception
-        this.messageTypeRegistry.registerMessageType(6, PlayerUuidSocketMessage.class);
-        this.messageTypeRegistry.registerMessageType(7, PlayerConfigSocketMessage.class);
-        this.messageTypeRegistry.registerMessageType(8, FullDataRequestSocketMessage.class);
-        this.messageTypeRegistry.registerMessageType(9, FullDataResponseSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x0000, null);
+        this.messageTypeRegistry.registerMessageType(0x0001, HelloSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x0002, CloseSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x0003, AckSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x0004, CancelSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x0005, ExceptionSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x0006, PlayerUuidSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x0007, PlayerConfigSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x0008, FullDataRequestSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x0009, FullDataResponseSocketMessage.class);
 
         this.socketServer = new SocketServer(this.plugin);
 
