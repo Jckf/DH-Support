@@ -18,19 +18,20 @@
 
 package no.jckf.dhsupport.SocketMessages;
 
-import com.google.common.io.ByteArrayDataInput;
+import no.jckf.dhsupport.MessageReader;
+import no.jckf.dhsupport.MessageWriter;
 
 public class CancelSocketMessage extends TrackableSocketMessage
 {
     @Override
-    public void decode(ByteArrayDataInput reader) throws Exception
+    public void encode(MessageWriter writer)
     {
-        // Empty body.
+
     }
 
     @Override
-    public byte[] encode() throws Exception
+    public void decode(MessageReader reader)
     {
-        return new byte[0];
+
     }
 }

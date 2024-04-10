@@ -18,17 +18,11 @@
 
 package no.jckf.dhsupport.Handlers;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
-import com.google.common.primitives.Bytes;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import no.jckf.dhsupport.DhSupport;
-import no.jckf.dhsupport.MessageTypeRegistry;
+import no.jckf.dhsupport.*;
 import no.jckf.dhsupport.SocketMessages.*;
 import no.jckf.dhsupport.SocketServer.SocketServer;
-import no.jckf.dhsupport.Utils;
 import org.bukkit.entity.Player;
 
 public class SocketMessageHandler
@@ -152,7 +146,7 @@ public class SocketMessageHandler
 
     protected SocketMessage readSocketMessage(byte[] data)
     {
-        ByteArrayDataInput reader = ByteStreams.newDataInput(data);
+        MessageReader reader = new MessageReader(data);
 
         short messageTypeId = reader.readShort();
 
@@ -199,7 +193,9 @@ public class SocketMessageHandler
         byte[] data;
 
         try {
-            data = message.encode();
+            MessageWriter writer = new MessageWriter();
+            message.encode(writer);
+            data = writer.toByteArray();
         } catch (Exception exception) {
             this.plugin.warning("Failed to encode " + message.getClass() + ": " + exception.getClass() + " - " + exception.getMessage());
             return;
@@ -215,7 +211,7 @@ public class SocketMessageHandler
 
         // TODO: Keep track of trackable messages.
 
-        ByteArrayDataOutput writer = ByteStreams.newDataOutput();
+        MessageWriter writer = new MessageWriter();
 
         writer.writeInt(data.length + 2 + (tracker == -1 ? 0 : 4));
         writer.writeShort(messageTypeId);
@@ -224,7 +220,9 @@ public class SocketMessageHandler
             writer.writeInt(tracker);
         }
 
-        byte[] fullMessage = Bytes.concat(writer.toByteArray(), data);
+        writer.write(data);
+
+        byte[] fullMessage = writer.toByteArray();
 
         this.plugin.info("Sending: " + Utils.bytesToHex(fullMessage));
 

@@ -18,16 +18,14 @@
 
 package no.jckf.dhsupport;
 
-import com.google.common.io.ByteArrayDataInput;
-
 public abstract class DhMessage
 {
-    public byte[] encode() throws Exception
+    public void encode(MessageWriter writer) throws Exception
     {
         throw new Exception("Not implemented.");
     }
 
-    public void decode(ByteArrayDataInput reader) throws Exception
+    public void decode(MessageReader reader) throws Exception
     {
         throw new Exception("Not implemented.");
     }

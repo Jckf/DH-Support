@@ -18,10 +18,7 @@
 
 package no.jckf.dhsupport.PluginMessages;
 
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
-
-import java.nio.charset.StandardCharsets;
+import no.jckf.dhsupport.MessageWriter;
 
 public class ServerConnectInfoMessage extends PluginMessage
 {
@@ -30,19 +27,13 @@ public class ServerConnectInfoMessage extends PluginMessage
     protected int port;
 
     @Override
-    public byte[] encode()
+    public void encode(MessageWriter writer)
     {
-        ByteArrayDataOutput writer = ByteStreams.newDataOutput();
-
-        writer.writeBoolean(this.address != null);
-        if (this.address != null) {
-            writer.writeShort(this.address.length());
-            writer.write(this.address.getBytes(StandardCharsets.UTF_8));
+        if (writer.writeOptional(this.address)) {
+            writer.writeString(this.address);
         }
 
         writer.writeShort(this.port);
-
-        return writer.toByteArray();
     }
 
     public void setAddress(String address)

@@ -18,24 +18,16 @@
 
 package no.jckf.dhsupport.SocketMessages;
 
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
-
-import java.nio.charset.StandardCharsets;
+import no.jckf.dhsupport.MessageWriter;
 
 public class CloseSocketMessage extends SocketMessage
 {
     protected String message;
 
     @Override
-    public byte[] encode()
+    public void encode(MessageWriter writer)
     {
-        ByteArrayDataOutput writer = ByteStreams.newDataOutput();
-
-        writer.writeShort(this.message.length());
-        writer.write(this.message.getBytes(StandardCharsets.UTF_8));
-
-        return writer.toByteArray();
+        writer.writeString(this.message);
     }
 
     public void setMessage(String message)
