@@ -18,17 +18,11 @@
 
 package no.jckf.dhsupport.Handlers;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
-import com.google.common.primitives.Bytes;
-import no.jckf.dhsupport.DhSupport;
-import no.jckf.dhsupport.MessageTypeRegistry;
+import no.jckf.dhsupport.*;
 import no.jckf.dhsupport.PluginMessages.CurrentLevelKeyMessage;
 import no.jckf.dhsupport.PluginMessages.HelloPluginMessage;
 import no.jckf.dhsupport.PluginMessages.PluginMessage;
 import no.jckf.dhsupport.PluginMessages.ServerConnectInfoMessage;
-import no.jckf.dhsupport.Utils;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +87,7 @@ public class PluginMessageHandler implements PluginMessageListener
     {
         this.plugin.info("Plugin message received. Length: " + data.length);
 
-        ByteArrayDataInput reader = ByteStreams.newDataInput(data);
+        MessageReader reader = new MessageReader(data);
 
         // Read and discard sub-channel. DH always sends a null byte here.
         reader.readByte();
@@ -138,19 +132,23 @@ public class PluginMessageHandler implements PluginMessageListener
         byte[] data;
 
         try {
-            data = message.encode();
+            MessageWriter writer = new MessageWriter();
+            message.encode(writer);
+            data = writer.toByteArray();
         } catch (Exception exception) {
             this.plugin.warning("Failed to encode " + message.getClass() + ": " + exception.getClass() + " - " + exception.getMessage());
             return;
         }
 
-        ByteArrayDataOutput writer = ByteStreams.newDataOutput();
+        MessageWriter writer = new MessageWriter();
 
         writer.writeByte(0);
         writer.writeShort(this.protocolVersion);
         writer.writeShort(messageTypeId);
 
-        byte[] fullMessage = Bytes.concat(writer.toByteArray(), data);
+        writer.write(data);
+
+        byte[] fullMessage = writer.toByteArray();
 
         this.plugin.info("Sending: " + Utils.bytesToHex(fullMessage));
 

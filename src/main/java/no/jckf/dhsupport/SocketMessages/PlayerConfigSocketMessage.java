@@ -18,9 +18,8 @@
 
 package no.jckf.dhsupport.SocketMessages;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
+import no.jckf.dhsupport.MessageReader;
+import no.jckf.dhsupport.MessageWriter;
 
 public class PlayerConfigSocketMessage extends SocketMessage
 {
@@ -41,10 +40,8 @@ public class PlayerConfigSocketMessage extends SocketMessage
     protected boolean generateMultipleDimensions;
 
     @Override
-    public byte[] encode()
+    public void encode(MessageWriter writer)
     {
-        ByteArrayDataOutput writer = ByteStreams.newDataOutput();
-
         writer.writeInt(this.renderDistance);
         writer.writeBoolean(this.distantGenerationEnabled);
         writer.writeInt(this.fullDataRequestConcurrencyLimit);
@@ -53,12 +50,10 @@ public class PlayerConfigSocketMessage extends SocketMessage
         writer.writeBoolean(this.loginDataSyncEnabled);
         writer.writeInt(this.loginDataSyncRateConcurrencyLimit);
         writer.writeBoolean(this.generateMultipleDimensions);
-
-        return writer.toByteArray();
     }
 
     @Override
-    public void decode(ByteArrayDataInput reader)
+    public void decode(MessageReader reader)
     {
         this.renderDistance = reader.readInt();
         this.distantGenerationEnabled = reader.readBoolean();

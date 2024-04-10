@@ -18,18 +18,19 @@
 
 package no.jckf.dhsupport.PluginMessages;
 
-import com.google.common.io.ByteArrayDataInput;
+import no.jckf.dhsupport.MessageReader;
+import no.jckf.dhsupport.MessageWriter;
 
 public class HelloPluginMessage extends PluginMessage
 {
     @Override
-    public byte[] encode()
+    public void encode(MessageWriter writer)
     {
-        return new byte[0];
+
     }
 
     @Override
-    public void decode(ByteArrayDataInput reader)
+    public void decode(MessageReader reader)
     {
 
     }

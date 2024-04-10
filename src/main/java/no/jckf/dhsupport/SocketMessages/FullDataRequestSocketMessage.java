@@ -18,7 +18,7 @@
 
 package no.jckf.dhsupport.SocketMessages;
 
-import com.google.common.io.ByteArrayDataInput;
+import no.jckf.dhsupport.MessageReader;
 
 public class FullDataRequestSocketMessage extends TrackableSocketMessage
 {
@@ -33,15 +33,12 @@ public class FullDataRequestSocketMessage extends TrackableSocketMessage
     protected int checksum;
 
     @Override
-    public void decode(ByteArrayDataInput reader)
+    public void decode(MessageReader reader)
     {
         this.levelHasCode = reader.readInt();
         this.detailLevel = reader.readByte();
         this.x = reader.readInt();
         this.z = reader.readInt();
-
-        if (reader.readBoolean()) {
-            this.checksum = reader.readInt();
-        }
+        this.checksum = reader.readOptional(reader::readInt);
     }
 }

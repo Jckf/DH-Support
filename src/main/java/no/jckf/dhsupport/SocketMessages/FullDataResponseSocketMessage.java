@@ -18,22 +18,17 @@
 
 package no.jckf.dhsupport.SocketMessages;
 
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
+import no.jckf.dhsupport.MessageWriter;
 
 public class FullDataResponseSocketMessage extends TrackableSocketMessage
 {
     protected static final byte formatVersion = 3;
 
     @Override
-    public byte[] encode() throws Exception
+    public void encode(MessageWriter writer) throws Exception
     {
-        ByteArrayDataOutput writer = ByteStreams.newDataOutput();
-
         writer.writeBoolean(true); // This is always true afaik?
         writer.writeByte(FullDataResponseSocketMessage.formatVersion);
         writer.writeInt(0); // No data yet ;(
-
-        return writer.toByteArray();
     }
 }

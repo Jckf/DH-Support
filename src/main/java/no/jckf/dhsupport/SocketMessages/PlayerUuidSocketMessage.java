@@ -18,7 +18,7 @@
 
 package no.jckf.dhsupport.SocketMessages;
 
-import com.google.common.io.ByteArrayDataInput;
+import no.jckf.dhsupport.MessageReader;
 
 import java.util.UUID;
 
@@ -27,7 +27,7 @@ public class PlayerUuidSocketMessage extends TrackableSocketMessage
     protected UUID uuid;
 
     @Override
-    public void decode(ByteArrayDataInput reader)
+    public void decode(MessageReader reader)
     {
         this.uuid = new UUID(reader.readLong(), reader.readLong());
     }

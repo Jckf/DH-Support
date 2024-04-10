@@ -18,28 +18,23 @@
 
 package no.jckf.dhsupport.SocketMessages;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
+import no.jckf.dhsupport.MessageReader;
+import no.jckf.dhsupport.MessageWriter;
 
 public class HelloSocketMessage extends SocketMessage
 {
     protected int version;
 
     @Override
-    public void decode(ByteArrayDataInput reader)
+    public void decode(MessageReader reader)
     {
         this.version = reader.readInt();
     }
 
     @Override
-    public byte[] encode()
+    public void encode(MessageWriter writer)
     {
-        ByteArrayDataOutput writer = ByteStreams.newDataOutput();
-
         writer.writeInt(this.version);
-
-        return writer.toByteArray();
     }
 
     public int getVersion()
