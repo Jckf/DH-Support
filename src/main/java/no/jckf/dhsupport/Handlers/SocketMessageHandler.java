@@ -53,6 +53,7 @@ public class SocketMessageHandler
         this.messageTypeRegistry.registerMessageType(0x0007, PlayerConfigSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(0x0008, FullDataRequestSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(0x0009, FullDataResponseSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x000a, PartialUpdateSocketMessage.class);
 
         this.socketServer = new SocketServer(this.plugin);
 
