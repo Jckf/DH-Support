@@ -27,7 +27,7 @@ public class ExceptionSocketMessage extends TrackableSocketMessage
     protected String exceptionMessage;
 
     @Override
-    public void encode(MessageWriter writer) throws Exception
+    public void encode(MessageWriter writer)
     {
         writer.writeInt(this.exceptionTypeId);
         writer.writeString(this.exceptionMessage);

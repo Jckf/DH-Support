@@ -25,7 +25,7 @@ public class FullDataResponseSocketMessage extends TrackableSocketMessage
     protected static final byte formatVersion = 3;
 
     @Override
-    public void encode(MessageWriter writer) throws Exception
+    public void encode(MessageWriter writer)
     {
         writer.writeBoolean(true); // This is always true afaik?
         writer.writeByte(FullDataResponseSocketMessage.formatVersion);
