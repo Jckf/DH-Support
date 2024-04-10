@@ -22,7 +22,7 @@ import no.jckf.dhsupport.MessageReader;
 
 public class FullDataRequestSocketMessage extends TrackableSocketMessage
 {
-    protected int levelHasCode;
+    protected int levelHashCode;
 
     protected byte detailLevel;
 
@@ -35,7 +35,7 @@ public class FullDataRequestSocketMessage extends TrackableSocketMessage
     @Override
     public void decode(MessageReader reader)
     {
-        this.levelHasCode = reader.readInt();
+        this.levelHashCode = reader.readInt();
         this.detailLevel = reader.readByte();
         this.x = reader.readInt();
         this.z = reader.readInt();
