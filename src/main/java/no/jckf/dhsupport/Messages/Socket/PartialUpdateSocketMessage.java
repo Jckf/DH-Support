@@ -19,37 +19,22 @@
 package no.jckf.dhsupport.Messages.Socket;
 
 import no.jckf.dhsupport.ByteStream.Encoder;
+import no.jckf.dhsupport.DataObjects.SectionPosition;
 
 public class PartialUpdateSocketMessage extends SocketMessage
 {
-    protected int levelHashCode;
-
-    protected int x;
-
-    protected int z;
+    protected SectionPosition position;
 
     @Override
     public void encode(Encoder encoder)
     {
-        encoder.writeInt(this.levelHashCode);
-        encoder.writeInt(this.x);
-        encoder.writeInt(this.z);
+        encoder.writeObject(this.position);
         encoder.writeInt(0); // Data length.
         //writer.write(...) // Data.
     }
 
-    public void setLevelHashCode(int hashCode)
+    public void setPosition(SectionPosition position)
     {
-        this.levelHashCode = hashCode;
-    }
-
-    public void setX(int x)
-    {
-        this.x = x;
-    }
-
-    public void setZ(int z)
-    {
-        this.z = z;
+        this.position = position;
     }
 }
