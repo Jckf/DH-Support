@@ -20,9 +20,13 @@ package no.jckf.dhsupport.Handlers;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import no.jckf.dhsupport.*;
-import no.jckf.dhsupport.SocketMessages.*;
+import no.jckf.dhsupport.ByteStream.Decoder;
+import no.jckf.dhsupport.ByteStream.Encoder;
+import no.jckf.dhsupport.DhSupport;
+import no.jckf.dhsupport.Messages.MessageTypeRegistry;
+import no.jckf.dhsupport.Messages.Socket.*;
 import no.jckf.dhsupport.SocketServer.SocketServer;
+import no.jckf.dhsupport.Utils;
 import org.bukkit.entity.Player;
 
 public class SocketMessageHandler
@@ -54,6 +58,8 @@ public class SocketMessageHandler
         this.messageTypeRegistry.registerMessageType(0x0008, FullDataRequestSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(0x0009, FullDataResponseSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(0x000a, PartialUpdateSocketMessage.class);
+        this.messageTypeRegistry.registerMessageType(0x000b, GenerationTaskPriorityRequest.class);
+        this.messageTypeRegistry.registerMessageType(0x000c, GenerationTaskPriorityResponse.class);
 
         this.socketServer = new SocketServer(this.plugin);
 
@@ -141,15 +147,23 @@ public class SocketMessageHandler
             return;
         }
 
+        if (message instanceof GenerationTaskPriorityRequest) {
+            GenerationTaskPriorityRequest priorityRequest = (GenerationTaskPriorityRequest) message;
+
+            this.plugin.info("Priority request for:");
+            priorityRequest.getSectionPositions().forEach((pos) -> this.plugin.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
+            return;
+        }
+
         // TODO: Some sort of event bus for handlers, instead of a million ifs 👆
         this.plugin.warning("Message was successfully parsed, but there is no code to handle it.");
     }
 
     protected SocketMessage readSocketMessage(byte[] data)
     {
-        MessageReader reader = new MessageReader(data);
+        Decoder decoder = new Decoder(data);
 
-        short messageTypeId = reader.readShort();
+        short messageTypeId = decoder.readShort();
 
         Class<? extends SocketMessage> messageClass = (Class<? extends SocketMessage>) this.messageTypeRegistry.getMessageClass(messageTypeId);
 
@@ -168,12 +182,12 @@ public class SocketMessageHandler
             if (message instanceof TrackableSocketMessage) {
                 TrackableSocketMessage trackable = (TrackableSocketMessage) message;
 
-                trackable.setTracker(reader.readInt());
+                trackable.setTracker(decoder.readInt());
 
                 this.plugin.info("Message is trackable: " + trackable.getTracker());
             }
 
-            message.decode(reader);
+            message.decode(decoder);
         } catch (Exception exception) {
             this.plugin.warning("Failed to init message class: " + exception.getClass() + " - " + exception.getMessage());
             return null;
@@ -194,9 +208,9 @@ public class SocketMessageHandler
         byte[] data;
 
         try {
-            MessageWriter writer = new MessageWriter();
-            message.encode(writer);
-            data = writer.toByteArray();
+            Encoder encoder = new Encoder();
+            message.encode(encoder);
+            data = encoder.toByteArray();
         } catch (Exception exception) {
             this.plugin.warning("Failed to encode " + message.getClass() + ": " + exception.getClass() + " - " + exception.getMessage());
             return;
@@ -212,18 +226,18 @@ public class SocketMessageHandler
 
         // TODO: Keep track of trackable messages.
 
-        MessageWriter writer = new MessageWriter();
+        Encoder encoder = new Encoder();
 
-        writer.writeInt(data.length + 2 + (tracker == -1 ? 0 : 4));
-        writer.writeShort(messageTypeId);
+        encoder.writeInt(data.length + 2 + (tracker == -1 ? 0 : 4));
+        encoder.writeShort(messageTypeId);
 
         if (tracker != -1) {
-            writer.writeInt(tracker);
+            encoder.writeInt(tracker);
         }
 
-        writer.write(data);
+        encoder.write(data);
 
-        byte[] fullMessage = writer.toByteArray();
+        byte[] fullMessage = encoder.toByteArray();
 
         this.plugin.info("Sending: " + Utils.bytesToHex(fullMessage));
 

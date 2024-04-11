@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.PluginMessages;
+package no.jckf.dhsupport.Messages.Plugin;
 
 public class CurrentLevelKeyMessage extends PluginMessage
 {

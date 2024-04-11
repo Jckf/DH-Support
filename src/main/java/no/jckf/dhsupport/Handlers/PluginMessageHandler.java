@@ -19,10 +19,13 @@
 package no.jckf.dhsupport.Handlers;
 
 import no.jckf.dhsupport.*;
-import no.jckf.dhsupport.PluginMessages.CurrentLevelKeyMessage;
-import no.jckf.dhsupport.PluginMessages.HelloPluginMessage;
-import no.jckf.dhsupport.PluginMessages.PluginMessage;
-import no.jckf.dhsupport.PluginMessages.ServerConnectInfoMessage;
+import no.jckf.dhsupport.ByteStream.Decoder;
+import no.jckf.dhsupport.ByteStream.Encoder;
+import no.jckf.dhsupport.Messages.MessageTypeRegistry;
+import no.jckf.dhsupport.Messages.Plugin.CurrentLevelKeyMessage;
+import no.jckf.dhsupport.Messages.Plugin.HelloPluginMessage;
+import no.jckf.dhsupport.Messages.Plugin.PluginMessage;
+import no.jckf.dhsupport.Messages.Plugin.ServerConnectInfoMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
@@ -87,13 +90,13 @@ public class PluginMessageHandler implements PluginMessageListener
     {
         this.plugin.info("Plugin message received. Length: " + data.length);
 
-        MessageReader reader = new MessageReader(data);
+        Decoder decoder = new Decoder(data);
 
         // Read and discard sub-channel. DH always sends a null byte here.
-        reader.readByte();
+        decoder.readByte();
 
         // Read the client's protocol version.
-        short protocolVersion = reader.readShort();
+        short protocolVersion = decoder.readShort();
 
         if (protocolVersion != this.protocolVersion) {
             this.plugin.warning("Unsupported protocol version: " + protocolVersion);
@@ -101,7 +104,7 @@ public class PluginMessageHandler implements PluginMessageListener
         }
 
         // Read the message type ID.
-        short messageTypeId = reader.readShort();
+        short messageTypeId = decoder.readShort();
 
         Class<? extends PluginMessage> messageClass = (Class<? extends PluginMessage>) this.messageTypeRegistry.getMessageClass(messageTypeId);
 
@@ -111,7 +114,7 @@ public class PluginMessageHandler implements PluginMessageListener
 
         try {
             message = messageClass.getConstructor().newInstance();
-            message.decode(reader);
+            message.decode(decoder);
         } catch (Exception exception) {
             this.plugin.warning("Failed to init message class: " + exception.getClass() + " - " + exception.getMessage());
             return null;
@@ -132,23 +135,23 @@ public class PluginMessageHandler implements PluginMessageListener
         byte[] data;
 
         try {
-            MessageWriter writer = new MessageWriter();
-            message.encode(writer);
-            data = writer.toByteArray();
+            Encoder encoder = new Encoder();
+            message.encode(encoder);
+            data = encoder.toByteArray();
         } catch (Exception exception) {
             this.plugin.warning("Failed to encode " + message.getClass() + ": " + exception.getClass() + " - " + exception.getMessage());
             return;
         }
 
-        MessageWriter writer = new MessageWriter();
+        Encoder encoder = new Encoder();
 
-        writer.writeByte(0);
-        writer.writeShort(this.protocolVersion);
-        writer.writeShort(messageTypeId);
+        encoder.writeByte(0);
+        encoder.writeShort(this.protocolVersion);
+        encoder.writeShort(messageTypeId);
 
-        writer.write(data);
+        encoder.write(data);
 
-        byte[] fullMessage = writer.toByteArray();
+        byte[] fullMessage = encoder.toByteArray();
 
         this.plugin.info("Sending: " + Utils.bytesToHex(fullMessage));
 

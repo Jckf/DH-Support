@@ -99,7 +99,7 @@ No additional data.
 
 ### 0x000b Generation task priority request (trackable)
 
-* (int) level has code
+* (int) level hash code
 * (int) position list length
 * position list
 

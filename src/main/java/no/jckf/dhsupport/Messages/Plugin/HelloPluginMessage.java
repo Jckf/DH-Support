@@ -16,22 +16,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Plugin;
 
-import no.jckf.dhsupport.MessageWriter;
+import no.jckf.dhsupport.ByteStream.Decoder;
+import no.jckf.dhsupport.ByteStream.Encoder;
 
-public class CloseSocketMessage extends SocketMessage
+public class HelloPluginMessage extends PluginMessage
 {
-    protected String message;
-
     @Override
-    public void encode(MessageWriter writer)
+    public void encode(Encoder encoder)
     {
-        writer.writeString(this.message);
+
     }
 
-    public void setMessage(String message)
+    @Override
+    public void decode(Decoder decoder)
     {
-        this.message = message;
+
     }
 }

@@ -16,16 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport;
+package no.jckf.dhsupport.ByteStream;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
-public class MessageWriter
+import java.util.Collection;
+
+public class Encoder
 {
     protected ByteArrayDataOutput output;
 
-    public MessageWriter()
+    public Encoder()
     {
         this.output = ByteStreams.newDataOutput();
     }
@@ -88,6 +90,22 @@ public class MessageWriter
         this.writeBoolean(hasValue);
 
         return hasValue;
+    }
+
+    public void writeObject(Object object)
+    {
+        if (object instanceof Encodable) {
+            ((Encodable) object).encode(this);
+        } else {
+            // TODO: Encoders for primitives.
+        }
+    }
+
+    public <T> void writeCollection(Collection<T> items)
+    {
+        this.writeInt(items.size());
+
+        items.forEach(this::writeObject);
     }
 
     public byte[] toByteArray()

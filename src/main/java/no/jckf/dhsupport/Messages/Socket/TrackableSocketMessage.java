@@ -16,17 +16,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport;
+package no.jckf.dhsupport.Messages.Socket;
 
-public abstract class DhMessage
+public abstract class TrackableSocketMessage extends SocketMessage
 {
-    public void encode(MessageWriter writer) throws Exception
+    protected int tracker;
+
+    public void setTracker(int tracker)
     {
-        throw new Exception("Not implemented.");
+        this.tracker = tracker;
     }
 
-    public void decode(MessageReader reader) throws Exception
+    public int getTracker()
     {
-        throw new Exception("Not implemented.");
+        return this.tracker;
+    }
+
+    public void isResponseTo(TrackableSocketMessage message)
+    {
+        this.setTracker(message.getTracker());
     }
 }

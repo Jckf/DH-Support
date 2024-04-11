@@ -16,22 +16,29 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Socket;
 
-import no.jckf.dhsupport.MessageReader;
-import no.jckf.dhsupport.MessageWriter;
+import no.jckf.dhsupport.ByteStream.Decoder;
 
-public class CancelSocketMessage extends TrackableSocketMessage
+import java.util.UUID;
+
+public class PlayerUuidSocketMessage extends TrackableSocketMessage
 {
-    @Override
-    public void encode(MessageWriter writer)
-    {
+    protected UUID uuid;
 
+    @Override
+    public void decode(Decoder decoder)
+    {
+        this.uuid = new UUID(decoder.readLong(), decoder.readLong());
     }
 
-    @Override
-    public void decode(MessageReader reader)
+    public void setUuid(UUID uuid)
     {
+        this.uuid = uuid;
+    }
 
+    public UUID getUuid()
+    {
+        return this.uuid;
     }
 }

@@ -16,11 +16,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Socket;
 
-import no.jckf.dhsupport.DhMessage;
+import no.jckf.dhsupport.ByteStream.Encoder;
 
-public abstract class SocketMessage extends DhMessage
+public class CloseSocketMessage extends SocketMessage
 {
+    protected String message;
 
+    @Override
+    public void encode(Encoder encoder)
+    {
+        encoder.writeString(this.message);
+    }
+
+    public void setMessage(String message)
+    {
+        this.message = message;
+    }
 }

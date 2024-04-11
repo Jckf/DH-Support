@@ -16,26 +16,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Socket;
 
-import no.jckf.dhsupport.MessageWriter;
+import no.jckf.dhsupport.ByteStream.Decoder;
+import no.jckf.dhsupport.DataObjects.SectionPosition;
 
-public class PartialUpdateSocketMessage extends SocketMessage
+import java.util.Collection;
+
+public class GenerationTaskPriorityRequest extends TrackableSocketMessage
 {
     protected int levelHashCode;
 
-    protected int x;
-
-    protected int z;
+    protected Collection<SectionPosition> sectionPositions;
 
     @Override
-    public void encode(MessageWriter writer)
+    public void decode(Decoder decoder)
     {
-        writer.writeInt(this.levelHashCode);
-        writer.writeInt(this.x);
-        writer.writeInt(this.z);
-        writer.writeInt(0); // Data length.
-        //writer.write(...) // Data.
+        this.levelHashCode = decoder.readInt();
+        this.sectionPositions = decoder.readCollection(SectionPosition.class);
     }
 
     public void setLevelHashCode(int hashCode)
@@ -43,13 +41,18 @@ public class PartialUpdateSocketMessage extends SocketMessage
         this.levelHashCode = hashCode;
     }
 
-    public void setX(int x)
+    public int getLevelHashCode()
     {
-        this.x = x;
+        return this.levelHashCode;
     }
 
-    public void setZ(int z)
+    public void setSectionPositions(Collection<SectionPosition> sectionPositions)
     {
-        this.z = z;
+        this.sectionPositions = sectionPositions;
+    }
+
+    public Collection<SectionPosition> getSectionPositions()
+    {
+        return this.sectionPositions;
     }
 }

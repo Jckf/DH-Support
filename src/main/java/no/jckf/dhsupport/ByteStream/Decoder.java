@@ -16,20 +16,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport;
+package no.jckf.dhsupport.ByteStream;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Supplier;
 
-public class MessageReader
+public class Decoder
 {
     protected ByteArrayDataInput input;
 
-    public MessageReader(byte[] data)
+    public Decoder(byte[] data)
     {
         this.input = ByteStreams.newDataInput(data);
     }
@@ -74,5 +78,40 @@ public class MessageReader
         }
 
         return null;
+    }
+
+    @Nullable
+    public <T> T readObject(Class<T> className)
+    {
+        T instance;
+
+        try {
+            instance = className.getConstructor().newInstance();
+        } catch (Exception exception) {
+            return null;
+        }
+
+        if (instance instanceof Decodable) {
+            ((Decodable) instance).decode(this);
+        } else {
+            // TODO: Decoders for primitives.
+        }
+
+        return instance;
+    }
+
+    public <T> Collection<T> readCollection(Class<T> className)
+    {
+        int size = this.readInt();
+
+        List<T> items = new ArrayList<>();
+
+        for (int i = 0; i < size; i++) {
+            T item = this.readObject(className);
+
+            items.add(item);
+        }
+
+        return items;
     }
 }

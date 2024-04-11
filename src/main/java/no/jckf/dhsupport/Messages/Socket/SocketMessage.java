@@ -16,27 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport;
+package no.jckf.dhsupport.Messages.Socket;
 
-import java.util.ArrayList;
-import java.util.List;
+import no.jckf.dhsupport.Messages.Message;
 
-public class MessageTypeRegistry
+public abstract class SocketMessage extends Message
 {
-    protected List<Class<? extends DhMessage>> messageTypes = new ArrayList<>();
 
-    public void registerMessageType(int id, Class<? extends DhMessage> messageClass)
-    {
-        this.messageTypes.add(id, messageClass);
-    }
-
-    public Class<? extends DhMessage> getMessageClass(int id)
-    {
-        return this.messageTypes.size() - 1 >= id ? this.messageTypes.get(id) : null;
-    }
-
-    public int getMessageTypeId(Class<? extends DhMessage> messageClass)
-    {
-        return this.messageTypes.indexOf(messageClass);
-    }
 }

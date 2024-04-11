@@ -16,25 +16,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Socket;
 
-import no.jckf.dhsupport.MessageReader;
-import no.jckf.dhsupport.MessageWriter;
+import no.jckf.dhsupport.ByteStream.Decoder;
+import no.jckf.dhsupport.ByteStream.Encoder;
 
 public class HelloSocketMessage extends SocketMessage
 {
     protected int version;
 
     @Override
-    public void decode(MessageReader reader)
+    public void decode(Decoder decoder)
     {
-        this.version = reader.readInt();
+        this.version = decoder.readInt();
     }
 
     @Override
-    public void encode(MessageWriter writer)
+    public void encode(Encoder encoder)
     {
-        writer.writeInt(this.version);
+        encoder.writeInt(this.version);
     }
 
     public int getVersion()
