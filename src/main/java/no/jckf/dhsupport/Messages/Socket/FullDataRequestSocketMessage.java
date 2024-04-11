@@ -19,26 +19,24 @@
 package no.jckf.dhsupport.Messages.Socket;
 
 import no.jckf.dhsupport.ByteStream.Decoder;
+import no.jckf.dhsupport.DataObjects.SectionPosition;
+
+import javax.annotation.Nullable;
 
 public class FullDataRequestSocketMessage extends TrackableSocketMessage
 {
     protected int levelHashCode;
 
-    protected byte detailLevel;
+    protected SectionPosition position;
 
-    protected int x;
-
-    protected int z;
-
-    protected int checksum;
+    @Nullable
+    protected Integer checksum;
 
     @Override
     public void decode(Decoder decoder)
     {
         this.levelHashCode = decoder.readInt();
-        this.detailLevel = decoder.readByte();
-        this.x = decoder.readInt();
-        this.z = decoder.readInt();
+        this.position = decoder.readObject(SectionPosition.class);
         this.checksum = decoder.readOptional(decoder::readInt);
     }
 }
