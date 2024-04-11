@@ -16,24 +16,29 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Socket;
 
-public abstract class TrackableSocketMessage extends SocketMessage
+import no.jckf.dhsupport.ByteStream.Decoder;
+
+public class FullDataRequestSocketMessage extends TrackableSocketMessage
 {
-    protected int tracker;
+    protected int levelHashCode;
 
-    public void setTracker(int tracker)
-    {
-        this.tracker = tracker;
-    }
+    protected byte detailLevel;
 
-    public int getTracker()
-    {
-        return this.tracker;
-    }
+    protected int x;
 
-    public void isResponseTo(TrackableSocketMessage message)
+    protected int z;
+
+    protected int checksum;
+
+    @Override
+    public void decode(Decoder decoder)
     {
-        this.setTracker(message.getTracker());
+        this.levelHashCode = decoder.readInt();
+        this.detailLevel = decoder.readByte();
+        this.x = decoder.readInt();
+        this.z = decoder.readInt();
+        this.checksum = decoder.readOptional(decoder::readInt);
     }
 }

@@ -16,22 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.PluginMessages;
+package no.jckf.dhsupport.Messages.Plugin;
 
-import no.jckf.dhsupport.MessageReader;
-import no.jckf.dhsupport.MessageWriter;
+import no.jckf.dhsupport.Messages.Message;
 
-public class HelloPluginMessage extends PluginMessage
+public abstract class PluginMessage extends Message
 {
-    @Override
-    public void encode(MessageWriter writer)
-    {
 
-    }
-
-    @Override
-    public void decode(MessageReader reader)
-    {
-
-    }
 }

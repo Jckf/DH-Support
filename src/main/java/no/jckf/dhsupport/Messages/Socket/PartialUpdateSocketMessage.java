@@ -16,19 +16,40 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Socket;
 
-import no.jckf.dhsupport.MessageWriter;
+import no.jckf.dhsupport.ByteStream.Encoder;
 
-public class FullDataResponseSocketMessage extends TrackableSocketMessage
+public class PartialUpdateSocketMessage extends SocketMessage
 {
-    protected static final byte formatVersion = 3;
+    protected int levelHashCode;
+
+    protected int x;
+
+    protected int z;
 
     @Override
-    public void encode(MessageWriter writer)
+    public void encode(Encoder encoder)
     {
-        writer.writeBoolean(true); // This is always true afaik?
-        writer.writeByte(FullDataResponseSocketMessage.formatVersion);
-        writer.writeInt(0); // No data yet ;(
+        encoder.writeInt(this.levelHashCode);
+        encoder.writeInt(this.x);
+        encoder.writeInt(this.z);
+        encoder.writeInt(0); // Data length.
+        //writer.write(...) // Data.
+    }
+
+    public void setLevelHashCode(int hashCode)
+    {
+        this.levelHashCode = hashCode;
+    }
+
+    public void setX(int x)
+    {
+        this.x = x;
+    }
+
+    public void setZ(int z)
+    {
+        this.z = z;
     }
 }

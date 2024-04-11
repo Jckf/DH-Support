@@ -16,10 +16,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Socket;
 
-import no.jckf.dhsupport.MessageReader;
-import no.jckf.dhsupport.MessageWriter;
+import no.jckf.dhsupport.ByteStream.Decoder;
+import no.jckf.dhsupport.ByteStream.Encoder;
 
 public class PlayerConfigSocketMessage extends SocketMessage
 {
@@ -40,29 +40,29 @@ public class PlayerConfigSocketMessage extends SocketMessage
     protected boolean generateMultipleDimensions;
 
     @Override
-    public void encode(MessageWriter writer)
+    public void encode(Encoder encoder)
     {
-        writer.writeInt(this.renderDistance);
-        writer.writeBoolean(this.distantGenerationEnabled);
-        writer.writeInt(this.fullDataRequestConcurrencyLimit);
-        writer.writeInt(this.generationTaskPriorityRequestRateLimit);
-        writer.writeBoolean(this.realTimeUpdatedEnabled);
-        writer.writeBoolean(this.loginDataSyncEnabled);
-        writer.writeInt(this.loginDataSyncRateConcurrencyLimit);
-        writer.writeBoolean(this.generateMultipleDimensions);
+        encoder.writeInt(this.renderDistance);
+        encoder.writeBoolean(this.distantGenerationEnabled);
+        encoder.writeInt(this.fullDataRequestConcurrencyLimit);
+        encoder.writeInt(this.generationTaskPriorityRequestRateLimit);
+        encoder.writeBoolean(this.realTimeUpdatedEnabled);
+        encoder.writeBoolean(this.loginDataSyncEnabled);
+        encoder.writeInt(this.loginDataSyncRateConcurrencyLimit);
+        encoder.writeBoolean(this.generateMultipleDimensions);
     }
 
     @Override
-    public void decode(MessageReader reader)
+    public void decode(Decoder decoder)
     {
-        this.renderDistance = reader.readInt();
-        this.distantGenerationEnabled = reader.readBoolean();
-        this.fullDataRequestConcurrencyLimit = reader.readInt();
-        this.generationTaskPriorityRequestRateLimit = reader.readInt();
-        this.realTimeUpdatedEnabled = reader.readBoolean();
-        this.loginDataSyncEnabled = reader.readBoolean();
-        this.loginDataSyncRateConcurrencyLimit = reader.readInt();
-        this.generateMultipleDimensions = reader.readBoolean();
+        this.renderDistance = decoder.readInt();
+        this.distantGenerationEnabled = decoder.readBoolean();
+        this.fullDataRequestConcurrencyLimit = decoder.readInt();
+        this.generationTaskPriorityRequestRateLimit = decoder.readInt();
+        this.realTimeUpdatedEnabled = decoder.readBoolean();
+        this.loginDataSyncEnabled = decoder.readBoolean();
+        this.loginDataSyncRateConcurrencyLimit = decoder.readInt();
+        this.generateMultipleDimensions = decoder.readBoolean();
     }
 
     // TODO: Setters and getters.

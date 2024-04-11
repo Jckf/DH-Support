@@ -16,29 +16,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Socket;
 
-import no.jckf.dhsupport.MessageReader;
+import no.jckf.dhsupport.ByteStream.Decoder;
+import no.jckf.dhsupport.ByteStream.Encoder;
 
-public class FullDataRequestSocketMessage extends TrackableSocketMessage
+public class AckSocketMessage extends TrackableSocketMessage
 {
-    protected int levelHashCode;
+    @Override
+    public void encode(Encoder encoder)
+    {
 
-    protected byte detailLevel;
-
-    protected int x;
-
-    protected int z;
-
-    protected int checksum;
+    }
 
     @Override
-    public void decode(MessageReader reader)
+    public void decode(Decoder decoder)
     {
-        this.levelHashCode = reader.readInt();
-        this.detailLevel = reader.readByte();
-        this.x = reader.readInt();
-        this.z = reader.readInt();
-        this.checksum = reader.readOptional(reader::readInt);
+
     }
 }

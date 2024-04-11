@@ -16,11 +16,33 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.PluginMessages;
+package no.jckf.dhsupport.Messages.Plugin;
 
-import no.jckf.dhsupport.DhMessage;
+import no.jckf.dhsupport.ByteStream.Encoder;
 
-public abstract class PluginMessage extends DhMessage
+public class ServerConnectInfoMessage extends PluginMessage
 {
+    protected String address;
 
+    protected int port;
+
+    @Override
+    public void encode(Encoder encoder)
+    {
+        if (encoder.writeOptional(this.address)) {
+            encoder.writeString(this.address);
+        }
+
+        encoder.writeShort(this.port);
+    }
+
+    public void setAddress(String address)
+    {
+        this.address = address;
+    }
+
+    public void setPort(int port)
+    {
+        this.port = port;
+    }
 }

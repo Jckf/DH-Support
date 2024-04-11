@@ -16,33 +16,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.PluginMessages;
+package no.jckf.dhsupport.Messages;
 
-import no.jckf.dhsupport.MessageWriter;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ServerConnectInfoMessage extends PluginMessage
+public class MessageTypeRegistry
 {
-    protected String address;
+    protected List<Class<? extends Message>> messageTypes = new ArrayList<>();
 
-    protected int port;
-
-    @Override
-    public void encode(MessageWriter writer)
+    public void registerMessageType(int id, Class<? extends Message> messageClass)
     {
-        if (writer.writeOptional(this.address)) {
-            writer.writeString(this.address);
-        }
-
-        writer.writeShort(this.port);
+        this.messageTypes.add(id, messageClass);
     }
 
-    public void setAddress(String address)
+    public Class<? extends Message> getMessageClass(int id)
     {
-        this.address = address;
+        return this.messageTypes.size() - 1 >= id ? this.messageTypes.get(id) : null;
     }
 
-    public void setPort(int port)
+    public int getMessageTypeId(Class<? extends Message> messageClass)
     {
-        this.port = port;
+        return this.messageTypes.indexOf(messageClass);
     }
 }

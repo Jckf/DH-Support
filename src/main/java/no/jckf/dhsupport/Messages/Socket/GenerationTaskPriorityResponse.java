@@ -16,30 +16,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.SocketMessages;
+package no.jckf.dhsupport.Messages.Socket;
 
-import no.jckf.dhsupport.MessageWriter;
+import no.jckf.dhsupport.ByteStream.Encoder;
 
-public class ExceptionSocketMessage extends TrackableSocketMessage
+public class GenerationTaskPriorityResponse extends TrackableSocketMessage
 {
-    protected int exceptionTypeId;
-
-    protected String exceptionMessage;
-
     @Override
-    public void encode(MessageWriter writer)
+    public void encode(Encoder encoder)
     {
-        writer.writeInt(this.exceptionTypeId);
-        writer.writeString(this.exceptionMessage);
-    }
-
-    public void setExceptionTypeId(int typeId)
-    {
-        this.exceptionTypeId = typeId;
-    }
-
-    public void setExceptionMessage(String message)
-    {
-        this.exceptionMessage = message;
+        // TODO
     }
 }
