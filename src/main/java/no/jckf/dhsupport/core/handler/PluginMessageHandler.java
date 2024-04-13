@@ -22,6 +22,7 @@ import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.Utils;
 import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
+import no.jckf.dhsupport.core.event.EventBus;
 import no.jckf.dhsupport.core.message.MessageTypeRegistry;
 import no.jckf.dhsupport.core.message.plugin.CurrentLevelKeyMessage;
 import no.jckf.dhsupport.core.message.plugin.HelloPluginMessage;
@@ -29,6 +30,7 @@ import no.jckf.dhsupport.core.message.plugin.PluginMessage;
 import no.jckf.dhsupport.core.message.plugin.ServerConnectInfoMessage;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class PluginMessageHandler
@@ -40,6 +42,8 @@ public class PluginMessageHandler
     public final String pluginChannel = "distant_horizons:plugin_channel";
 
     public final int protocolVersion = 1;
+
+    private EventBus<PluginMessage> eventBus;
 
     public PluginMessageHandler(DhSupport dhSupport)
     {
@@ -54,11 +58,28 @@ public class PluginMessageHandler
         this.messageTypeRegistry.registerMessageType(1, HelloPluginMessage.class);
         this.messageTypeRegistry.registerMessageType(2, CurrentLevelKeyMessage.class);
         this.messageTypeRegistry.registerMessageType(3, ServerConnectInfoMessage.class);
+
+        this.eventBus = new EventBus<>();
+
+        this.eventBus.registerHandler(HelloPluginMessage.class, (hello) -> {
+            ServerConnectInfoMessage response = new ServerConnectInfoMessage();
+            //response.setAddress("google.com");
+            response.setPort(this.dhSupport.getConfig().getInt("port"));
+
+            this.sendPluginMessage(hello.getSender(), response);
+        });
     }
 
     public void onDisable()
     {
+        this.eventBus = null;
+        this.messageTypeRegistry = null;
+    }
 
+    @Nullable
+    public EventBus<PluginMessage> getEventBus()
+    {
+        return this.eventBus;
     }
 
     public void onPluginMessageReceived(@NotNull String channel, @NotNull UUID senderUuid, byte[] data)
@@ -69,16 +90,17 @@ public class PluginMessageHandler
             message = this.readPluginMessage(data);
         } catch (Exception exception) {
             this.dhSupport.warning("Error while parsing incoming plugin message: " + exception.getClass() + " - " + exception.getMessage());
+            this.dhSupport.warning("Data was: " + Utils.bytesToHex(data));
             return;
         }
 
-        if (message instanceof HelloPluginMessage) {
-            ServerConnectInfoMessage response = new ServerConnectInfoMessage();
-            //response.setAddress("google.com");
-            response.setPort(this.dhSupport.getConfig().getInt("port"));
-
-            this.sendPluginMessage(senderUuid, response);
+        if (message == null) {
+            return;
         }
+
+        message.setSender(senderUuid);
+
+        this.eventBus.dispatch(message);
     }
 
     protected PluginMessage readPluginMessage(byte[] data)

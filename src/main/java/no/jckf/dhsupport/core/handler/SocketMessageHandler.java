@@ -23,6 +23,7 @@ import io.netty.channel.Channel;
 import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.core.event.EventBus;
 import no.jckf.dhsupport.core.message.MessageTypeRegistry;
 import no.jckf.dhsupport.core.message.socket.*;
 import no.jckf.dhsupport.core.socketserver.SocketServer;
@@ -37,6 +38,8 @@ public class SocketMessageHandler
     protected SocketServer socketServer;
 
     protected final int protocolVersion = 2;
+
+    protected EventBus<SocketMessage> eventBus;
 
     public SocketMessageHandler(DhSupport dhSupport)
     {
@@ -59,6 +62,43 @@ public class SocketMessageHandler
         this.messageTypeRegistry.registerMessageType(0x000a, PartialUpdateSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(0x000b, GenerationTaskPriorityRequest.class);
         this.messageTypeRegistry.registerMessageType(0x000c, GenerationTaskPriorityResponse.class);
+
+        this.eventBus = new EventBus<>();
+
+        this.eventBus.registerHandler(HelloSocketMessage.class, (hello) -> {
+            if (hello.getVersion() != this.protocolVersion) {
+                CloseSocketMessage response = new CloseSocketMessage();
+                response.setMessage("Incompatible Distant Horizons version. Server speaks protocol version " + this.protocolVersion + ", but client sent protocol version " + hello.getVersion());
+                this.sendSocketMessage(hello.getSender(), response);
+                return;
+            }
+
+            HelloSocketMessage response = new HelloSocketMessage();
+            response.setVersion(this.protocolVersion);
+            this.sendSocketMessage(hello.getSender(), response);
+        });
+
+        this.eventBus.registerHandler(PlayerUuidSocketMessage.class, (uuid) -> {
+            AckSocketMessage response = new AckSocketMessage();
+            response.isResponseTo(uuid);
+            this.sendSocketMessage(uuid.getSender(), response);
+        });
+
+        this.eventBus.registerHandler(PlayerConfigSocketMessage.class, (config) -> {
+            // TODO: Clamp values according to server config.
+            this.sendSocketMessage(config.getSender(), config);
+        });
+
+        this.eventBus.registerHandler(FullDataRequestSocketMessage.class, (request) -> {
+            FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
+            response.isResponseTo(request);
+            //this.sendSocketMessage(socket, response); // TODO: Actually respond with some data. Disabled for now to stop the client from spamming requests.
+        });
+
+        this.eventBus.registerHandler(GenerationTaskPriorityRequest.class, (request) -> {
+            this.dhSupport.info("Priority request for:");
+            request.getSectionPositions().forEach((pos) -> this.dhSupport.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
+        });
 
         this.socketServer = new SocketServer(this.dhSupport);
 
@@ -98,74 +138,9 @@ public class SocketMessageHandler
             return;
         }
 
-        if (message instanceof HelloSocketMessage) {
-            HelloSocketMessage clientHello = (HelloSocketMessage) message;
+        message.setSender(socket);
 
-            if (clientHello.getVersion() != this.protocolVersion) {
-                CloseSocketMessage response = new CloseSocketMessage();
-                response.setMessage("Incompatible Distant Horizons version. Server speaks protocol version " + this.protocolVersion + ", but client sent protocol version " + clientHello.getVersion());
-                this.sendSocketMessage(socket, response);
-                return;
-            }
-
-            HelloSocketMessage response = new HelloSocketMessage();
-            response.setVersion(this.protocolVersion);
-            this.sendSocketMessage(socket, response);
-            return;
-        }
-
-        if (message instanceof PlayerUuidSocketMessage) {
-            PlayerUuidSocketMessage playerUuid = (PlayerUuidSocketMessage) message;
-
-            this.dhSupport.info("UUID: " + playerUuid.getUuid());
-
-            /*Player player = this.plugin.getServer().getPlayer(playerUuid.getUuid());
-
-            // TODO: Also check if player is using DH at all or has already connected.
-            if (player == null) {
-                this.plugin.warning("UUID does not match any online player.");
-
-                CloseSocketMessage response = new CloseSocketMessage();
-                response.setMessage("Invalid UUID.");
-                this.sendSocketMessage(socket, response);
-                return;
-            }
-
-            this.plugin.info("Socket belongs to player " + player.getName());*/
-
-            AckSocketMessage response = new AckSocketMessage();
-            response.isResponseTo(playerUuid);
-            this.sendSocketMessage(socket, response);
-            return;
-        }
-
-        if (message instanceof PlayerConfigSocketMessage) {
-            PlayerConfigSocketMessage config = (PlayerConfigSocketMessage) message;
-
-            // TODO: Clamp values according to server config.
-            this.sendSocketMessage(socket, config);
-            return;
-        }
-
-        if (message instanceof FullDataRequestSocketMessage) {
-            FullDataRequestSocketMessage dataRequest = (FullDataRequestSocketMessage) message;
-
-            FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
-            response.isResponseTo(dataRequest);
-            //this.sendSocketMessage(socket, response); // TODO: Actually respond with some data. Disabled for now to stop the client from spamming requests.
-            return;
-        }
-
-        if (message instanceof GenerationTaskPriorityRequest) {
-            GenerationTaskPriorityRequest priorityRequest = (GenerationTaskPriorityRequest) message;
-
-            this.dhSupport.info("Priority request for:");
-            priorityRequest.getSectionPositions().forEach((pos) -> this.dhSupport.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
-            return;
-        }
-
-        // TODO: Some sort of event bus for handlers, instead of a million ifs 👆
-        this.dhSupport.warning("Message was successfully parsed, but there is no code to handle it.");
+        this.eventBus.dispatch(message);
     }
 
     protected SocketMessage readSocketMessage(byte[] data)
