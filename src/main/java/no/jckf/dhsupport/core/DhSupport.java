@@ -26,8 +26,8 @@ import no.jckf.dhsupport.core.handler.message.PluginHandshakeHandler;
 import no.jckf.dhsupport.core.handler.message.SocketHandshakeHandler;
 import no.jckf.dhsupport.core.handler.message.SocketLodHandler;
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable

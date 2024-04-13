@@ -20,7 +20,9 @@ package no.jckf.dhsupport.core.handler.message;
 
 import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.handler.SocketMessageHandler;
-import no.jckf.dhsupport.core.message.socket.*;
+import no.jckf.dhsupport.core.message.socket.FullDataRequestSocketMessage;
+import no.jckf.dhsupport.core.message.socket.FullDataResponseSocketMessage;
+import no.jckf.dhsupport.core.message.socket.GenerationTaskPriorityRequest;
 
 public class SocketLodHandler
 {

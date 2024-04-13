@@ -20,14 +20,14 @@ package no.jckf.dhsupport.core.handler;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.core.Utils;
 import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
-import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.event.EventBus;
 import no.jckf.dhsupport.core.message.MessageTypeRegistry;
 import no.jckf.dhsupport.core.message.socket.*;
 import no.jckf.dhsupport.core.socketserver.SocketServer;
-import no.jckf.dhsupport.core.Utils;
 
 import javax.annotation.Nullable;
 
