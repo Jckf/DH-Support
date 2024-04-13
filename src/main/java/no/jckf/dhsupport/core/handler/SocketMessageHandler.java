@@ -20,13 +20,16 @@ package no.jckf.dhsupport.core.handler;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.core.Utils;
 import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
-import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.core.event.EventBus;
 import no.jckf.dhsupport.core.message.MessageTypeRegistry;
 import no.jckf.dhsupport.core.message.socket.*;
 import no.jckf.dhsupport.core.socketserver.SocketServer;
-import no.jckf.dhsupport.core.Utils;
+
+import javax.annotation.Nullable;
 
 public class SocketMessageHandler
 {
@@ -36,15 +39,18 @@ public class SocketMessageHandler
 
     protected SocketServer socketServer;
 
-    protected final int protocolVersion = 2;
+    public final int protocolVersion = 2;
+
+    protected EventBus<SocketMessage> eventBus;
 
     public SocketMessageHandler(DhSupport dhSupport)
     {
         this.dhSupport = dhSupport;
-    }
 
-    public void onEnable()
-    {
+        this.eventBus = new EventBus<>();
+
+        this.socketServer = new SocketServer(this.dhSupport);
+
         this.messageTypeRegistry = new MessageTypeRegistry();
         this.messageTypeRegistry.registerMessageType(0x0000, null);
         this.messageTypeRegistry.registerMessageType(0x0001, HelloSocketMessage.class);
@@ -59,9 +65,10 @@ public class SocketMessageHandler
         this.messageTypeRegistry.registerMessageType(0x000a, PartialUpdateSocketMessage.class);
         this.messageTypeRegistry.registerMessageType(0x000b, GenerationTaskPriorityRequest.class);
         this.messageTypeRegistry.registerMessageType(0x000c, GenerationTaskPriorityResponse.class);
+    }
 
-        this.socketServer = new SocketServer(this.dhSupport);
-
+    public void onEnable()
+    {
         try {
             this.socketServer.startup(this.dhSupport.getConfig().getInt("port"));
         } catch (Exception exception) {
@@ -76,8 +83,13 @@ public class SocketMessageHandler
             this.socketServer.shutdown();
         } catch (Exception exception) {
             this.dhSupport.warning("Failed to gracefully stop socket server: " + exception.getClass().getSimpleName() + " - " + exception.getMessage());
-            this.socketServer = null;
         }
+    }
+
+    @Nullable
+    public EventBus<SocketMessage> getEventBus()
+    {
+        return this.eventBus;
     }
 
     public void onSocketMessageReceived(Channel socket, byte[] data)
@@ -98,74 +110,9 @@ public class SocketMessageHandler
             return;
         }
 
-        if (message instanceof HelloSocketMessage) {
-            HelloSocketMessage clientHello = (HelloSocketMessage) message;
+        message.setSender(socket);
 
-            if (clientHello.getVersion() != this.protocolVersion) {
-                CloseSocketMessage response = new CloseSocketMessage();
-                response.setMessage("Incompatible Distant Horizons version. Server speaks protocol version " + this.protocolVersion + ", but client sent protocol version " + clientHello.getVersion());
-                this.sendSocketMessage(socket, response);
-                return;
-            }
-
-            HelloSocketMessage response = new HelloSocketMessage();
-            response.setVersion(this.protocolVersion);
-            this.sendSocketMessage(socket, response);
-            return;
-        }
-
-        if (message instanceof PlayerUuidSocketMessage) {
-            PlayerUuidSocketMessage playerUuid = (PlayerUuidSocketMessage) message;
-
-            this.dhSupport.info("UUID: " + playerUuid.getUuid());
-
-            /*Player player = this.plugin.getServer().getPlayer(playerUuid.getUuid());
-
-            // TODO: Also check if player is using DH at all or has already connected.
-            if (player == null) {
-                this.plugin.warning("UUID does not match any online player.");
-
-                CloseSocketMessage response = new CloseSocketMessage();
-                response.setMessage("Invalid UUID.");
-                this.sendSocketMessage(socket, response);
-                return;
-            }
-
-            this.plugin.info("Socket belongs to player " + player.getName());*/
-
-            AckSocketMessage response = new AckSocketMessage();
-            response.isResponseTo(playerUuid);
-            this.sendSocketMessage(socket, response);
-            return;
-        }
-
-        if (message instanceof PlayerConfigSocketMessage) {
-            PlayerConfigSocketMessage config = (PlayerConfigSocketMessage) message;
-
-            // TODO: Clamp values according to server config.
-            this.sendSocketMessage(socket, config);
-            return;
-        }
-
-        if (message instanceof FullDataRequestSocketMessage) {
-            FullDataRequestSocketMessage dataRequest = (FullDataRequestSocketMessage) message;
-
-            FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
-            response.isResponseTo(dataRequest);
-            //this.sendSocketMessage(socket, response); // TODO: Actually respond with some data. Disabled for now to stop the client from spamming requests.
-            return;
-        }
-
-        if (message instanceof GenerationTaskPriorityRequest) {
-            GenerationTaskPriorityRequest priorityRequest = (GenerationTaskPriorityRequest) message;
-
-            this.dhSupport.info("Priority request for:");
-            priorityRequest.getSectionPositions().forEach((pos) -> this.dhSupport.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
-            return;
-        }
-
-        // TODO: Some sort of event bus for handlers, instead of a million ifs 👆
-        this.dhSupport.warning("Message was successfully parsed, but there is no code to handle it.");
+        this.eventBus.dispatch(message);
     }
 
     protected SocketMessage readSocketMessage(byte[] data)
@@ -205,7 +152,7 @@ public class SocketMessageHandler
         return message;
     }
 
-    protected void sendSocketMessage(Channel socket, SocketMessage message)
+    public void sendSocketMessage(Channel socket, SocketMessage message)
     {
         int messageTypeId = this.messageTypeRegistry.getMessageTypeId(message.getClass());
 

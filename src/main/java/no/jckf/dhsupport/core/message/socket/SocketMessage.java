@@ -18,9 +18,23 @@
 
 package no.jckf.dhsupport.core.message.socket;
 
+import io.netty.channel.Channel;
 import no.jckf.dhsupport.core.message.Message;
+
+import javax.annotation.Nullable;
 
 public abstract class SocketMessage extends Message
 {
+    Channel sender;
 
+    public void setSender(Channel channel)
+    {
+        this.sender = channel;
+    }
+
+    @Nullable
+    public Channel getSender()
+    {
+        return this.sender;
+    }
 }

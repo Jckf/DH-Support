@@ -20,7 +20,21 @@ package no.jckf.dhsupport.core.message.plugin;
 
 import no.jckf.dhsupport.core.message.Message;
 
+import javax.annotation.Nullable;
+import java.util.UUID;
+
 public abstract class PluginMessage extends Message
 {
+    protected UUID sender;
 
+    public void setSender(UUID uuid)
+    {
+        this.sender = uuid;
+    }
+
+    @Nullable
+    public UUID getSender()
+    {
+        return this.sender;
+    }
 }

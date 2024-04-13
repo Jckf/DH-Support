@@ -22,9 +22,12 @@ import no.jckf.dhsupport.core.configuration.Configurable;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
 import no.jckf.dhsupport.core.handler.SocketMessageHandler;
+import no.jckf.dhsupport.core.handler.message.PluginHandshakeHandler;
+import no.jckf.dhsupport.core.handler.message.SocketHandshakeHandler;
+import no.jckf.dhsupport.core.handler.message.SocketLodHandler;
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable
@@ -39,33 +42,44 @@ public class DhSupport implements Configurable
 
     protected PluginMessageSender pluginMessageSender;
 
+    public DhSupport()
+    {
+        // Mumble mumble. Something about passing references to an incomplete "this".
+        this.pluginMessageHandler = new PluginMessageHandler(this);
+        this.socketMessageHandler = new SocketMessageHandler(this);
+    }
+
     public void onEnable()
     {
-        this.getPluginMessageHandler().onEnable();
-        this.getSocketMessageHandler().onEnable();
+        // TODO: Store these instances somewhere?
+        //       References will exist inside the event bus, so they won't be GCed, but this _is_ a little bit ugly.
+        (new PluginHandshakeHandler(this, this.pluginMessageHandler)).register();
+
+        (new SocketHandshakeHandler(this, this.socketMessageHandler)).register();
+        (new SocketLodHandler(this, this.socketMessageHandler)).register();
+
+        this.pluginMessageHandler.onEnable();
+        this.socketMessageHandler.onEnable();
     }
 
     public void onDisable()
     {
-        this.getSocketMessageHandler().onDisable();
-        this.getPluginMessageHandler().onDisable();
+        if (this.socketMessageHandler != null) {
+            this.socketMessageHandler.onDisable();
+        }
+
+        if (this.pluginMessageHandler != null) {
+            this.pluginMessageHandler.onDisable();
+        }
     }
 
     public PluginMessageHandler getPluginMessageHandler()
     {
-        if (this.pluginMessageHandler == null) {
-            this.pluginMessageHandler = new PluginMessageHandler(this);
-        }
-
         return this.pluginMessageHandler;
     }
 
     public SocketMessageHandler getSocketMessageHandler()
     {
-        if (this.socketMessageHandler == null) {
-            this.socketMessageHandler = new SocketMessageHandler(this);
-        }
-
         return this.socketMessageHandler;
     }
 

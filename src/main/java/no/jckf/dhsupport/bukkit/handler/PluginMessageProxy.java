@@ -18,6 +18,7 @@
 
 package no.jckf.dhsupport.bukkit.handler;
 
+import no.jckf.dhsupport.bukkit.BukkitPluginMessageSender;
 import no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
 import org.bukkit.entity.Player;

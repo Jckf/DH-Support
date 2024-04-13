@@ -16,25 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.bukkit.handler;
+package no.jckf.dhsupport.core.event;
 
-import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.UUID;
-
-public class BukkitPluginMessageSender implements PluginMessageSender
+public interface EventHandler<T>
 {
-    protected JavaPlugin plugin;
-
-    public BukkitPluginMessageSender(JavaPlugin plugin)
-    {
-        this.plugin = plugin;
-    }
-
-    @Override
-    public void sendPluginMessage(UUID recipientUuid, String channel, byte[] message)
-    {
-        this.plugin.getServer().getPlayer(recipientUuid).sendPluginMessage(this.plugin, channel, message);
-    }
+    void handle(T event);
 }
