@@ -1,4 +1,4 @@
 name: DHSupport
 version: 0.1.0-SNAPSHOT
-main: no.jckf.dhsupport.DhSupport
+main: no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin
 api-version: 1.20

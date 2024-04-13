@@ -9,7 +9,7 @@
     <properties>
         <jdk>17</jdk>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <main.class>no.jckf.dhsupport.DhSupport</main.class>
+        <main.class>no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin</main.class>
     </properties>
 
     <developers>
