@@ -66,12 +66,10 @@ public class DhSupport implements Configurable
     {
         if (this.socketMessageHandler != null) {
             this.socketMessageHandler.onDisable();
-            this.socketMessageHandler = null;
         }
 
         if (this.pluginMessageHandler != null) {
             this.pluginMessageHandler.onDisable();
-            this.pluginMessageHandler = null;
         }
     }
 
