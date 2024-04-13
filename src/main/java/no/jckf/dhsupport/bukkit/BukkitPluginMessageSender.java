@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.bukkit.handler;
+package no.jckf.dhsupport.bukkit;
 
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
 import org.bukkit.plugin.java.JavaPlugin;
