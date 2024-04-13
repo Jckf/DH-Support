@@ -48,32 +48,25 @@ public class PluginMessageHandler
     public PluginMessageHandler(DhSupport dhSupport)
     {
         this.dhSupport = dhSupport;
-    }
 
-    public void onEnable()
-    {
+        this.eventBus = new EventBus<>();
+
         // Define plugin channel message types.
         this.messageTypeRegistry = new MessageTypeRegistry();
         this.messageTypeRegistry.registerMessageType(0, null);
         this.messageTypeRegistry.registerMessageType(1, HelloPluginMessage.class);
         this.messageTypeRegistry.registerMessageType(2, CurrentLevelKeyMessage.class);
         this.messageTypeRegistry.registerMessageType(3, ServerConnectInfoMessage.class);
+    }
 
-        this.eventBus = new EventBus<>();
+    public void onEnable()
+    {
 
-        this.eventBus.registerHandler(HelloPluginMessage.class, (hello) -> {
-            ServerConnectInfoMessage response = new ServerConnectInfoMessage();
-            //response.setAddress("google.com");
-            response.setPort(this.dhSupport.getConfig().getInt("port"));
-
-            this.sendPluginMessage(hello.getSender(), response);
-        });
     }
 
     public void onDisable()
     {
-        this.eventBus = null;
-        this.messageTypeRegistry = null;
+
     }
 
     @Nullable
@@ -140,7 +133,7 @@ public class PluginMessageHandler
         return message;
     }
 
-    protected void sendPluginMessage(UUID recipientUuid, PluginMessage message)
+    public void sendPluginMessage(UUID recipientUuid, PluginMessage message)
     {
         int messageTypeId = this.messageTypeRegistry.getMessageTypeId(message.getClass());
 
