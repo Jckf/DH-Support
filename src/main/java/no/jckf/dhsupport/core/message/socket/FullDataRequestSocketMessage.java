@@ -32,6 +32,11 @@ public class FullDataRequestSocketMessage extends TrackableSocketMessage
     @Nullable
     protected Integer checksum;
 
+    public SectionPosition getPosition()
+    {
+        return this.position;
+    }
+
     @Override
     public void decode(Decoder decoder)
     {

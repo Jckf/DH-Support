@@ -41,12 +41,16 @@ public class SocketLodHandler
         this.socketMessageHandler.getEventBus().registerHandler(FullDataRequestSocketMessage.class, (request) -> {
             FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
             response.isResponseTo(request);
-            //this.sendSocketMessage(socket, response); // TODO: Actually respond with some data. Disabled for now to stop the client from spamming requests.
+            //this.socketMessageHandler.sendSocketMessage(request.getSender(), response); // TODO: Actually respond with some data. Disabled for now to stop the client from spamming requests.
         });
 
         this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (request) -> {
             this.dhSupport.info("Priority request for:");
             request.getSectionPositions().forEach((pos) -> this.dhSupport.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
+            // TODO: Each position has one of the following statuses:
+            //       1: Not generated.
+            //       2: Exists, but is not loaded.
+            //       3: Loaded.
         });
     }
 }

@@ -27,8 +27,24 @@ public class FullDataResponseSocketMessage extends TrackableSocketMessage
     @Override
     public void encode(Encoder encoder)
     {
-        encoder.writeBoolean(true); // This is always true afaik?
+        encoder.writeBoolean(true); // True if data is available. False otherwise.
         encoder.writeByte(FullDataResponseSocketMessage.formatVersion);
-        encoder.writeInt(0); // No data yet ;(
+        encoder.writeInt(0); // Compressed data length
+        // TODO: LZ4 compressed data.
+        // Source summary info:
+        //     int level min y
+        // Data points:
+        //     int "data guard byte"
+        //     foreach x,z:
+        //         int data point count
+        //     int "data guard byte"
+        //     foreach x,z:
+        //         foreach points:
+        //             long pont
+        // ID mappings:
+        //     int "data guard byte"
+        //     int entry count
+        //     foreach entries:
+        //         string entry (biome (resource ns + ":" + resource path) + "_DH-BSW_" + block state (resource ns + ":" + source path + "_STATE_" + block state props (key:value pairs wrapped in curlies)))
     }
 }
