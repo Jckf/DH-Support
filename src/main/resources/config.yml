@@ -1,1 +1,11 @@
 port: 25049
+
+# TODO: Comments explaining what all of these do.
+render_distance: 128
+distant_generation_enabled: true
+full_data_request_concurrency_limit: 20
+generation_task_priority_request_rate_limit: 50
+real_time_updates_enabled: true
+login_data_sync_enabled: true
+login_data_sync_rc_limit: 50
+generate_multiple_dimensions: false
