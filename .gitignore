@@ -28,3 +28,6 @@ replay_pid*
 
 # Maven output
 /target
+
+# Test server
+/server
