@@ -18,6 +18,7 @@
 
 package no.jckf.dhsupport.core;
 
+import io.netty.channel.ChannelId;
 import no.jckf.dhsupport.core.configuration.Configurable;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
@@ -28,6 +29,9 @@ import no.jckf.dhsupport.core.handler.message.SocketLodHandler;
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable
@@ -41,6 +45,10 @@ public class DhSupport implements Configurable
     protected SocketMessageHandler socketMessageHandler;
 
     protected PluginMessageSender pluginMessageSender;
+
+    protected Map<ChannelId, UUID> socketToUuidMap = new HashMap<>();
+
+    protected Map<UUID, ChannelId> uuidToSocketMap = new HashMap<>();
 
     public DhSupport()
     {
@@ -123,5 +131,44 @@ public class DhSupport implements Configurable
     public void warning(String message)
     {
         this.getLogger().warning(message);
+    }
+
+    public void associatePlayerAndSocket(UUID playerUuid, ChannelId socketId)
+    {
+        this.socketToUuidMap.put(socketId, playerUuid);
+        this.uuidToSocketMap.put(playerUuid, socketId);
+
+        this.info("Associated " + socketId + "/" + playerUuid);
+    }
+
+    public void closeAndForgetByUuid(UUID playerUuid)
+    {
+        this.closeAndForgetBySocketId(this.getSocketIdByPlayerUuid(playerUuid));
+    }
+
+    public void closeAndForgetBySocketId(ChannelId id)
+    {
+        try {
+            this.socketMessageHandler.getSocketServer().getSocket(id).close();
+        } catch (Exception exception) {
+            // Whatever. It was probably closed already.
+        }
+
+        UUID uuid = this.socketToUuidMap.remove(id);
+        this.uuidToSocketMap.remove(uuid);
+
+        this.info("Forgot " + id + "/" + uuid);
+    }
+
+    @Nullable
+    public ChannelId getSocketIdByPlayerUuid(UUID uuid)
+    {
+        return this.uuidToSocketMap.get(uuid);
+    }
+
+    @Nullable
+    public UUID getPlayerUuidBySocketId(ChannelId id)
+    {
+        return this.socketToUuidMap.get(id);
     }
 }

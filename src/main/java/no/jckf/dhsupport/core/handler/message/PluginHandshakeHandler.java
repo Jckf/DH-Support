@@ -37,12 +37,12 @@ public class PluginHandshakeHandler
 
     public void register()
     {
-        this.pluginMessageHandler.getEventBus().registerHandler(HelloPluginMessage.class, (hello) -> {
+        this.pluginMessageHandler.getEventBus().registerHandler(HelloPluginMessage.class, (helloMessage) -> {
             ServerConnectInfoMessage response = new ServerConnectInfoMessage();
             //response.setAddress("google.com");
             response.setPort(this.dhSupport.getConfig().getInt("port"));
 
-            this.pluginMessageHandler.sendPluginMessage(hello.getSender(), response);
+            this.pluginMessageHandler.sendPluginMessage(helloMessage.getSender(), response);
         });
     }
 }

@@ -19,17 +19,21 @@
 package no.jckf.dhsupport.core.socketserver;
 
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import no.jckf.dhsupport.core.DhSupport;
 
 public class SocketInitializer extends ChannelInitializer<SocketChannel>
 {
-    protected DhSupport plugin;
+    protected DhSupport dhSupport;
 
-    public SocketInitializer(DhSupport plugin)
+    protected ChannelGroup sockets;
+
+    public SocketInitializer(DhSupport dhSupport, ChannelGroup sockets)
     {
-        this.plugin = plugin;
+        this.dhSupport = dhSupport;
+        this.sockets = sockets;
     }
 
     @Override
@@ -37,6 +41,6 @@ public class SocketInitializer extends ChannelInitializer<SocketChannel>
     {
         channel.pipeline()
             .addLast(new LengthFieldBasedFrameDecoder(4 * 1024 * 1024, 0, Integer.BYTES, 0, Integer.BYTES))
-            .addLast(new SocketHandler(this.plugin));
+            .addLast(new SocketHandler(this.dhSupport, this.sockets));
     }
 }

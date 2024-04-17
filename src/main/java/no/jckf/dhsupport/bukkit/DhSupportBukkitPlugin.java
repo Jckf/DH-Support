@@ -20,6 +20,7 @@ package no.jckf.dhsupport.bukkit;
 
 import no.jckf.dhsupport.bukkit.handler.ConfigLoader;
 import no.jckf.dhsupport.bukkit.handler.Handler;
+import no.jckf.dhsupport.bukkit.handler.PlayerPresenceHandler;
 import no.jckf.dhsupport.bukkit.handler.PluginMessageProxy;
 import no.jckf.dhsupport.core.DhSupport;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -62,6 +63,8 @@ public class DhSupportBukkitPlugin extends JavaPlugin
         }
 
         this.dhSupport.onEnable();
+
+        this.getServer().getPluginManager().registerEvents(new PlayerPresenceHandler(this), this);
 
         this.getLogger().info("Ready 😀");
     }
