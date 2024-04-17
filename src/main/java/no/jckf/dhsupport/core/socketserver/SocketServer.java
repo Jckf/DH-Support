@@ -19,12 +19,15 @@
 package no.jckf.dhsupport.core.socketserver;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import no.jckf.dhsupport.core.DhSupport;
+
+import javax.annotation.Nullable;
 
 public class SocketServer
 {
@@ -33,6 +36,8 @@ public class SocketServer
     protected EventLoopGroup bossGroup;
 
     protected EventLoopGroup workerGroup;
+
+    protected ChannelGroup sockets;
 
     public SocketServer(DhSupport plugin)
     {
@@ -43,12 +48,13 @@ public class SocketServer
     {
         this.bossGroup = new NioEventLoopGroup();
         this.workerGroup = new NioEventLoopGroup();
+        this.sockets = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
         ServerBootstrap bootstrap = new ServerBootstrap();
 
         bootstrap.group(this.bossGroup, this.workerGroup)
             .channel(NioServerSocketChannel.class)
-            .childHandler(new SocketInitializer(this.plugin))
+            .childHandler(new SocketInitializer(this.plugin, this.sockets))
             .option(ChannelOption.SO_BACKLOG, 128)
             .childOption(ChannelOption.SO_KEEPALIVE, true);
 
@@ -64,5 +70,11 @@ public class SocketServer
     {
         this.workerGroup.shutdownGracefully();
         this.bossGroup.shutdownGracefully();
+    }
+
+    @Nullable
+    public Channel getSocket(ChannelId id)
+    {
+        return this.sockets.find(id);
     }
 }

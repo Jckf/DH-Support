@@ -200,4 +200,9 @@ public class SocketMessageHandler
         socket.write(Unpooled.wrappedBuffer(fullMessage));
         socket.flush();
     }
+
+    public SocketServer getSocketServer()
+    {
+        return this.socketServer;
+    }
 }

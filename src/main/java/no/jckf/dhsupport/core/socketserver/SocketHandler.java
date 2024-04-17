@@ -21,15 +21,26 @@ package no.jckf.dhsupport.core.socketserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.group.ChannelGroup;
 import no.jckf.dhsupport.core.DhSupport;
 
 public class SocketHandler extends ChannelInboundHandlerAdapter
 {
-    protected DhSupport plugin;
+    protected DhSupport dhSupport;
 
-    public SocketHandler(DhSupport plugin)
+    protected ChannelGroup sockets;
+
+    public SocketHandler(DhSupport dhSupport, ChannelGroup sockets)
     {
-        this.plugin = plugin;
+        this.dhSupport = dhSupport;
+        this.sockets = sockets;
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception
+    {
+        this.sockets.add(ctx.channel());
+        super.channelActive(ctx);
     }
 
     @Override
@@ -40,7 +51,7 @@ public class SocketHandler extends ChannelInboundHandlerAdapter
         byte[] bytes = new byte[buf.readableBytes()];
         buf.getBytes(buf.readerIndex(), bytes);
 
-        this.plugin.getSocketMessageHandler().onSocketMessageReceived(context.channel(), bytes);
+        this.dhSupport.getSocketMessageHandler().onSocketMessageReceived(context.channel(), bytes);
     }
 
     @Override

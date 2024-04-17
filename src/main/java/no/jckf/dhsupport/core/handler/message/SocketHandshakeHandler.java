@@ -24,6 +24,8 @@ import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.handler.SocketMessageHandler;
 import no.jckf.dhsupport.core.message.socket.*;
 
+import java.util.UUID;
+
 public class SocketHandshakeHandler
 {
     protected DhSupport dhSupport;
@@ -38,28 +40,39 @@ public class SocketHandshakeHandler
 
     public void register()
     {
-        this.socketMessageHandler.getEventBus().registerHandler(HelloSocketMessage.class, (hello) -> {
-            if (hello.getVersion() != this.socketMessageHandler.protocolVersion) {
+        this.socketMessageHandler.getEventBus().registerHandler(HelloSocketMessage.class, (helloMessage) -> {
+            if (helloMessage.getVersion() != this.socketMessageHandler.protocolVersion) {
                 CloseSocketMessage response = new CloseSocketMessage();
-                response.setMessage("Incompatible Distant Horizons version. Server speaks protocol version " + this.socketMessageHandler.protocolVersion + ", but client sent protocol version " + hello.getVersion());
-                this.socketMessageHandler.sendSocketMessage(hello.getSender(), response);
+                response.setMessage("Incompatible Distant Horizons version. Server speaks protocol version " + this.socketMessageHandler.protocolVersion + ", but client sent protocol version " + helloMessage.getVersion());
+                this.socketMessageHandler.sendSocketMessage(helloMessage.getSender(), response);
                 return;
             }
 
             HelloSocketMessage response = new HelloSocketMessage();
             response.setVersion(this.socketMessageHandler.protocolVersion);
-            this.socketMessageHandler.sendSocketMessage(hello.getSender(), response);
+            this.socketMessageHandler.sendSocketMessage(helloMessage.getSender(), response);
         });
 
-        this.socketMessageHandler.getEventBus().registerHandler(PlayerUuidSocketMessage.class, (uuid) -> {
+        this.socketMessageHandler.getEventBus().registerHandler(PlayerUuidSocketMessage.class, (uuidMessage) -> {
+            UUID uuid = uuidMessage.getUuid();
+
+            if (this.dhSupport.getSocketIdByPlayerUuid(uuid) != null) {
+                CloseSocketMessage response = new CloseSocketMessage();
+                response.setMessage("UUID hijack attempt.");
+                this.socketMessageHandler.sendSocketMessage(uuidMessage.getSender(), response);
+                return;
+            }
+
+            this.dhSupport.associatePlayerAndSocket(uuidMessage.getUuid(), uuidMessage.getSender().id());
+
             AckSocketMessage response = new AckSocketMessage();
-            response.isResponseTo(uuid);
-            this.socketMessageHandler.sendSocketMessage(uuid.getSender(), response);
+            response.isResponseTo(uuidMessage);
+            this.socketMessageHandler.sendSocketMessage(uuidMessage.getSender(), response);
         });
 
-        this.socketMessageHandler.getEventBus().registerHandler(PlayerConfigSocketMessage.class, (config) -> {
+        this.socketMessageHandler.getEventBus().registerHandler(PlayerConfigSocketMessage.class, (configMessage) -> {
             Configuration dhsConfig = this.dhSupport.getConfig();
-            Configuration clientConfig = config.toConfiguration();
+            Configuration clientConfig = configMessage.toConfiguration();
 
             // This is not very flexible, but will do for now.
             for (String key : DhsConfig.getKeys()) {
@@ -88,7 +101,7 @@ public class SocketHandshakeHandler
 
             // TODO: Store the resulting config in some sort of context object for this player.
 
-            this.socketMessageHandler.sendSocketMessage(config.getSender(), config);
+            this.socketMessageHandler.sendSocketMessage(configMessage.getSender(), configMessage);
         });
     }
 }

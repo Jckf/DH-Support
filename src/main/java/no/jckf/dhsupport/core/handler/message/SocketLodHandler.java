@@ -38,15 +38,15 @@ public class SocketLodHandler
 
     public void register()
     {
-        this.socketMessageHandler.getEventBus().registerHandler(FullDataRequestSocketMessage.class, (request) -> {
+        this.socketMessageHandler.getEventBus().registerHandler(FullDataRequestSocketMessage.class, (requestMessage) -> {
             FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
-            response.isResponseTo(request);
+            response.isResponseTo(requestMessage);
             //this.socketMessageHandler.sendSocketMessage(request.getSender(), response); // TODO: Actually respond with some data. Disabled for now to stop the client from spamming requests.
         });
 
-        this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (request) -> {
+        this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (requestMessage) -> {
             this.dhSupport.info("Priority request for:");
-            request.getSectionPositions().forEach((pos) -> this.dhSupport.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
+            requestMessage.getSectionPositions().forEach((pos) -> this.dhSupport.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
             // TODO: Each position has one of the following statuses:
             //       1: Not generated.
             //       2: Exists, but is not loaded.
