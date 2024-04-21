@@ -18,33 +18,65 @@
 
 package no.jckf.dhsupport.core.message.socket;
 
+import net.jpountz.lz4.LZ4FrameOutputStream;
 import no.jckf.dhsupport.core.bytestream.Encoder;
+import no.jckf.dhsupport.core.dataobject.Lod;
+
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 
 public class FullDataResponseSocketMessage extends TrackableSocketMessage
 {
     protected static final byte formatVersion = 3;
 
+    protected byte[] waterLod;
+
     @Override
     public void encode(Encoder encoder)
     {
+        byte[] lod = this.getWaterLod();
+
         encoder.writeBoolean(true); // True if data is available. False otherwise.
         encoder.writeByte(FullDataResponseSocketMessage.formatVersion);
-        encoder.writeInt(0); // Compressed data length
-        // TODO: LZ4 compressed data.
-        // Source summary info:
-        //     int level min y
-        // Data points:
-        //     int "data guard byte"
-        //     foreach x,z:
-        //         int data point count
-        //     int "data guard byte"
-        //     foreach x,z:
-        //         foreach points:
-        //             long pont
-        // ID mappings:
-        //     int "data guard byte"
-        //     int entry count
-        //     foreach entries:
-        //         string entry (biome (resource ns + ":" + resource path) + "_DH-BSW_" + block state (resource ns + ":" + source path + "_STATE_" + block state props (key:value pairs wrapped in curlies)))
+        encoder.writeInt(lod.length);
+        encoder.write(lod);
+    }
+
+    protected byte[] getWaterLod()
+    {
+        if (this.waterLod == null) {
+            this.generateWaterLod();
+        }
+
+        return this.waterLod;
+    }
+
+    protected void generateWaterLod()
+    {
+        ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
+
+        try {
+            LZ4FrameOutputStream compressorStream = new LZ4FrameOutputStream(new BufferedOutputStream(compressedStream));
+
+            Encoder dataSourceEncoder = new Encoder();
+
+            dataSourceEncoder.writeInt(0); // Detail level
+            dataSourceEncoder.writeInt(64); // Width
+            dataSourceEncoder.writeInt(-64); // Min y
+            dataSourceEncoder.writeByte(1); // World gen step
+
+            Lod lod = new Lod();
+            lod.encode(dataSourceEncoder);
+
+            byte[] uncompressedData = dataSourceEncoder.toByteArray();
+
+            compressorStream.write(uncompressedData);
+            compressorStream.flush();
+        } catch (Exception exception) {
+            // Uhh...
+            System.out.println(exception.getClass().getSimpleName() + " - " + exception.getMessage());
+        }
+
+        this.waterLod = compressedStream.toByteArray();
     }
 }

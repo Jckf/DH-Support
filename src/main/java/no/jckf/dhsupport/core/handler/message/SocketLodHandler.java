@@ -41,7 +41,7 @@ public class SocketLodHandler
         this.socketMessageHandler.getEventBus().registerHandler(FullDataRequestSocketMessage.class, (requestMessage) -> {
             FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
             response.isResponseTo(requestMessage);
-            //this.socketMessageHandler.sendSocketMessage(request.getSender(), response); // TODO: Actually respond with some data. Disabled for now to stop the client from spamming requests.
+            this.socketMessageHandler.sendSocketMessage(requestMessage.getSender(), response);
         });
 
         this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (requestMessage) -> {

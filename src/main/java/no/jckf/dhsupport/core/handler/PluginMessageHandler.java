@@ -163,7 +163,7 @@ public class PluginMessageHandler
 
         byte[] fullMessage = encoder.toByteArray();
 
-        this.dhSupport.info("Sending: " + Utils.bytesToHex(fullMessage));
+        //this.dhSupport.info("Sending: " + Utils.bytesToHex(fullMessage));
 
         this.dhSupport.getPluginMessageSender().sendPluginMessage(recipientUuid, this.pluginChannel, fullMessage);
     }

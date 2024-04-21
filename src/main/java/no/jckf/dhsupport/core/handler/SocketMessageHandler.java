@@ -196,7 +196,7 @@ public class SocketMessageHandler
 
         byte[] fullMessage = encoder.toByteArray();
 
-        this.dhSupport.info("Sending: " + Utils.bytesToHex(fullMessage));
+        //this.dhSupport.info("Sending: " + Utils.bytesToHex(fullMessage));
 
         socket.write(Unpooled.wrappedBuffer(fullMessage));
         socket.flush();
