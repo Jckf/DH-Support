@@ -31,4 +31,6 @@ public interface WorldInterface
     byte getBlockLightAt(int x, int y, int z);
 
     byte getSkyLightAt(int x, int y, int z);
+
+    boolean isTransparent(int x, int y, int z);
 }

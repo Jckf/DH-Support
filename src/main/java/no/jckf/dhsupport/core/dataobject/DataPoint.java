@@ -22,9 +22,9 @@ import no.jckf.dhsupport.core.bytestream.Encoder;
 
 public class DataPoint extends DataObject
 {
-    protected byte skyLight = 0x0F;
+    protected byte skyLight = 0;
 
-    protected byte blockLight = 0x00;
+    protected byte blockLight = 0;
 
     protected int height = 1;
 
@@ -35,6 +35,11 @@ public class DataPoint extends DataObject
     public void setSkyLight(byte value)
     {
         this.skyLight = value;
+    }
+
+    public byte getSkyLight()
+    {
+        return this.skyLight;
     }
 
     public void setBlockLight(byte value)
@@ -75,10 +80,10 @@ public class DataPoint extends DataObject
         data |= this.mappingId;
         data |= (long) (this.height & 0x0FFF) << 32;
         data |= (long) (this.startY & 0x0FFF) << 32 + 12;
-        data |= (long) (this.blockLight & 0x0F) << 32 + 12 + 12;
-        data |= (long) (this.skyLight & 0x0F) << 32 + 12 + 12 + 4;
+        data |= (long) (this.skyLight & 0x0F) << 32 + 12 + 12;
+        data |= (long) (this.blockLight & 0x0F) << 32 + 12 + 12 + 4;
 
-        //if (this.startY == 60) {
+        //if (this.blockLight != 0 || this.skyLight != 0) {
         //    System.out.println(Utils.bytesToHex(ByteBuffer.allocate(Long.BYTES).putLong(data).array()));
         //}
 

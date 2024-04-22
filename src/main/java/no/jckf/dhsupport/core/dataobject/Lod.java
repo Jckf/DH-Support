@@ -80,11 +80,6 @@ public class Lod extends DataObject
                     int worldZ = offsetZ + z;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
-
-                    if (material.equals("minecraft:air")) {
-                        continue;
-                    }
-
                     String compositeKey = biome + "-" + material;
 
                     @Nullable
@@ -102,10 +97,14 @@ public class Lod extends DataObject
                         point = previous;
 
                         point.setHeight(point.getHeight() + 1);
+
+                        if (material.equals("minecraft:air") && point.getHeight() >= 15) {
+                            point.setHeight(point.getHeight() + height - y);
+                            break;
+                        }
                     } else {
                         point = new DataPoint();
                         column.add(point);
-                        previous = point;
 
                         point.setStartY(firstLayer + y);
                         point.setMappingId(id);
@@ -113,6 +112,12 @@ public class Lod extends DataObject
 
                     point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY, worldZ));
                     point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY, worldZ));
+
+                    if (previous != null && this.worldInterface.isTransparent(worldX, worldY, worldZ)) {
+                        previous.setSkyLight(point.getSkyLight());
+                    }
+
+                    previous = point;
                 }
 
                 columns.add(column);

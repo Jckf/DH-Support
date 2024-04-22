@@ -63,6 +63,12 @@ public class BukkitWorldInterface implements WorldInterface
     @Override
     public byte getSkyLightAt(int x, int y, int z)
     {
-        return (byte) 0x0F; //this.world.getBlockAt(x, y, z).getLightFromSky();
+        return this.world.getBlockAt(x, y, z).getLightFromSky();
+    }
+
+    @Override
+    public boolean isTransparent(int x, int y, int z)
+    {
+        return this.world.getBlockAt(x, y, z).getBlockData().getMaterial().isTransparent();
     }
 }
