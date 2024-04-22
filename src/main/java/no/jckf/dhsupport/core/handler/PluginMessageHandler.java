@@ -98,7 +98,7 @@ public class PluginMessageHandler
 
     protected PluginMessage readPluginMessage(byte[] data)
     {
-        this.dhSupport.info("Plugin message received. Length: " + data.length);
+        //this.dhSupport.info("Plugin message received. Length: " + data.length);
 
         Decoder decoder = new Decoder(data);
 
@@ -118,7 +118,7 @@ public class PluginMessageHandler
 
         Class<? extends PluginMessage> messageClass = (Class<? extends PluginMessage>) this.messageTypeRegistry.getMessageClass(messageTypeId);
 
-        this.dhSupport.info("Looks like a " + messageClass.getSimpleName());
+        //this.dhSupport.info("Looks like a " + messageClass.getSimpleName());
 
         PluginMessage message;
 

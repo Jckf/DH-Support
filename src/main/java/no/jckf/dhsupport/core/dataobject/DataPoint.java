@@ -28,7 +28,7 @@ public class DataPoint extends DataObject
 
     protected int height = 1;
 
-    protected int startZ = 0;
+    protected int startY = 0;
 
     protected int mappingId;
 
@@ -47,14 +47,24 @@ public class DataPoint extends DataObject
         this.height = value;
     }
 
-    public void setStartZ(int value)
+    public int getHeight()
     {
-        this.startZ = value;
+        return this.height;
+    }
+
+    public void setStartY(int value)
+    {
+        this.startY = value;
     }
 
     public void setMappingId(int id)
     {
         this.mappingId = id;
+    }
+
+    public int getMappingId()
+    {
+        return this.mappingId;
     }
 
     @Override
@@ -64,9 +74,13 @@ public class DataPoint extends DataObject
 
         data |= this.mappingId;
         data |= (long) (this.height & 0x0FFF) << 32;
-        data |= (long) (this.startZ & 0x0FFF) << 32 + 12;
+        data |= (long) (this.startY & 0x0FFF) << 32 + 12;
         data |= (long) (this.blockLight & 0x0F) << 32 + 12 + 12;
         data |= (long) (this.skyLight & 0x0F) << 32 + 12 + 12 + 4;
+
+        //if (this.startY == 60) {
+        //    System.out.println(Utils.bytesToHex(ByteBuffer.allocate(Long.BYTES).putLong(data).array()));
+        //}
 
         encoder.writeLong(data);
     }

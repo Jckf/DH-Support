@@ -27,6 +27,7 @@ import no.jckf.dhsupport.core.handler.message.PluginHandshakeHandler;
 import no.jckf.dhsupport.core.handler.message.SocketHandshakeHandler;
 import no.jckf.dhsupport.core.handler.message.SocketLodHandler;
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
+import no.jckf.dhsupport.core.world.WorldInterface;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -39,6 +40,8 @@ public class DhSupport implements Configurable
     protected Configuration configuration;
 
     protected Logger logger;
+
+    protected Map<UUID, WorldInterface> worldInterfaces = new HashMap<>();
 
     protected PluginMessageHandler pluginMessageHandler;
 
@@ -81,11 +84,33 @@ public class DhSupport implements Configurable
         }
     }
 
+    public void setWorldInterface(UUID id, @Nullable WorldInterface worldInterface)
+    {
+        if (worldInterface == null) {
+            this.info("Removing world interface for " + id);
+
+            this.worldInterfaces.remove(id);
+            return;
+        }
+
+        this.info("Adding world interface for " + id);
+
+        this.worldInterfaces.put(id, worldInterface);
+    }
+
+    @Nullable
+    public WorldInterface getWorldInterface(UUID id)
+    {
+        return this.worldInterfaces.get(id);
+    }
+
+    @Nullable
     public PluginMessageHandler getPluginMessageHandler()
     {
         return this.pluginMessageHandler;
     }
 
+    @Nullable
     public SocketMessageHandler getSocketMessageHandler()
     {
         return this.socketMessageHandler;

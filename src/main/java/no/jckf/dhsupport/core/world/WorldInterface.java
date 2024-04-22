@@ -16,27 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.socket;
+package no.jckf.dhsupport.core.world;
 
-import no.jckf.dhsupport.core.bytestream.Encoder;
-
-public class FullDataResponseSocketMessage extends TrackableSocketMessage
+public interface WorldInterface
 {
-    protected static final byte formatVersion = 3;
+    int getMinY();
 
-    protected byte[] data;
+    int getMaxY();
 
-    public void setData(byte[] data)
-    {
-        this.data = data;
-    }
+    String getBiomeAt(int x, int z);
 
-    @Override
-    public void encode(Encoder encoder)
-    {
-        encoder.writeBoolean(true); // True if data is available. False otherwise.
-        encoder.writeByte(FullDataResponseSocketMessage.formatVersion);
-        encoder.writeInt(this.data.length);
-        encoder.write(data);
-    }
+    String getMaterialAt(int x, int y, int z);
+
+    byte getBlockLightAt(int x, int y, int z);
+
+    byte getSkyLightAt(int x, int y, int z);
 }

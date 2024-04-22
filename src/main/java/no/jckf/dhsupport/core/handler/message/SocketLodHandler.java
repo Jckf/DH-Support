@@ -22,7 +22,10 @@ import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.handler.SocketMessageHandler;
 import no.jckf.dhsupport.core.message.socket.FullDataRequestSocketMessage;
 import no.jckf.dhsupport.core.message.socket.FullDataResponseSocketMessage;
-import no.jckf.dhsupport.core.message.socket.GenerationTaskPriorityRequest;
+import no.jckf.dhsupport.core.world.LodBuilder;
+import org.bukkit.Bukkit;
+
+import java.util.UUID;
 
 public class SocketLodHandler
 {
@@ -39,14 +42,20 @@ public class SocketLodHandler
     public void register()
     {
         this.socketMessageHandler.getEventBus().registerHandler(FullDataRequestSocketMessage.class, (requestMessage) -> {
+            UUID playerUuid = this.dhSupport.getPlayerUuidBySocketId(requestMessage.getSender().id());
+
+            // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
+            UUID worldUuid = Bukkit.getPlayer(playerUuid).getWorld().getUID();
+
+            LodBuilder builder = new LodBuilder(this.dhSupport.getWorldInterface(worldUuid), requestMessage.getPosition());
+
             FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
             response.isResponseTo(requestMessage);
+            response.setData(builder.generate());
+
             this.socketMessageHandler.sendSocketMessage(requestMessage.getSender(), response);
         });
 
-        this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (requestMessage) -> {
-            this.dhSupport.info("Priority request for:");
-            requestMessage.getSectionPositions().forEach((pos) -> this.dhSupport.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
-        });
+        //this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (requestMessage) -> { });
     }
 }
