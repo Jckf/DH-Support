@@ -25,9 +25,13 @@ import no.jckf.dhsupport.core.dataobject.SectionPosition;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LodBuilder
 {
+    protected static Map<String, byte[]> cache = new HashMap<>();
+
     protected WorldInterface worldInterface;
 
     protected SectionPosition position;
@@ -40,7 +44,13 @@ public class LodBuilder
 
     public byte[] generate()
     {
-        System.out.println("Building LOD...");
+        String cacheKey = this.position.getX() + "x" + this.position.getZ();
+
+        if (LodBuilder.cache.containsKey(cacheKey)) {
+            return LodBuilder.cache.get(cacheKey);
+        }
+
+        //System.out.println("Building LOD...");
 
         ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
 
@@ -66,6 +76,10 @@ public class LodBuilder
             System.out.println(exception.getClass().getSimpleName() + " - " + exception.getMessage());
         }
 
-        return compressedStream.toByteArray();
+        byte[] result = compressedStream.toByteArray();
+
+        LodBuilder.cache.put(cacheKey, result);
+
+        return result;
     }
 }

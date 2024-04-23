@@ -18,15 +18,23 @@
 
 package no.jckf.dhsupport.core.world;
 
+import java.util.Map;
+
 public interface WorldInterface
 {
     int getMinY();
 
     int getMaxY();
 
+    int getHighestYAt(int x, int z);
+
     String getBiomeAt(int x, int z);
 
     String getMaterialAt(int x, int y, int z);
+
+    String getBlockStateAsStringAt(int x, int y, int z);
+
+    Map<String, String> getBlockPropertiesAt(int x, int y, int z);
 
     byte getBlockLightAt(int x, int y, int z);
 

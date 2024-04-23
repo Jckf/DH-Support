@@ -20,7 +20,9 @@ package no.jckf.dhsupport.core.dataobject;
 
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
+import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 public class IdMapping extends DataObject
 {
@@ -32,16 +34,32 @@ public class IdMapping extends DataObject
 
     protected String block;
 
-    public IdMapping(String biome, String block)
+    @Nullable
+    protected Map<String, String> properties;
+
+    public IdMapping(String biome, String block, @Nullable Map<String, String> properties)
     {
         this.biome = biome;
         this.block = block;
+        this.properties = properties;
     }
 
     @Override
     public void encode(Encoder encoder)
     {
-        String serialized = this.biome + IdMapping.separator1 + this.block + IdMapping.separator2;
+        StringBuilder propStringBuilder = new StringBuilder();
+
+        if (this.properties != null) {
+            for (String k : this.properties.keySet()) {
+                propStringBuilder.append("{")
+                    .append(k)
+                    .append(":")
+                    .append(this.properties.get(k))
+                    .append("}");
+            }
+        }
+
+        String serialized = this.biome + IdMapping.separator1 + this.block + (propStringBuilder.isEmpty() ? "" : IdMapping.separator2 + propStringBuilder);
 
         // TODO: A writeUtf() method?
         encoder.writeShort(serialized.length());

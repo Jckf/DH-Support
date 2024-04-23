@@ -44,6 +44,11 @@ public class SocketLodHandler
         this.socketMessageHandler.getEventBus().registerHandler(FullDataRequestSocketMessage.class, (requestMessage) -> {
             UUID playerUuid = this.dhSupport.getPlayerUuidBySocketId(requestMessage.getSender().id());
 
+            // This happens when a player disconnects with pending messages.
+            if (playerUuid == null) {
+                return;
+            }
+
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
             UUID worldUuid = Bukkit.getPlayer(playerUuid).getWorld().getUID();
 

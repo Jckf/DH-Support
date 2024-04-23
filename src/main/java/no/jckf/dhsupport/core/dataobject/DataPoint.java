@@ -62,6 +62,11 @@ public class DataPoint extends DataObject
         this.startY = value;
     }
 
+    public int getStartY()
+    {
+        return this.startY;
+    }
+
     public void setMappingId(int id)
     {
         this.mappingId = id;

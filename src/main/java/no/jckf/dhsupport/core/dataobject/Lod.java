@@ -46,7 +46,6 @@ public class Lod extends DataObject
     @Override
     public void encode(Encoder encoder)
     {
-        int firstLayer = 60;
         int minY = this.worldInterface.getMinY();
         int maxY = this.worldInterface.getMaxY();
         int height = maxY - minY;
@@ -63,10 +62,19 @@ public class Lod extends DataObject
 
         String biome = ""; // Initialize to squelch warnings.
 
-        for (int x = 0; x < Lod.width; x++) {
-            for (int z = 0; z < Lod.width; z++) {
-                if (x % 16 == 0 || z % 16 == 0) {
-                    biome = this.worldInterface.getBiomeAt(offsetX + x, offsetZ + z);
+        for (int relativeX = 0; relativeX < Lod.width; relativeX++) {
+            for (int relativeZ = 0; relativeZ < Lod.width; relativeZ++) {
+                int worldX = offsetX + relativeX;
+                int worldZ = offsetZ + relativeZ;
+
+                // Actual Y of top-most block.
+                int topLayer = this.worldInterface.getHighestYAt(worldX, worldZ);
+
+                // Distance from bottom to top-most block.
+                int relativeTopLayer = topLayer - minY;
+
+                if (relativeX % 16 == 0 || relativeZ % 16 == 0) {
+                    biome = this.worldInterface.getBiomeAt(offsetX + relativeX, offsetZ + relativeZ);
                 }
 
                 List<DataPoint> column = new ArrayList<>();
@@ -74,48 +82,47 @@ public class Lod extends DataObject
                 @Nullable
                 DataPoint previous = null;
 
-                for (int y = 0; y < height; y++) {
-                    int worldX = offsetX + x;
-                    int worldY = firstLayer + minY + y;
-                    int worldZ = offsetZ + z;
+                for (int relativeY = relativeTopLayer; relativeY >= relativeTopLayer - 10; relativeY--) {
+                    int worldY = minY + relativeY;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
-                    String compositeKey = biome + "-" + material;
+
+                    if (material.equals("minecraft:air") || material.equals("minecraft:void_air")) {
+                        previous = null;
+                        continue;
+                    }
+
+                    String compositeKey = biome + "|" + material;
+                    //String compositeKey = biome + "|" + material + "|" + this.worldInterface.getBlockStateAsStringAt(worldX, worldY, worldZ);
 
                     @Nullable
                     Integer id = mapMap.get(compositeKey);
 
                     if (id == null) {
-                        idMappings.add(new IdMapping(biome, material));
+                        idMappings.add(new IdMapping(biome, material, null));
+                        //idMappings.add(new IdMapping(biome, material, this.worldInterface.getBlockPropertiesAt(worldX, worldY, worldZ)));
                         id = idMappings.size() - 1;
                         mapMap.put(compositeKey, id);
                     }
 
-                    DataPoint point = null;
+                    DataPoint point;
 
                     if (previous != null && previous.getMappingId() == id) {
                         point = previous;
 
+                        point.setStartY(point.getStartY() - 1);
                         point.setHeight(point.getHeight() + 1);
-
-                        if (material.equals("minecraft:air") && point.getHeight() >= 15) {
-                            point.setHeight(point.getHeight() + height - y);
-                            break;
-                        }
                     } else {
                         point = new DataPoint();
                         column.add(point);
 
-                        point.setStartY(firstLayer + y);
+                        point.setStartY(relativeY);
                         point.setMappingId(id);
                     }
 
-                    point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY, worldZ));
+                    //point.setSkyLight(nextSkyLight);
+                    point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
                     point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY, worldZ));
-
-                    if (previous != null && this.worldInterface.isTransparent(worldX, worldY, worldZ)) {
-                        previous.setSkyLight(point.getSkyLight());
-                    }
 
                     previous = point;
                 }
@@ -128,15 +135,18 @@ public class Lod extends DataObject
 
         encoder.writeInt(Lod.separator);
 
-        for (int xz = 0; xz < columns.size(); xz++) {
-            for (int y = 0; y < columns.get(xz).size(); y++) {
-                columns.get(xz).get(y).encode(encoder);
+        for (List<DataPoint> column : columns) {
+            for (DataPoint dataPoint : column) {
+                dataPoint.encode(encoder);
             }
         }
 
         encoder.writeInt(Lod.separator);
 
         encoder.writeInt(idMappings.size());
-        idMappings.forEach((mapping) -> mapping.encode(encoder));
+
+        for (IdMapping mapping : idMappings) {
+            mapping.encode(encoder);
+        }
     }
 }

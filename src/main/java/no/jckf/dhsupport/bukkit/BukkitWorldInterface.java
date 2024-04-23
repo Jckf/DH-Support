@@ -21,6 +21,9 @@ package no.jckf.dhsupport.bukkit;
 import no.jckf.dhsupport.core.world.WorldInterface;
 import org.bukkit.World;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class BukkitWorldInterface implements WorldInterface
 {
     World world;
@@ -43,6 +46,12 @@ public class BukkitWorldInterface implements WorldInterface
     }
 
     @Override
+    public int getHighestYAt(int x, int z)
+    {
+        return this.world.getHighestBlockAt(x, z).getY();
+    }
+
+    @Override
     public String getBiomeAt(int x, int z)
     {
         return this.world.getBlockAt(x, this.world.getSeaLevel(), z).getBiome().getKey().toString();
@@ -52,6 +61,36 @@ public class BukkitWorldInterface implements WorldInterface
     public String getMaterialAt(int x, int y, int z)
     {
         return this.world.getBlockAt(x, y, z).getBlockData().getMaterial().getKey().toString();
+    }
+
+    @Override
+    public String getBlockStateAsStringAt(int x, int y, int z)
+    {
+        return this.world.getBlockAt(x, y, z).getBlockData().getAsString();
+    }
+
+    @Override
+    public Map<String, String> getBlockPropertiesAt(int x, int y, int z)
+    {
+        Map<String, String> properties = new HashMap<>();
+
+        String dataString = this.getBlockStateAsStringAt(x, y, z);
+
+        int kvStart = dataString.indexOf("[");
+
+        if (kvStart == -1) {
+            return properties;
+        }
+
+        String[] kvStrings = dataString.substring(kvStart + 1, dataString.length() - 1).split(",");
+
+        for (String kvString : kvStrings) {
+            String[] kv = kvString.split("=", 2);
+
+            properties.put(kv[0], kv[1]);
+        }
+
+        return properties;
     }
 
     @Override
