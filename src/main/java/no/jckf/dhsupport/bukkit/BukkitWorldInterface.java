@@ -46,6 +46,12 @@ public class BukkitWorldInterface implements WorldInterface
     }
 
     @Override
+    public int getSeaLevel()
+    {
+        return this.world.getSeaLevel();
+    }
+
+    @Override
     public int getHighestYAt(int x, int z)
     {
         return this.world.getHighestBlockAt(x, z).getY();

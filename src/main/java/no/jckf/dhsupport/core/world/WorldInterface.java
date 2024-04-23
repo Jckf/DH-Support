@@ -26,6 +26,8 @@ public interface WorldInterface
 
     int getMaxY();
 
+    int getSeaLevel();
+
     int getHighestYAt(int x, int z);
 
     String getBiomeAt(int x, int z);

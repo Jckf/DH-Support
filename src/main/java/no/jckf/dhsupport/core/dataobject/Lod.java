@@ -50,6 +50,9 @@ public class Lod extends DataObject
         int maxY = this.worldInterface.getMaxY();
         int height = maxY - minY;
 
+        int seaLevel = this.worldInterface.getSeaLevel();
+        int relativeSeaLevel = seaLevel - minY;
+
         int offsetX = this.position.getX() * 64;
         int offsetZ = this.position.getZ() * 64;
 
@@ -81,8 +84,9 @@ public class Lod extends DataObject
 
                 @Nullable
                 DataPoint previous = null;
+                Integer solidGround = null;
 
-                for (int relativeY = relativeTopLayer; relativeY >= relativeTopLayer - 10; relativeY--) {
+                for (int relativeY = relativeTopLayer; (solidGround == null || relativeY >= solidGround) && relativeY >= 0; relativeY--) {
                     int worldY = minY + relativeY;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
@@ -90,6 +94,10 @@ public class Lod extends DataObject
                     if (material.equals("minecraft:air") || material.equals("minecraft:void_air")) {
                         previous = null;
                         continue;
+                    }
+
+                    if (solidGround == null && !material.equals("minecraft:water")) {
+                        solidGround = relativeY - 25; // Stop 25 blocks under the first non-air/water block.
                     }
 
                     String compositeKey = biome + "|" + material;
@@ -120,7 +128,6 @@ public class Lod extends DataObject
                         point.setMappingId(id);
                     }
 
-                    //point.setSkyLight(nextSkyLight);
                     point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
                     point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY, worldZ));
 
