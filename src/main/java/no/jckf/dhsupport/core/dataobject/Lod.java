@@ -129,7 +129,7 @@ public class Lod extends DataObject
                     }
 
                     point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
-                    point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY, worldZ));
+                    point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY + 1, worldZ));
 
                     previous = point;
                 }
