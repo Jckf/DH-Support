@@ -71,7 +71,7 @@ public class LodBuilder
             LZ4FrameOutputStream compressorStream = new LZ4FrameOutputStream(
                 new BufferedOutputStream(compressedStream),
                 LZ4FrameOutputStream.BLOCKSIZE.SIZE_4MB,
-                compressedStream.size(),
+                uncompressedData.length,
                 LZ4Factory.fastestInstance().highCompressor(17),
                 XXHashFactory.fastestInstance().hash32(),
                 LZ4FrameOutputStream.FLG.Bits.BLOCK_INDEPENDENCE
