@@ -97,7 +97,7 @@ public class Lod extends DataObject
                     }
 
                     if (solidGround == null && !material.equals("minecraft:water")) {
-                        solidGround = relativeY - 25; // Stop 25 blocks under the first non-air/water block.
+                        solidGround = relativeY - 20; // Stop 20 blocks under the first non-air/water block. TODO: List of blocks to consider as ground, so that we can lower this value?
                     }
 
                     String compositeKey = biome + "|" + material;

@@ -18,7 +18,9 @@
 
 package no.jckf.dhsupport.core.world;
 
+import net.jpountz.lz4.LZ4Factory;
 import net.jpountz.lz4.LZ4FrameOutputStream;
+import net.jpountz.xxhash.XXHashFactory;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
@@ -52,22 +54,28 @@ public class LodBuilder
 
         //System.out.println("Building LOD...");
 
+        Encoder dataSourceEncoder = new Encoder();
+
+        dataSourceEncoder.writeInt(0); // Detail level
+        dataSourceEncoder.writeInt(64); // Width
+        dataSourceEncoder.writeInt(this.worldInterface.getMinY());
+        dataSourceEncoder.writeByte(1); // World gen step
+
+        Lod lod = new Lod(this.worldInterface, this.position);
+        lod.encode(dataSourceEncoder);
+        byte[] uncompressedData = dataSourceEncoder.toByteArray();
+
         ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
 
         try {
-            LZ4FrameOutputStream compressorStream = new LZ4FrameOutputStream(new BufferedOutputStream(compressedStream));
-
-            Encoder dataSourceEncoder = new Encoder();
-
-            dataSourceEncoder.writeInt(0); // Detail level
-            dataSourceEncoder.writeInt(64); // Width
-            dataSourceEncoder.writeInt(this.worldInterface.getMinY());
-            dataSourceEncoder.writeByte(1); // World gen step
-
-            Lod lod = new Lod(this.worldInterface, this.position);
-            lod.encode(dataSourceEncoder);
-
-            byte[] uncompressedData = dataSourceEncoder.toByteArray();
+            LZ4FrameOutputStream compressorStream = new LZ4FrameOutputStream(
+                new BufferedOutputStream(compressedStream),
+                LZ4FrameOutputStream.BLOCKSIZE.SIZE_4MB,
+                compressedStream.size(),
+                LZ4Factory.fastestInstance().highCompressor(17),
+                XXHashFactory.fastestInstance().hash32(),
+                LZ4FrameOutputStream.FLG.Bits.BLOCK_INDEPENDENCE
+            );
 
             compressorStream.write(uncompressedData);
             compressorStream.flush();
@@ -77,6 +85,8 @@ public class LodBuilder
         }
 
         byte[] result = compressedStream.toByteArray();
+
+        //System.out.println("LOD size: " + Math.ceil(result.length / 1024.0));
 
         LodBuilder.cache.put(cacheKey, result);
 
