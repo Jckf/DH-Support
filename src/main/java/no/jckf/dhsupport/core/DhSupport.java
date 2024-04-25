@@ -19,8 +19,11 @@
 package no.jckf.dhsupport.core;
 
 import io.netty.channel.ChannelId;
+import no.jckf.dhsupport.core.bytestream.Encoder;
 import no.jckf.dhsupport.core.configuration.Configurable;
 import no.jckf.dhsupport.core.configuration.Configuration;
+import no.jckf.dhsupport.core.dataobject.Lod;
+import no.jckf.dhsupport.core.dataobject.SectionPosition;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
 import no.jckf.dhsupport.core.handler.SocketMessageHandler;
 import no.jckf.dhsupport.core.handler.message.PluginHandshakeHandler;
@@ -33,6 +36,9 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable
@@ -53,6 +59,10 @@ public class DhSupport implements Configurable
 
     protected Map<UUID, ChannelId> uuidToSocketMap = new HashMap<>();
 
+    protected ExecutorService executor;
+
+    protected Map<UUID, Map<String, byte[]>> lodCache = new HashMap<>();
+
     public DhSupport()
     {
         // Mumble mumble. Something about passing references to an incomplete "this".
@@ -62,6 +72,8 @@ public class DhSupport implements Configurable
 
     public void onEnable()
     {
+        this.executor = Executors.newFixedThreadPool(4);
+
         // TODO: Store these instances somewhere?
         //       References will exist inside the event bus, so they won't be GCed, but this _is_ a little bit ugly.
         (new PluginHandshakeHandler(this, this.pluginMessageHandler)).register();
@@ -90,12 +102,14 @@ public class DhSupport implements Configurable
             this.info("Removing world interface for " + id);
 
             this.worldInterfaces.remove(id);
+            this.lodCache.remove(id);
             return;
         }
 
         this.info("Adding world interface for " + id);
 
         this.worldInterfaces.put(id, worldInterface);
+        this.lodCache.put(id, new HashMap<>());
     }
 
     @Nullable
@@ -195,5 +209,35 @@ public class DhSupport implements Configurable
     public UUID getPlayerUuidBySocketId(ChannelId id)
     {
         return this.socketToUuidMap.get(id);
+    }
+
+    public CompletableFuture<Lod> queueBuilder(LodBuilder builder)
+    {
+        return CompletableFuture.supplyAsync(builder::generate, this.executor);
+    }
+
+    public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position)
+    {
+        String key = position.getX() + "x" + position.getZ();
+
+        if (!this.lodCache.get(worldId).containsKey(key)) {
+            this.info("Cache miss: " + worldId + " " + key);
+
+            LodBuilder builder = new LodBuilder(this.getWorldInterface(worldId).newInstance(), position);
+
+            return this.queueBuilder(builder).thenApply((lod) -> {
+                Encoder encoder = new Encoder();
+                lod.encode(encoder);
+                byte[] data = encoder.toByteArray();
+
+                this.lodCache.get(worldId).put(key, data);
+
+                return data;
+            });
+        }
+
+        this.info("Cache hit: " + worldId + " " + key);
+
+        return CompletableFuture.completedFuture(this.lodCache.get(worldId).get(key));
     }
 }

@@ -18,142 +18,89 @@
 
 package no.jckf.dhsupport.core.dataobject;
 
+import net.jpountz.lz4.LZ4Factory;
+import net.jpountz.lz4.LZ4FrameOutputStream;
+import net.jpountz.xxhash.XXHashFactory;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 import no.jckf.dhsupport.core.world.WorldInterface;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.Map;
 
 public class Lod extends DataObject
 {
-    protected static int width = 64;
+    public static int width = 64;
 
     protected static int separator = 0xFFFFFFFF;
 
     protected WorldInterface worldInterface;
 
-    protected SectionPosition position;
+    protected List<IdMapping> idMappings;
 
-    public Lod(WorldInterface worldInterface, SectionPosition position)
+    protected List<List<DataPoint>> columns;
+
+    public Lod(WorldInterface worldInterface, List<IdMapping> idMappings, List<List<DataPoint>> columns)
     {
         this.worldInterface = worldInterface;
-        this.position = position;
+        this.idMappings = idMappings;
+        this.columns = columns;
     }
 
     @Override
     public void encode(Encoder encoder)
     {
-        int minY = this.worldInterface.getMinY();
-        int maxY = this.worldInterface.getMaxY();
-        int height = maxY - minY;
+        Encoder toCompress = new Encoder();
 
-        int seaLevel = this.worldInterface.getSeaLevel();
-        int relativeSeaLevel = seaLevel - minY;
+        toCompress.writeInt(0); // Detail level
+        toCompress.writeInt(Lod.width);
+        toCompress.writeInt(this.worldInterface.getMinY());
+        toCompress.writeByte(1); // World gen step
 
-        int offsetX = this.position.getX() * 64;
-        int offsetZ = this.position.getZ() * 64;
+        toCompress.writeInt(Lod.separator);
 
-        encoder.writeInt(Lod.separator);
+        this.columns.forEach((column) -> toCompress.writeInt(column.size()));
 
-        List<IdMapping> idMappings = new ArrayList<>();
-        Map<String, Integer> mapMap = new HashMap<>();
+        toCompress.writeInt(Lod.separator);
 
-        List<List<DataPoint>> columns = new ArrayList<>();
-
-        String biome = ""; // Initialize to squelch warnings.
-
-        for (int relativeX = 0; relativeX < Lod.width; relativeX++) {
-            for (int relativeZ = 0; relativeZ < Lod.width; relativeZ++) {
-                int worldX = offsetX + relativeX;
-                int worldZ = offsetZ + relativeZ;
-
-                // Actual Y of top-most block.
-                int topLayer = this.worldInterface.getHighestYAt(worldX, worldZ);
-
-                // Distance from bottom to top-most block.
-                int relativeTopLayer = topLayer - minY;
-
-                if (relativeX % 16 == 0 || relativeZ % 16 == 0) {
-                    biome = this.worldInterface.getBiomeAt(offsetX + relativeX, offsetZ + relativeZ);
-                }
-
-                List<DataPoint> column = new ArrayList<>();
-
-                @Nullable
-                DataPoint previous = null;
-                Integer solidGround = null;
-
-                for (int relativeY = relativeTopLayer; (solidGround == null || relativeY >= solidGround) && relativeY >= 0; relativeY--) {
-                    int worldY = minY + relativeY;
-
-                    String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
-
-                    if (material.equals("minecraft:air") || material.equals("minecraft:void_air")) {
-                        previous = null;
-                        continue;
-                    }
-
-                    if (solidGround == null && !material.equals("minecraft:water")) {
-                        solidGround = relativeY - 20; // Stop 20 blocks under the first non-air/water block. TODO: List of blocks to consider as ground, so that we can lower this value?
-                    }
-
-                    String compositeKey = biome + "|" + material;
-                    //String compositeKey = biome + "|" + material + "|" + this.worldInterface.getBlockStateAsStringAt(worldX, worldY, worldZ);
-
-                    @Nullable
-                    Integer id = mapMap.get(compositeKey);
-
-                    if (id == null) {
-                        idMappings.add(new IdMapping(biome, material, null));
-                        //idMappings.add(new IdMapping(biome, material, this.worldInterface.getBlockPropertiesAt(worldX, worldY, worldZ)));
-                        id = idMappings.size() - 1;
-                        mapMap.put(compositeKey, id);
-                    }
-
-                    DataPoint point;
-
-                    if (previous != null && previous.getMappingId() == id) {
-                        point = previous;
-
-                        point.setStartY(point.getStartY() - 1);
-                        point.setHeight(point.getHeight() + 1);
-                    } else {
-                        point = new DataPoint();
-                        column.add(point);
-
-                        point.setStartY(relativeY);
-                        point.setMappingId(id);
-                    }
-
-                    point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
-                    point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY + 1, worldZ));
-
-                    previous = point;
-                }
-
-                columns.add(column);
-
-                encoder.writeInt(column.size());
-            }
-        }
-
-        encoder.writeInt(Lod.separator);
-
-        for (List<DataPoint> column : columns) {
+        for (List<DataPoint> column : this.columns) {
             for (DataPoint dataPoint : column) {
-                dataPoint.encode(encoder);
+                dataPoint.encode(toCompress);
             }
         }
 
-        encoder.writeInt(Lod.separator);
+        toCompress.writeInt(Lod.separator);
 
-        encoder.writeInt(idMappings.size());
+        toCompress.writeInt(this.idMappings.size());
 
-        for (IdMapping mapping : idMappings) {
-            mapping.encode(encoder);
+        for (IdMapping mapping : this.idMappings) {
+            mapping.encode(toCompress);
         }
+
+        encoder.write(this.compress(toCompress.toByteArray()));
+    }
+
+    protected byte[] compress(byte[] uncompressedData)
+    {
+        ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
+
+        try {
+            LZ4FrameOutputStream compressorStream = new LZ4FrameOutputStream(
+                new BufferedOutputStream(compressedStream),
+                LZ4FrameOutputStream.BLOCKSIZE.SIZE_4MB,
+                uncompressedData.length,
+                LZ4Factory.fastestInstance().highCompressor(17),
+                XXHashFactory.fastestInstance().hash32(),
+                LZ4FrameOutputStream.FLG.Bits.BLOCK_INDEPENDENCE
+            );
+
+            compressorStream.write(uncompressedData);
+            compressorStream.flush();
+        } catch (Exception exception) {
+            // Uhh...
+            System.out.println(exception.getClass().getSimpleName() + " - " + exception.getMessage());
+        }
+
+        return compressedStream.toByteArray();
     }
 }

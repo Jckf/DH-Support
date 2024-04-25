@@ -22,6 +22,8 @@ import java.util.Map;
 
 public interface WorldInterface
 {
+    WorldInterface newInstance();
+
     int getMinY();
 
     int getMaxY();

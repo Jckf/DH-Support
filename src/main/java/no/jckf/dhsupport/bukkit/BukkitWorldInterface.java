@@ -20,17 +20,36 @@ package no.jckf.dhsupport.bukkit;
 
 import no.jckf.dhsupport.core.world.WorldInterface;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class BukkitWorldInterface implements WorldInterface
 {
-    World world;
+    protected World world;
+
+    protected Block block;
 
     public BukkitWorldInterface(World world)
     {
         this.world = world;
+    }
+
+    @Override
+    public WorldInterface newInstance()
+    {
+        return new BukkitWorldInterface(this.world);
+    }
+
+    // Shitty cache :)
+    protected Block getBlock(int x, int y, int z)
+    {
+        if (this.block == null || this.block.getY() != y || this.block.getX() != x || this.block.getZ() != z) {
+            this.block = this.world.getBlockAt(x, y, z);
+        }
+
+        return this.block;
     }
 
     @Override
@@ -60,19 +79,19 @@ public class BukkitWorldInterface implements WorldInterface
     @Override
     public String getBiomeAt(int x, int z)
     {
-        return this.world.getBlockAt(x, this.world.getSeaLevel(), z).getBiome().getKey().toString();
+        return this.getBlock(x, this.world.getSeaLevel(), z).getBiome().getKey().toString();
     }
 
     @Override
     public String getMaterialAt(int x, int y, int z)
     {
-        return this.world.getBlockAt(x, y, z).getBlockData().getMaterial().getKey().toString();
+        return this.getBlock(x, y, z).getBlockData().getMaterial().getKey().toString();
     }
 
     @Override
     public String getBlockStateAsStringAt(int x, int y, int z)
     {
-        return this.world.getBlockAt(x, y, z).getBlockData().getAsString();
+        return this.getBlock(x, y, z).getBlockData().getAsString();
     }
 
     @Override
@@ -102,18 +121,18 @@ public class BukkitWorldInterface implements WorldInterface
     @Override
     public byte getBlockLightAt(int x, int y, int z)
     {
-        return this.world.getBlockAt(x, y, z).getLightFromBlocks();
+        return this.getBlock(x, y, z).getLightFromBlocks();
     }
 
     @Override
     public byte getSkyLightAt(int x, int y, int z)
     {
-        return this.world.getBlockAt(x, y, z).getLightFromSky();
+        return this.getBlock(x, y, z).getLightFromSky();
     }
 
     @Override
     public boolean isTransparent(int x, int y, int z)
     {
-        return this.world.getBlockAt(x, y, z).getBlockData().getMaterial().isTransparent();
+        return this.getBlock(x, y, z).getBlockData().getMaterial().isTransparent();
     }
 }

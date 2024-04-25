@@ -22,7 +22,6 @@ import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.handler.SocketMessageHandler;
 import no.jckf.dhsupport.core.message.socket.FullDataRequestSocketMessage;
 import no.jckf.dhsupport.core.message.socket.FullDataResponseSocketMessage;
-import no.jckf.dhsupport.core.world.LodBuilder;
 import org.bukkit.Bukkit;
 
 import java.util.UUID;
@@ -52,13 +51,14 @@ public class SocketLodHandler
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
             UUID worldUuid = Bukkit.getPlayer(playerUuid).getWorld().getUID();
 
-            LodBuilder builder = new LodBuilder(this.dhSupport.getWorldInterface(worldUuid), requestMessage.getPosition());
+            this.dhSupport.getLodData(worldUuid, requestMessage.getPosition())
+                .thenAccept((lodData) -> {
+                    FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
+                    response.isResponseTo(requestMessage);
+                    response.setData(lodData);
 
-            FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
-            response.isResponseTo(requestMessage);
-            response.setData(builder.generate());
-
-            this.socketMessageHandler.sendSocketMessage(requestMessage.getSender(), response);
+                    this.socketMessageHandler.sendSocketMessage(requestMessage.getSender(), response);
+                });
         });
 
         //this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (requestMessage) -> { });
