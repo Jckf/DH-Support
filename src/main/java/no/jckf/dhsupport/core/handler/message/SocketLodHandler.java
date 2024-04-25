@@ -51,6 +51,8 @@ public class SocketLodHandler
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
             UUID worldUuid = Bukkit.getPlayer(playerUuid).getWorld().getUID();
 
+            // TODO: Verify that the requested section is withing the player's view distance.
+
             this.dhSupport.getLodData(worldUuid, requestMessage.getPosition())
                 .thenAccept((lodData) -> {
                     FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();

@@ -99,14 +99,14 @@ public class DhSupport implements Configurable
     public void setWorldInterface(UUID id, @Nullable WorldInterface worldInterface)
     {
         if (worldInterface == null) {
-            this.info("Removing world interface for " + id);
+            //this.info("Removing world interface for " + id);
 
             this.worldInterfaces.remove(id);
             this.lodCache.remove(id);
             return;
         }
 
-        this.info("Adding world interface for " + id);
+        //this.info("Adding world interface for " + id);
 
         this.worldInterfaces.put(id, worldInterface);
         this.lodCache.put(id, new HashMap<>());
@@ -177,7 +177,7 @@ public class DhSupport implements Configurable
         this.socketToUuidMap.put(socketId, playerUuid);
         this.uuidToSocketMap.put(playerUuid, socketId);
 
-        this.info("Associated " + socketId + "/" + playerUuid);
+        //this.info("Associated " + socketId + "/" + playerUuid);
     }
 
     public void closeAndForgetByUuid(UUID playerUuid)
@@ -196,7 +196,7 @@ public class DhSupport implements Configurable
         UUID uuid = this.socketToUuidMap.remove(id);
         this.uuidToSocketMap.remove(uuid);
 
-        this.info("Forgot " + id + "/" + uuid);
+        //this.info("Forgot " + id + "/" + uuid);
     }
 
     @Nullable
@@ -221,7 +221,7 @@ public class DhSupport implements Configurable
         String key = position.getX() + "x" + position.getZ();
 
         if (!this.lodCache.get(worldId).containsKey(key)) {
-            this.info("Cache miss: " + worldId + " " + key);
+            //this.info("Cache miss: " + worldId + " " + key);
 
             LodBuilder builder = new LodBuilder(this.getWorldInterface(worldId).newInstance(), position);
 
@@ -236,7 +236,7 @@ public class DhSupport implements Configurable
             });
         }
 
-        this.info("Cache hit: " + worldId + " " + key);
+        //this.info("Cache hit: " + worldId + " " + key);
 
         return CompletableFuture.completedFuture(this.lodCache.get(worldId).get(key));
     }

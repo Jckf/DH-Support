@@ -24,6 +24,7 @@ import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.Utils;
 import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
+import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.event.EventBus;
 import no.jckf.dhsupport.core.message.MessageTypeRegistry;
 import no.jckf.dhsupport.core.message.socket.*;
@@ -70,7 +71,7 @@ public class SocketMessageHandler
     public void onEnable()
     {
         try {
-            this.socketServer.startup(this.dhSupport.getConfig().getInt("port"));
+            this.socketServer.startup(this.dhSupport.getConfig().getInt(DhsConfig.PORT));
         } catch (Exception exception) {
             this.dhSupport.warning("Failed to start socket server: " + exception.getClass().getSimpleName() + " - " + exception.getMessage());
             // TODO: Do something about it?
