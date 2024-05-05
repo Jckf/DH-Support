@@ -61,8 +61,6 @@ public class IdMapping extends DataObject
 
         String serialized = this.biome + IdMapping.separator1 + this.block + (propStringBuilder.isEmpty() ? "" : IdMapping.separator2 + propStringBuilder);
 
-        // TODO: A writeUtf() method?
-        encoder.writeShort(serialized.length());
-        encoder.write(serialized.getBytes(StandardCharsets.UTF_8));
+        encoder.writeShortString(serialized);
     }
 }

@@ -144,6 +144,6 @@ public class LodBuilder
             }
         }
 
-        return new Lod(this.worldInterface, idMappings, columns);
+        return new Lod(this.worldInterface, this.position, idMappings, columns);
     }
 }

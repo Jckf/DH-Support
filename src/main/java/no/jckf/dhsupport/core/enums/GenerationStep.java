@@ -16,27 +16,29 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.socket;
+package no.jckf.dhsupport.core.enums;
 
-import no.jckf.dhsupport.core.bytestream.Encoder;
-
-public class FullDataResponseSocketMessage extends TrackableSocketMessage
+/**
+ * @see EDhApiWorldGenerationStep
+ */
+public enum GenerationStep
 {
-    protected static final byte formatVersion = 3;
+    EMPTY(0),
+    STRUCTURE_START(1),
+    STRUCTURE_REFERENCE(2),
+    BIOMES(3),
+    NOISE(4),
+    SURFACE(5),
+    CARVERS(6),
+    LIQUID_CARVERS(7),
+    FEATURES(8),
+    LIGHT(9)
+    ;
 
-    protected byte[] data;
+    public final int value;
 
-    public void setData(byte[] data)
+    GenerationStep(int value)
     {
-        this.data = data;
-    }
-
-    @Override
-    public void encode(Encoder encoder)
-    {
-        encoder.writeBoolean(true); // True if data is available. False otherwise.
-        //encoder.writeByte(FullDataResponseSocketMessage.formatVersion);
-        //encoder.writeInt(this.data.length);
-        encoder.write(data);
+        this.value = value;
     }
 }

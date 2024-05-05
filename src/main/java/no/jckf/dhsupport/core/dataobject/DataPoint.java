@@ -88,10 +88,6 @@ public class DataPoint extends DataObject
         data |= (long) (this.skyLight & 0x0F) << 32 + 12 + 12;
         data |= (long) (this.blockLight & 0x0F) << 32 + 12 + 12 + 4;
 
-        //if (this.blockLight != 0 || this.skyLight != 0) {
-        //    System.out.println(Utils.bytesToHex(ByteBuffer.allocate(Long.BYTES).putLong(data).array()));
-        //}
-
         encoder.writeLong(data);
     }
 }

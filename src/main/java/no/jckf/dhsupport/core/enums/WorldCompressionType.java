@@ -16,27 +16,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.socket;
+package no.jckf.dhsupport.core.enums;
 
-import no.jckf.dhsupport.core.bytestream.Encoder;
-
-public class FullDataResponseSocketMessage extends TrackableSocketMessage
+/**
+ * @see EDhApiWorldCompressionMode
+ */
+public enum WorldCompressionType
 {
-    protected static final byte formatVersion = 3;
+    // Merge blocks of the same type.
+    SAME(0),
 
-    protected byte[] data;
+    // Merge blocks that are not the same type but look the same.
+    SIMILAR(1),
+    ;
 
-    public void setData(byte[] data)
+    public final int value;
+
+    WorldCompressionType(int value)
     {
-        this.data = data;
-    }
-
-    @Override
-    public void encode(Encoder encoder)
-    {
-        encoder.writeBoolean(true); // True if data is available. False otherwise.
-        //encoder.writeByte(FullDataResponseSocketMessage.formatVersion);
-        //encoder.writeInt(this.data.length);
-        encoder.write(data);
+        this.value = value;
     }
 }

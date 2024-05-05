@@ -22,54 +22,84 @@ import net.jpountz.lz4.LZ4Factory;
 import net.jpountz.lz4.LZ4FrameOutputStream;
 import net.jpountz.xxhash.XXHashFactory;
 import no.jckf.dhsupport.core.bytestream.Encoder;
+import no.jckf.dhsupport.core.enums.CompressionType;
+import no.jckf.dhsupport.core.enums.GenerationStep;
 import no.jckf.dhsupport.core.world.WorldInterface;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @see FullDataSourceV2DTO
+ */
 public class Lod extends DataObject
 {
+    public static int dataFormatVersion = 1;
+
+    public static CompressionType compressionType = CompressionType.LZ4;
+
     public static int width = 64;
 
-    protected static int separator = 0xFFFFFFFF;
-
     protected WorldInterface worldInterface;
+
+    protected SectionPosition position;
 
     protected List<IdMapping> idMappings;
 
     protected List<List<DataPoint>> columns;
 
-    public Lod(WorldInterface worldInterface, List<IdMapping> idMappings, List<List<DataPoint>> columns)
+    public Lod(WorldInterface worldInterface, SectionPosition position, List<IdMapping> idMappings, List<List<DataPoint>> columns)
     {
         this.worldInterface = worldInterface;
+        this.position = position;
         this.idMappings = idMappings;
         this.columns = columns;
     }
 
-    @Override
-    public void encode(Encoder encoder)
+    protected void encodeData(Encoder encoder)
     {
         Encoder toCompress = new Encoder();
 
-        toCompress.writeInt(0); // Detail level
-        toCompress.writeInt(Lod.width);
-        toCompress.writeInt(this.worldInterface.getMinY());
-        toCompress.writeByte(1); // World gen step
-
-        toCompress.writeInt(Lod.separator);
-
-        this.columns.forEach((column) -> toCompress.writeInt(column.size()));
-
-        toCompress.writeInt(Lod.separator);
-
         for (List<DataPoint> column : this.columns) {
+            toCompress.writeShort(column.size());
+
             for (DataPoint dataPoint : column) {
                 dataPoint.encode(toCompress);
             }
         }
 
-        toCompress.writeInt(Lod.separator);
+        byte[] compressed = this.compress(toCompress.toByteArray());
+
+        encoder.writeInt(compressed.length);
+        encoder.write(compressed);
+    }
+
+    protected void encodeColumnGenerationStep(Encoder encoder)
+    {
+        byte[] bytesToCompress = new byte[Lod.width * Lod.width];
+        Arrays.fill(bytesToCompress, (byte) GenerationStep.STRUCTURE_START.value);
+
+        byte[] compressed = this.compress(bytesToCompress);
+
+        encoder.writeInt(compressed.length);
+        encoder.write(compressed);
+    }
+
+    protected void encodeWorldCompressionType(Encoder encoder)
+    {
+        byte[] bytesToCompress = new byte[Lod.width * Lod.width]; // All zeroes means WorldCompressionType.SAME
+
+        byte[] compressed = this.compress(bytesToCompress);
+
+        encoder.writeInt(compressed.length);
+        encoder.write(compressed);
+    }
+
+    protected void encodeMappings(Encoder encoder)
+    {
+        Encoder toCompress = new Encoder();
 
         toCompress.writeInt(this.idMappings.size());
 
@@ -77,7 +107,32 @@ public class Lod extends DataObject
             mapping.encode(toCompress);
         }
 
-        encoder.write(this.compress(toCompress.toByteArray()));
+        byte[] compressed = this.compress(toCompress.toByteArray());
+
+        encoder.writeInt(compressed.length);
+        encoder.write(compressed);
+    }
+
+    @Override
+    public void encode(Encoder encoder)
+    {
+        this.position.encode(encoder);
+
+        encoder.writeInt(0); // TODO: Checksum.
+
+        this.encodeData(encoder);
+        this.encodeColumnGenerationStep(encoder);
+        this.encodeWorldCompressionType(encoder);
+        this.encodeMappings(encoder);
+
+        encoder.writeByte(Lod.dataFormatVersion);
+
+        encoder.writeByte(Lod.compressionType.value);
+
+        encoder.writeBoolean(true); // Apply to parent
+
+        encoder.writeLong(0); // TODO: Last modified TS.
+        encoder.writeLong(0); // TODO: Created TS.
     }
 
     protected byte[] compress(byte[] uncompressedData)
