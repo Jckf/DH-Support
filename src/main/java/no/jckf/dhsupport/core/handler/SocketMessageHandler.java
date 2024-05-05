@@ -39,7 +39,7 @@ public class SocketMessageHandler
 
     protected SocketServer socketServer;
 
-    public final int protocolVersion = 2;
+    public final int protocolVersion = 3;
 
     protected EventBus<SocketMessage> eventBus;
 
@@ -146,6 +146,7 @@ public class SocketMessageHandler
             message.decode(decoder);
         } catch (Exception exception) {
             this.dhSupport.warning("Failed to init message class: " + exception.getClass() + " - " + exception.getMessage());
+            exception.printStackTrace();
             return null;
         }
 

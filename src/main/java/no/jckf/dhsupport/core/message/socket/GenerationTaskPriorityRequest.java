@@ -25,25 +25,25 @@ import java.util.Collection;
 
 public class GenerationTaskPriorityRequest extends TrackableSocketMessage
 {
-    protected int levelHashCode;
+    protected String levelName;
 
     protected Collection<SectionPosition> sectionPositions;
 
     @Override
     public void decode(Decoder decoder)
     {
-        this.levelHashCode = decoder.readInt();
+        this.levelName = decoder.readShortString();
         this.sectionPositions = decoder.readCollection(SectionPosition.class);
     }
 
-    public void setLevelHashCode(int hashCode)
+    public void setLevelName(String name)
     {
-        this.levelHashCode = hashCode;
+        this.levelName = name;
     }
 
-    public int getLevelHashCode()
+    public String getLevelName()
     {
-        return this.levelHashCode;
+        return this.levelName;
     }
 
     public void setSectionPositions(Collection<SectionPosition> sectionPositions)
