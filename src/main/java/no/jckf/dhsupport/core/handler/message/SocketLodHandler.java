@@ -47,10 +47,6 @@ public class SocketLodHandler
         this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (requestMessage) -> {
             this.dhSupport.info("Priority request for:");
             requestMessage.getSectionPositions().forEach((pos) -> this.dhSupport.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
-            // TODO: Each position has one of the following statuses:
-            //       1: Not generated.
-            //       2: Exists, but is not loaded.
-            //       3: Loaded.
         });
     }
 }
