@@ -96,6 +96,7 @@ public class LodBuilder
 
                     if (solidGround == null) {
                         switch (material) {
+                            case "minecraft:stone":
                             case "minecraft:grass":
                             case "minecraft:dirt":
                             case "minecraft:sand":
