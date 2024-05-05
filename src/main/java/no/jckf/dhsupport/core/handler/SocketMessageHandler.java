@@ -146,7 +146,6 @@ public class SocketMessageHandler
             message.decode(decoder);
         } catch (Exception exception) {
             this.dhSupport.warning("Failed to init message class: " + exception.getClass() + " - " + exception.getMessage());
-            exception.printStackTrace();
             return null;
         }
 
