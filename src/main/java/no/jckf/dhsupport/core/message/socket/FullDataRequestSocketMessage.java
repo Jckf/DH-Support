@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 
 public class FullDataRequestSocketMessage extends TrackableSocketMessage
 {
-    protected int levelHashCode;
+    protected String levelName;
 
     protected SectionPosition position;
 
@@ -40,7 +40,7 @@ public class FullDataRequestSocketMessage extends TrackableSocketMessage
     @Override
     public void decode(Decoder decoder)
     {
-        this.levelHashCode = decoder.readInt();
+        this.levelName = decoder.readShortString();
         this.position = decoder.readObject(SectionPosition.class);
         this.checksum = decoder.readOptional(decoder::readInt);
     }

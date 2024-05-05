@@ -39,7 +39,7 @@ public class SocketMessageHandler
 
     protected SocketServer socketServer;
 
-    public final int protocolVersion = 2;
+    public final int protocolVersion = 3;
 
     protected EventBus<SocketMessage> eventBus;
 
