@@ -21,6 +21,7 @@ package no.jckf.dhsupport.core.bytestream;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 public class Encoder
@@ -77,10 +78,16 @@ public class Encoder
         this.output.writeLong(value);
     }
 
+    public void writeShortString(String value)
+    {
+        this.output.writeShort(value.length());
+        this.output.write(value.getBytes(StandardCharsets.UTF_8));
+    }
+
     public void writeString(String value)
     {
         this.output.writeInt(value.length());
-        this.output.writeUTF(value);
+        this.output.write(value.getBytes(StandardCharsets.UTF_8));
     }
 
     public boolean writeOptional(Object value)

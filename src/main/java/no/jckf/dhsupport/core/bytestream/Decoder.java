@@ -62,6 +62,13 @@ public class Decoder
         return this.input.readLong();
     }
 
+    public String readShortString()
+    {
+        byte[] chars = new byte[this.input.readShort()];
+        this.input.readFully(chars, 0, chars.length);
+        return new String(chars, StandardCharsets.UTF_8);
+    }
+
     public String readString()
     {
         byte[] chars = new byte[this.input.readInt()];
