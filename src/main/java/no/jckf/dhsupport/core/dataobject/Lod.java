@@ -89,7 +89,7 @@ public class Lod extends DataObject
 
     protected void encodeWorldCompressionType(Encoder encoder)
     {
-        byte[] bytesToCompress = new byte[Lod.width * Lod.width]; // All zeroes means WorldCompressionType.SAME
+        byte[] bytesToCompress = new byte[Lod.width * Lod.width]; // All zeroes means WorldCompressionType.STRICT
 
         byte[] compressed = this.compress(bytesToCompress);
 

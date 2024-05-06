@@ -35,8 +35,6 @@ public class FullDataResponseSocketMessage extends TrackableSocketMessage
     public void encode(Encoder encoder)
     {
         encoder.writeBoolean(true); // True if data is available. False otherwise.
-        //encoder.writeByte(FullDataResponseSocketMessage.formatVersion);
-        //encoder.writeInt(this.data.length);
         encoder.write(data);
     }
 }

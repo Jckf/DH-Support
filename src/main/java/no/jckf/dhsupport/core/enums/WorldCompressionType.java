@@ -23,11 +23,11 @@ package no.jckf.dhsupport.core.enums;
  */
 public enum WorldCompressionType
 {
-    // Merge blocks of the same type.
-    SAME(0),
+    // Only merge blocks of the same type.
+    STRICT(0),
 
     // Merge blocks that are not the same type but look the same.
-    SIMILAR(1),
+    LOOSE(1),
     ;
 
     public final int value;
