@@ -45,11 +45,11 @@ public class LodBuilder
     public Lod generate()
     {
         int minY = this.worldInterface.getMinY();
-        //int maxY = this.worldInterface.getMaxY();
-        //int height = maxY - minY;
+        int maxY = this.worldInterface.getMaxY();
+        int height = maxY - minY;
 
-        //int seaLevel = this.worldInterface.getSeaLevel();
-        //int relativeSeaLevel = seaLevel - minY;
+        int seaLevel = this.worldInterface.getSeaLevel();
+        int relativeSeaLevel = seaLevel - minY;
 
         int offsetX = this.position.getX() * 64;
         int offsetZ = this.position.getZ() * 64;
@@ -72,9 +72,7 @@ public class LodBuilder
                 // Distance from bottom to top-most block.
                 int relativeTopLayer = topLayer - minY;
 
-                if (relativeX % 16 == 0 || relativeZ % 16 == 0) {
-                    biome = this.worldInterface.getBiomeAt(offsetX + relativeX, offsetZ + relativeZ);
-                }
+                biome = this.worldInterface.getBiomeAt(offsetX + relativeX, offsetZ + relativeZ);
 
                 List<DataPoint> column = new ArrayList<>();
 
@@ -84,15 +82,10 @@ public class LodBuilder
                 @Nullable
                 Integer solidGround = null;
 
-                for (int relativeY = relativeTopLayer; (solidGround == null || relativeY >= solidGround) && relativeY >= 0; relativeY--) {
+                for (int relativeY = height; (solidGround == null || relativeY >= solidGround) && relativeY >= 0; relativeY--) {
                     int worldY = minY + relativeY;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
-
-                    if (material.equals("minecraft:air") || material.equals("minecraft:void_air")) {
-                        previous = null;
-                        continue;
-                    }
 
                     if (solidGround == null) {
                         switch (material) {
@@ -102,7 +95,7 @@ public class LodBuilder
                             case "minecraft:sand":
                             case "minecraft:sandstone":
                             case "minecraft:mycelium":
-                                solidGround = relativeY - 10;
+                                solidGround = Math.min(relativeY - 10, relativeSeaLevel - 10);
                         }
                     }
 
@@ -132,10 +125,17 @@ public class LodBuilder
 
                         point.setStartY(relativeY);
                         point.setMappingId(id);
-                    }
 
-                    point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
-                    point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY + 1, worldZ));
+                        point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
+                        point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY + 1, worldZ));
+
+                        if (relativeY == height && (material.equals("minecraft:air") || material.equals("minecraft:void_air"))) {
+                            point.setStartY(relativeTopLayer + 1);
+                            point.setHeight(height - relativeTopLayer);
+
+                            relativeY = point.getStartY();
+                        }
+                    }
 
                     previous = point;
                 }
