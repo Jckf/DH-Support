@@ -24,6 +24,7 @@ import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.Utils;
 import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
+import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.event.EventBus;
 import no.jckf.dhsupport.core.message.MessageTypeRegistry;
 import no.jckf.dhsupport.core.message.socket.*;
@@ -70,7 +71,7 @@ public class SocketMessageHandler
     public void onEnable()
     {
         try {
-            this.socketServer.startup(this.dhSupport.getConfig().getInt("port"));
+            this.socketServer.startup(this.dhSupport.getConfig().getInt(DhsConfig.PORT));
         } catch (Exception exception) {
             this.dhSupport.warning("Failed to start socket server: " + exception.getClass().getSimpleName() + " - " + exception.getMessage());
             // TODO: Do something about it?
@@ -94,7 +95,7 @@ public class SocketMessageHandler
 
     public void onSocketMessageReceived(Channel socket, byte[] data)
     {
-        this.dhSupport.info("Socket message received. Length: " + data.length);
+        //this.dhSupport.info("Socket message received. Length: " + data.length);
 
         SocketMessage message;
 
@@ -128,7 +129,7 @@ public class SocketMessageHandler
             return null;
         }
 
-        this.dhSupport.info("Looks like a " + messageClass.getSimpleName());
+        //this.dhSupport.info("Looks like a " + messageClass.getSimpleName());
 
         SocketMessage message;
 
@@ -140,7 +141,7 @@ public class SocketMessageHandler
 
                 trackable.setTracker(decoder.readInt());
 
-                this.dhSupport.info("Message is trackable: " + trackable.getTracker());
+                //this.dhSupport.info("Message is trackable: " + trackable.getTracker());
             }
 
             message.decode(decoder);
@@ -195,7 +196,7 @@ public class SocketMessageHandler
 
         byte[] fullMessage = encoder.toByteArray();
 
-        this.dhSupport.info("Sending: " + Utils.bytesToHex(fullMessage));
+        //this.dhSupport.info("Sending: " + Utils.bytesToHex(fullMessage));
 
         socket.write(Unpooled.wrappedBuffer(fullMessage));
         socket.flush();

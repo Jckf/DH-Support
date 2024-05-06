@@ -22,7 +22,9 @@ import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.handler.SocketMessageHandler;
 import no.jckf.dhsupport.core.message.socket.FullDataRequestSocketMessage;
 import no.jckf.dhsupport.core.message.socket.FullDataResponseSocketMessage;
-import no.jckf.dhsupport.core.message.socket.GenerationTaskPriorityRequest;
+import org.bukkit.Bukkit;
+
+import java.util.UUID;
 
 public class SocketLodHandler
 {
@@ -39,18 +41,28 @@ public class SocketLodHandler
     public void register()
     {
         this.socketMessageHandler.getEventBus().registerHandler(FullDataRequestSocketMessage.class, (requestMessage) -> {
-            FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
-            response.isResponseTo(requestMessage);
-            //this.socketMessageHandler.sendSocketMessage(request.getSender(), response); // TODO: Actually respond with some data. Disabled for now to stop the client from spamming requests.
+            UUID playerUuid = this.dhSupport.getPlayerUuidBySocketId(requestMessage.getSender().id());
+
+            // This happens when a player disconnects with pending messages.
+            if (playerUuid == null) {
+                return;
+            }
+
+            // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
+            UUID worldUuid = Bukkit.getPlayer(playerUuid).getWorld().getUID();
+
+            // TODO: Verify that the requested section is withing the player's view distance.
+
+            this.dhSupport.getLodData(worldUuid, requestMessage.getPosition())
+                .thenAccept((lodData) -> {
+                    FullDataResponseSocketMessage response = new FullDataResponseSocketMessage();
+                    response.isResponseTo(requestMessage);
+                    response.setData(lodData);
+
+                    this.socketMessageHandler.sendSocketMessage(requestMessage.getSender(), response);
+                });
         });
 
-        this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (requestMessage) -> {
-            this.dhSupport.info("Priority request for:");
-            requestMessage.getSectionPositions().forEach((pos) -> this.dhSupport.info("    " + pos.getX() + " x " + pos.getZ() + " @ " + pos.getDetailLevel()));
-            // TODO: Each position has one of the following statuses:
-            //       1: Not generated.
-            //       2: Exists, but is not loaded.
-            //       3: Loaded.
-        });
+        //this.socketMessageHandler.getEventBus().registerHandler(GenerationTaskPriorityRequest.class, (requestMessage) -> { });
     }
 }

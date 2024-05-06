@@ -26,6 +26,10 @@ import java.util.List;
 
 public abstract class DhsConfig
 {
+    public static String HOST = "host";
+
+    public static String PORT = "port";
+
     public static String RENDER_DISTANCE = "render_distance";
 
     public static String DISTANT_GENERATION_ENABLED = "distant_generation_enabled";

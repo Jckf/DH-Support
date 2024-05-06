@@ -16,25 +16,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.socket;
+package no.jckf.dhsupport.core.enums;
 
-import no.jckf.dhsupport.core.bytestream.Encoder;
-
-public class FullDataResponseSocketMessage extends TrackableSocketMessage
+/**
+ * @see EDhApiDataCompressionMode
+ */
+public enum CompressionType
 {
-    protected static final byte formatVersion = 3;
+    NONE(0),
+    LZ4(1),
+    ZSTD(2),
+    LZMA2(3),
+    ;
 
-    protected byte[] data;
+    public final int value;
 
-    public void setData(byte[] data)
+    CompressionType(int value)
     {
-        this.data = data;
-    }
-
-    @Override
-    public void encode(Encoder encoder)
-    {
-        encoder.writeBoolean(true); // True if data is available. False otherwise.
-        encoder.write(data);
+        this.value = value;
     }
 }

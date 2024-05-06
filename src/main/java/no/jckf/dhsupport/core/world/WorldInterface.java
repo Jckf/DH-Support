@@ -16,25 +16,33 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.socket;
+package no.jckf.dhsupport.core.world;
 
-import no.jckf.dhsupport.core.bytestream.Encoder;
+import java.util.Map;
 
-public class FullDataResponseSocketMessage extends TrackableSocketMessage
+public interface WorldInterface
 {
-    protected static final byte formatVersion = 3;
+    WorldInterface newInstance();
 
-    protected byte[] data;
+    int getMinY();
 
-    public void setData(byte[] data)
-    {
-        this.data = data;
-    }
+    int getMaxY();
 
-    @Override
-    public void encode(Encoder encoder)
-    {
-        encoder.writeBoolean(true); // True if data is available. False otherwise.
-        encoder.write(data);
-    }
+    int getSeaLevel();
+
+    int getHighestYAt(int x, int z);
+
+    String getBiomeAt(int x, int z);
+
+    String getMaterialAt(int x, int y, int z);
+
+    String getBlockStateAsStringAt(int x, int y, int z);
+
+    Map<String, String> getBlockPropertiesAt(int x, int y, int z);
+
+    byte getBlockLightAt(int x, int y, int z);
+
+    byte getSkyLightAt(int x, int y, int z);
+
+    boolean isTransparent(int x, int y, int z);
 }

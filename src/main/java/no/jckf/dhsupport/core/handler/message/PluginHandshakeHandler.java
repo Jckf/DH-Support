@@ -19,6 +19,8 @@
 package no.jckf.dhsupport.core.handler.message;
 
 import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.core.configuration.Configuration;
+import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
 import no.jckf.dhsupport.core.message.plugin.HelloPluginMessage;
 import no.jckf.dhsupport.core.message.plugin.ServerConnectInfoMessage;
@@ -38,9 +40,11 @@ public class PluginHandshakeHandler
     public void register()
     {
         this.pluginMessageHandler.getEventBus().registerHandler(HelloPluginMessage.class, (helloMessage) -> {
+            Configuration config = this.dhSupport.getConfig();
+
             ServerConnectInfoMessage response = new ServerConnectInfoMessage();
-            //response.setAddress("google.com");
-            response.setPort(this.dhSupport.getConfig().getInt("port"));
+            response.setAddress(config.getString(DhsConfig.HOST));
+            response.setPort(config.getInt(DhsConfig.PORT));
 
             this.pluginMessageHandler.sendPluginMessage(helloMessage.getSender(), response);
         });

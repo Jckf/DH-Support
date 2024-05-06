@@ -37,11 +37,16 @@ public class Configuration
 
     public boolean getBool(String key)
     {
-        return (boolean) this.variables.get(key);
+        return (boolean) this.get(key);
     }
 
     public Integer getInt(String key)
     {
-        return (Integer) this.variables.get(key);
+        return (Integer) this.get(key);
+    }
+
+    public String getString(String key)
+    {
+        return (String) this.get(key);
     }
 }
