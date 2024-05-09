@@ -4,7 +4,7 @@ DH Support is a Bukkit/Spigot/Paper server plugin that transmits LODs to connect
 
 ## Installation
 
-Just drop the JAR in your plugins folder, forward port 25049 (TCP) to your server, and you're done!
+Download the [latest release](https://github.com/Jckf/DH-Support/releases) and drop the JAR in your plugins folder, forward port 25049 (TCP) to your server, and you're done!
 
 ## Configuration
 
