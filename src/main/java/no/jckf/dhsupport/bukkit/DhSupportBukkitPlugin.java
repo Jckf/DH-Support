@@ -21,6 +21,7 @@ package no.jckf.dhsupport.bukkit;
 import no.jckf.dhsupport.bukkit.handler.*;
 import no.jckf.dhsupport.core.DhSupport;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bstats.bukkit.Metrics;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -29,6 +30,8 @@ import java.util.Map;
 public class DhSupportBukkitPlugin extends JavaPlugin
 {
     protected DhSupport dhSupport;
+
+    protected Metrics metrics;
 
     protected final Map<Class<? extends Handler>, Handler> handlers = new HashMap<>()
     {{
@@ -41,6 +44,8 @@ public class DhSupportBukkitPlugin extends JavaPlugin
     {
         this.dhSupport = new DhSupport();
         this.dhSupport.setLogger(this.getLogger());
+
+        this.metrics = new Metrics(this, 21843);
 
         for (Class<? extends Handler> className : this.handlers.keySet()) {
             try {
