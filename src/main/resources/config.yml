@@ -1,0 +1,32 @@
+# Hostname clients should use to connect to your server.
+# Optional. DH will default to the same address as the game connection.
+#host: mc.engine-sim.parts
+
+# Port number clients should use to connect to your server.
+# Required.
+port: 25049
+
+# Maximum supported render distance. Clients will be capped to this value.
+# Required.
+render_distance: 128
+
+# TODO
+distant_generation_enabled: true
+
+# TODO
+full_data_request_concurrency_limit: 20
+
+# TODO
+generation_task_priority_request_rate_limit: 50
+
+# TODO
+real_time_updates_enabled: true
+
+# TODO
+login_data_sync_enabled: true
+
+# TODO
+login_data_sync_rc_limit: 50
+
+# TODO
+generate_multiple_dimensions: false
