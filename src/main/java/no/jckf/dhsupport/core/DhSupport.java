@@ -23,6 +23,8 @@ import no.jckf.dhsupport.core.configuration.Configurable;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
+import no.jckf.dhsupport.core.handler.LodHandler;
+import no.jckf.dhsupport.core.handler.PlayerConfigHandler;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
 import no.jckf.dhsupport.core.world.WorldInterface;
@@ -61,6 +63,9 @@ public class DhSupport implements Configurable
     public void onEnable()
     {
         this.executor = Executors.newFixedThreadPool(4);
+
+        (new PlayerConfigHandler(this, this.pluginMessageHandler)).register();
+        (new LodHandler(this, this.pluginMessageHandler)).register();
 
         this.pluginMessageHandler.onEnable();
     }

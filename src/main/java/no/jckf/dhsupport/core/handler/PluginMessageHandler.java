@@ -59,9 +59,6 @@ public class PluginMessageHandler
         this.messageTypeRegistry.registerMessageType(6, FullDataSourceRequestMessage.class);
         this.messageTypeRegistry.registerMessageType(7, FullDataSourceResponseMessage.class);
         //this.messageTypeRegistry.registerMessageType(8, FullDataPartialUpdateMessage.class);
-
-        (new PlayerConfigHandler(this.dhSupport, this)).register();
-        (new LodHandler(this.dhSupport, this)).register();
     }
 
     public void onEnable()
