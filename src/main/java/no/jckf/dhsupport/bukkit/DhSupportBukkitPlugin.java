@@ -67,7 +67,6 @@ public class DhSupportBukkitPlugin extends JavaPlugin
         this.dhSupport.onEnable();
 
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
-        this.getServer().getPluginManager().registerEvents(new PlayerPresenceHandler(this), this);
 
         this.getLogger().info("Ready 😀");
     }

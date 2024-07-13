@@ -18,17 +18,12 @@
 
 package no.jckf.dhsupport.core;
 
-import io.netty.channel.ChannelId;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 import no.jckf.dhsupport.core.configuration.Configurable;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
-import no.jckf.dhsupport.core.handler.SocketMessageHandler;
-import no.jckf.dhsupport.core.handler.message.PluginHandshakeHandler;
-import no.jckf.dhsupport.core.handler.message.SocketHandshakeHandler;
-import no.jckf.dhsupport.core.handler.message.SocketLodHandler;
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
 import no.jckf.dhsupport.core.world.WorldInterface;
 
@@ -51,13 +46,7 @@ public class DhSupport implements Configurable
 
     protected PluginMessageHandler pluginMessageHandler;
 
-    protected SocketMessageHandler socketMessageHandler;
-
     protected PluginMessageSender pluginMessageSender;
-
-    protected Map<ChannelId, UUID> socketToUuidMap = new HashMap<>();
-
-    protected Map<UUID, ChannelId> uuidToSocketMap = new HashMap<>();
 
     protected ExecutorService executor;
 
@@ -67,30 +56,17 @@ public class DhSupport implements Configurable
     {
         // Mumble mumble. Something about passing references to an incomplete "this".
         this.pluginMessageHandler = new PluginMessageHandler(this);
-        this.socketMessageHandler = new SocketMessageHandler(this);
     }
 
     public void onEnable()
     {
         this.executor = Executors.newFixedThreadPool(4);
 
-        // TODO: Store these instances somewhere?
-        //       References will exist inside the event bus, so they won't be GCed, but this _is_ a little bit ugly.
-        (new PluginHandshakeHandler(this, this.pluginMessageHandler)).register();
-
-        (new SocketHandshakeHandler(this, this.socketMessageHandler)).register();
-        (new SocketLodHandler(this, this.socketMessageHandler)).register();
-
         this.pluginMessageHandler.onEnable();
-        this.socketMessageHandler.onEnable();
     }
 
     public void onDisable()
     {
-        if (this.socketMessageHandler != null) {
-            this.socketMessageHandler.onDisable();
-        }
-
         if (this.pluginMessageHandler != null) {
             this.pluginMessageHandler.onDisable();
         }
@@ -122,12 +98,6 @@ public class DhSupport implements Configurable
     public PluginMessageHandler getPluginMessageHandler()
     {
         return this.pluginMessageHandler;
-    }
-
-    @Nullable
-    public SocketMessageHandler getSocketMessageHandler()
-    {
-        return this.socketMessageHandler;
     }
 
     public void setPluginMessageSender(PluginMessageSender sender)
@@ -170,45 +140,6 @@ public class DhSupport implements Configurable
     public void warning(String message)
     {
         this.getLogger().warning(message);
-    }
-
-    public void associatePlayerAndSocket(UUID playerUuid, ChannelId socketId)
-    {
-        this.socketToUuidMap.put(socketId, playerUuid);
-        this.uuidToSocketMap.put(playerUuid, socketId);
-
-        //this.info("Associated " + socketId + "/" + playerUuid);
-    }
-
-    public void closeAndForgetByUuid(UUID playerUuid)
-    {
-        this.closeAndForgetBySocketId(this.getSocketIdByPlayerUuid(playerUuid));
-    }
-
-    public void closeAndForgetBySocketId(ChannelId id)
-    {
-        try {
-            this.socketMessageHandler.getSocketServer().getSocket(id).close();
-        } catch (Exception exception) {
-            // Whatever. It was probably closed already.
-        }
-
-        UUID uuid = this.socketToUuidMap.remove(id);
-        this.uuidToSocketMap.remove(uuid);
-
-        //this.info("Forgot " + id + "/" + uuid);
-    }
-
-    @Nullable
-    public ChannelId getSocketIdByPlayerUuid(UUID uuid)
-    {
-        return this.uuidToSocketMap.get(uuid);
-    }
-
-    @Nullable
-    public UUID getPlayerUuidBySocketId(ChannelId id)
-    {
-        return this.socketToUuidMap.get(id);
     }
 
     public CompletableFuture<Lod> queueBuilder(LodBuilder builder)

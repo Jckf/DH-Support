@@ -26,25 +26,17 @@ import java.util.List;
 
 public abstract class DhsConfig
 {
-    public static String HOST = "host";
-
-    public static String PORT = "port";
-
     public static String RENDER_DISTANCE = "render_distance";
 
     public static String DISTANT_GENERATION_ENABLED = "distant_generation_enabled";
 
     public static String FULL_DATA_REQUEST_CONCURRENCY_LIMIT = "full_data_request_concurrency_limit";
 
-    public static String GENERATION_TASK_PRIORITY_REQUEST_RATE_LIMIT = "generation_task_priority_request_rate_limit";
-
     public static String REAL_TIME_UPDATES_ENABLED = "real_time_updates_enabled";
 
     public static String LOGIN_DATA_SYNC_ENABLED = "login_data_sync_enabled";
 
     public static String LOGIN_DATA_SYNC_RC_LIMIT = "login_data_sync_rc_limit";
-
-    public static String GENERATE_MULTIPLE_DIMENSIONS = "generate_multiple_dimensions";
 
     public static Collection<String> getKeys()
     {
