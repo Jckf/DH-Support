@@ -21,29 +21,49 @@ package no.jckf.dhsupport.core.message.plugin;
 import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
-public class CloseReasonMessage extends PluginMessage
+/**
+ * 0: Rate limited
+ * 1: Invalid level
+ * 2: Invalid section position
+ * 3: Request rejected
+ */
+public class ExceptionMessage extends TrackablePluginMessage
 {
-    protected String reason;
+    protected int typeId;
 
-    public void setReason(String reason)
+    protected String message;
+
+    public void setTypeId(int typeId)
     {
-        this.reason = reason;
+        this.typeId = typeId;
     }
 
-    public String getReason()
+    public int getTypeId()
     {
-        return reason;
+        return typeId;
+    }
+
+    public void setMessage(String message)
+    {
+        this.message = message;
+    }
+
+    public String getMessage()
+    {
+        return message;
     }
 
     @Override
     public void encode(Encoder encoder)
     {
-        encoder.writeString(this.reason);
+        encoder.writeInt(this.typeId);
+        encoder.writeString(this.message);
     }
 
     @Override
     public void decode(Decoder decoder)
     {
-        this.reason = decoder.readString();
+        this.typeId = decoder.readInt();
+        this.message = decoder.readString();
     }
 }

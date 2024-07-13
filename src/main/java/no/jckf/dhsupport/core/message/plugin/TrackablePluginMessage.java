@@ -18,32 +18,22 @@
 
 package no.jckf.dhsupport.core.message.plugin;
 
-import no.jckf.dhsupport.core.bytestream.Decoder;
-import no.jckf.dhsupport.core.bytestream.Encoder;
-
-public class CloseReasonMessage extends PluginMessage
+public class TrackablePluginMessage extends PluginMessage
 {
-    protected String reason;
+    protected int tracker;
 
-    public void setReason(String reason)
+    public void setTracker(int tracker)
     {
-        this.reason = reason;
+        this.tracker = tracker;
     }
 
-    public String getReason()
+    public int getTracker()
     {
-        return reason;
+        return tracker;
     }
 
-    @Override
-    public void encode(Encoder encoder)
+    public void isResponseTo(TrackablePluginMessage other)
     {
-        encoder.writeString(this.reason);
-    }
-
-    @Override
-    public void decode(Decoder decoder)
-    {
-        this.reason = decoder.readString();
+        this.setTracker(other.getTracker());
     }
 }
