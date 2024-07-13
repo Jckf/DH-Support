@@ -21,7 +21,6 @@ package no.jckf.dhsupport.core.dataobject;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
 import javax.annotation.Nullable;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class IdMapping extends DataObject
