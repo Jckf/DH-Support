@@ -16,4 +16,4 @@ The project uses Maven, so just run `mvn` in the project directory to compile an
 
 ## Contribution
 
-There are several ways to contribute to this project. You can offer your feedback on [Discord](https://discord.gg/WzCvvJUf), report any issues or bugs you find, or attack an open issue and submit a pull request.
+There are several ways to contribute to this project. You can offer your feedback on [the DH Discord](https://discord.gg/xAB8G4cENx) in [this thread](https://discord.com/channels/881614130614767666/1154490009735417989), report any issues or bugs you find, or attack an open issue and submit a pull request.
