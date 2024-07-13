@@ -38,12 +38,12 @@ public class CurrentLevelKeyMessage extends PluginMessage
     @Override
     public void encode(Encoder encoder)
     {
-        encoder.writeString(this.key);
+        encoder.writeShortString(this.key);
     }
 
     @Override
     public void decode(Decoder decoder)
     {
-        this.key = decoder.readString();
+        this.key = decoder.readShortString();
     }
 }

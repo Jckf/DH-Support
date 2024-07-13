@@ -21,14 +21,13 @@ package no.jckf.dhsupport.core.message.plugin;
 import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
-/**
- * 0: Rate limited
- * 1: Invalid level
- * 2: Invalid section position
- * 3: Request rejected
- */
 public class ExceptionMessage extends TrackablePluginMessage
 {
+    public static int TYPE_RATE_LIMITED = 0;
+    public static int TYPE_INVALID_LEVEL = 1;
+    public static int TYPE_INVALID_POSITION = 2;
+    public static int TYPE_REQUEST_REJECTED = 3;
+
     protected int typeId;
 
     protected String message;
@@ -57,13 +56,13 @@ public class ExceptionMessage extends TrackablePluginMessage
     public void encode(Encoder encoder)
     {
         encoder.writeInt(this.typeId);
-        encoder.writeString(this.message);
+        encoder.writeShortString(this.message);
     }
 
     @Override
     public void decode(Decoder decoder)
     {
         this.typeId = decoder.readInt();
-        this.message = decoder.readString();
+        this.message = decoder.readShortString();
     }
 }

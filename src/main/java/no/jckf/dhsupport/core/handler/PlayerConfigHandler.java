@@ -21,7 +21,9 @@ package no.jckf.dhsupport.core.handler;
 import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.DhsConfig;
+import no.jckf.dhsupport.core.message.plugin.CurrentLevelKeyMessage;
 import no.jckf.dhsupport.core.message.plugin.RemotePlayerConfigMessage;
+import org.bukkit.Bukkit;
 
 public class PlayerConfigHandler
 {
@@ -38,6 +40,14 @@ public class PlayerConfigHandler
     public void register()
     {
         this.pluginMessageHandler.getEventBus().registerHandler(RemotePlayerConfigMessage.class, (configMessage) -> {
+            // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
+            // TODO: Should this be unique?
+            String levelKey = Bukkit.getPlayer(configMessage.getSender()).getWorld().getName();
+
+            CurrentLevelKeyMessage levelKeyResponse = new CurrentLevelKeyMessage();
+            levelKeyResponse.setKey(levelKey);
+            this.pluginMessageHandler.sendPluginMessage(configMessage.getSender(), levelKeyResponse);
+
             Configuration dhsConfig = this.dhSupport.getConfig();
             Configuration clientConfig = configMessage.toConfiguration();
 
@@ -68,10 +78,10 @@ public class PlayerConfigHandler
 
             // TODO: Store the resulting config in some sort of context object for this player.
 
-            RemotePlayerConfigMessage response = new RemotePlayerConfigMessage();
-            response.fromConfiguration(clientConfig);
+            RemotePlayerConfigMessage configResponse = new RemotePlayerConfigMessage();
+            configResponse.fromConfiguration(clientConfig);
 
-            this.pluginMessageHandler.sendPluginMessage(configMessage.getSender(), response);
+            this.pluginMessageHandler.sendPluginMessage(configMessage.getSender(), configResponse);
         });
     }
 }
