@@ -54,7 +54,8 @@ public class LodHandler
                 .thenAccept((lod) -> {
                     this.activeRequests--;
 
-                    if (lod.length > 32766) {
+                    // TODO: This is a temporary hack until we can implement packet splitting.
+                    if (lod.length > Bukkit.getMessenger().MAX_MESSAGE_SIZE) {
                         this.dhSupport.warning("Generated LOD was over the size limit. Discarding.");
 
                         ExceptionMessage exceptionResponse = new ExceptionMessage();
