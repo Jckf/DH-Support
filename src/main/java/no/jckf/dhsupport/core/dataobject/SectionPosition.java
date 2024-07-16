@@ -23,6 +23,18 @@ import no.jckf.dhsupport.core.bytestream.Encoder;
 
 public class SectionPosition extends DataObject
 {
+    public static final int DETAIL_LEVEL_WIDTH = 8;
+    public static final int X_POS_WIDTH = 28;
+    public static final int Z_POS_WIDTH = 28;
+
+    public static final int DETAIL_LEVEL_OFFSET = 0;
+    public static final int POS_X_OFFSET = DETAIL_LEVEL_OFFSET + DETAIL_LEVEL_WIDTH;
+    public static final int POS_Z_OFFSET = POS_X_OFFSET + X_POS_WIDTH;
+
+    public static final long DETAIL_LEVEL_MASK = Byte.MAX_VALUE;
+    public static final int POS_X_MASK = (int) Math.pow(2, X_POS_WIDTH) - 1;
+    public static final int POS_Z_MASK = (int) Math.pow(2, Z_POS_WIDTH) - 1;
+
     protected int detailLevel;
 
     protected int x;
@@ -62,16 +74,38 @@ public class SectionPosition extends DataObject
     @Override
     public void encode(Encoder encoder)
     {
-        encoder.writeByte(this.detailLevel);
-        encoder.writeInt(this.x);
-        encoder.writeInt(this.z);
+        encoder.writeLong(this.toLong());
     }
 
     @Override
     public void decode(Decoder decoder)
     {
-        this.detailLevel = decoder.readByte();
-        this.x = decoder.readInt();
-        this.z = decoder.readInt();
+        this.fromLong(decoder.readLong());
+    }
+
+    public long toLong()
+    {
+        long data = 0;
+
+        data |= this.detailLevel & DETAIL_LEVEL_MASK;
+        data |= (long) (this.x & POS_X_MASK) << POS_X_OFFSET;
+        data |= (long) (this.z & POS_Z_MASK) << POS_Z_OFFSET;
+
+        return data;
+    }
+
+    public void fromLong(long data)
+    {
+        this.detailLevel = (int) (data & DETAIL_LEVEL_MASK);
+        this.x = (int) ((data >> POS_X_OFFSET) & POS_X_MASK);
+        this.z = (int) ((data >> POS_Z_OFFSET) & POS_Z_MASK);
+
+        // Adjust for potential negative values if masks do not account for sign
+        if ((this.x & (1 << 23)) != 0) { // Check if the sign bit is set for 24-bit value
+            this.x |= ~POS_X_MASK; // Sign extend
+        }
+        if ((this.z & (1 << 23)) != 0) { // Check if the sign bit is set for 24-bit value
+            this.z |= ~POS_Z_MASK; // Sign extend
+        }
     }
 }

@@ -16,61 +16,38 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.handler.message;
+package no.jckf.dhsupport.core.handler;
 
 import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.DhsConfig;
-import no.jckf.dhsupport.core.handler.SocketMessageHandler;
-import no.jckf.dhsupport.core.message.socket.*;
+import no.jckf.dhsupport.core.message.plugin.CurrentLevelKeyMessage;
+import no.jckf.dhsupport.core.message.plugin.RemotePlayerConfigMessage;
+import org.bukkit.Bukkit;
 
-import java.util.UUID;
-
-public class SocketHandshakeHandler
+public class PlayerConfigHandler
 {
     protected DhSupport dhSupport;
 
-    protected SocketMessageHandler socketMessageHandler;
+    protected PluginMessageHandler pluginMessageHandler;
 
-    public SocketHandshakeHandler(DhSupport dhSupport, SocketMessageHandler socketMessageHandler)
+    public PlayerConfigHandler(DhSupport dhSupport, PluginMessageHandler pluginMessageHandler)
     {
         this.dhSupport = dhSupport;
-        this.socketMessageHandler = socketMessageHandler;
+        this.pluginMessageHandler = pluginMessageHandler;
     }
 
     public void register()
     {
-        this.socketMessageHandler.getEventBus().registerHandler(HelloSocketMessage.class, (helloMessage) -> {
-            if (helloMessage.getVersion() != this.socketMessageHandler.protocolVersion) {
-                CloseSocketMessage response = new CloseSocketMessage();
-                response.setMessage("Incompatible Distant Horizons version. Server speaks protocol version " + this.socketMessageHandler.protocolVersion + ", but client sent protocol version " + helloMessage.getVersion());
-                this.socketMessageHandler.sendSocketMessage(helloMessage.getSender(), response);
-                return;
-            }
+        this.pluginMessageHandler.getEventBus().registerHandler(RemotePlayerConfigMessage.class, (configMessage) -> {
+            // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
+            // TODO: Should this be unique?
+            String levelKey = Bukkit.getPlayer(configMessage.getSender()).getWorld().getName();
 
-            HelloSocketMessage response = new HelloSocketMessage();
-            response.setVersion(this.socketMessageHandler.protocolVersion);
-            this.socketMessageHandler.sendSocketMessage(helloMessage.getSender(), response);
-        });
+            CurrentLevelKeyMessage levelKeyResponse = new CurrentLevelKeyMessage();
+            levelKeyResponse.setKey(levelKey);
+            this.pluginMessageHandler.sendPluginMessage(configMessage.getSender(), levelKeyResponse);
 
-        this.socketMessageHandler.getEventBus().registerHandler(PlayerUuidSocketMessage.class, (uuidMessage) -> {
-            UUID uuid = uuidMessage.getUuid();
-
-            if (this.dhSupport.getSocketIdByPlayerUuid(uuid) != null) {
-                CloseSocketMessage response = new CloseSocketMessage();
-                response.setMessage("UUID hijack attempt.");
-                this.socketMessageHandler.sendSocketMessage(uuidMessage.getSender(), response);
-                return;
-            }
-
-            this.dhSupport.associatePlayerAndSocket(uuidMessage.getUuid(), uuidMessage.getSender().id());
-
-            AckSocketMessage response = new AckSocketMessage();
-            response.isResponseTo(uuidMessage);
-            this.socketMessageHandler.sendSocketMessage(uuidMessage.getSender(), response);
-        });
-
-        this.socketMessageHandler.getEventBus().registerHandler(PlayerConfigSocketMessage.class, (configMessage) -> {
             Configuration dhsConfig = this.dhSupport.getConfig();
             Configuration clientConfig = configMessage.toConfiguration();
 
@@ -101,7 +78,10 @@ public class SocketHandshakeHandler
 
             // TODO: Store the resulting config in some sort of context object for this player.
 
-            this.socketMessageHandler.sendSocketMessage(configMessage.getSender(), configMessage);
+            RemotePlayerConfigMessage configResponse = new RemotePlayerConfigMessage();
+            configResponse.fromConfiguration(clientConfig);
+
+            this.pluginMessageHandler.sendPluginMessage(configMessage.getSender(), configResponse);
         });
     }
 }

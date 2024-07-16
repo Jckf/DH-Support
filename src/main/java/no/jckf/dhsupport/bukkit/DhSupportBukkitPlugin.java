@@ -18,10 +18,13 @@
 
 package no.jckf.dhsupport.bukkit;
 
-import no.jckf.dhsupport.bukkit.handler.*;
+import no.jckf.dhsupport.bukkit.handler.ConfigLoader;
+import no.jckf.dhsupport.bukkit.handler.Handler;
+import no.jckf.dhsupport.bukkit.handler.PluginMessageProxy;
+import no.jckf.dhsupport.bukkit.handler.WorldHandler;
 import no.jckf.dhsupport.core.DhSupport;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -67,7 +70,6 @@ public class DhSupportBukkitPlugin extends JavaPlugin
         this.dhSupport.onEnable();
 
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
-        this.getServer().getPluginManager().registerEvents(new PlayerPresenceHandler(this), this);
 
         this.getLogger().info("Ready 😀");
     }

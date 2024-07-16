@@ -16,32 +16,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.socket;
+package no.jckf.dhsupport.core.message.plugin;
 
 import no.jckf.dhsupport.core.bytestream.Decoder;
-import no.jckf.dhsupport.core.dataobject.SectionPosition;
+import no.jckf.dhsupport.core.bytestream.Encoder;
 
-import javax.annotation.Nullable;
-
-public class FullDataRequestSocketMessage extends TrackableSocketMessage
+public class CancelMessage extends TrackablePluginMessage
 {
-    protected String levelName;
-
-    protected SectionPosition position;
-
-    @Nullable
-    protected Integer checksum;
-
-    public SectionPosition getPosition()
+    @Override
+    public void encode(Encoder encoder)
     {
-        return this.position;
+
     }
 
     @Override
     public void decode(Decoder decoder)
     {
-        this.levelName = decoder.readShortString();
-        this.position = decoder.readObject(SectionPosition.class);
-        this.checksum = decoder.readOptional(decoder::readInt);
+
     }
 }
