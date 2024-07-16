@@ -16,25 +16,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.socket;
+package no.jckf.dhsupport.core.message.plugin;
 
-import no.jckf.dhsupport.core.bytestream.Encoder;
-
-public class FullDataResponseSocketMessage extends TrackableSocketMessage
+public class TrackablePluginMessage extends PluginMessage
 {
-    protected static final byte formatVersion = 3;
+    protected int tracker;
 
-    protected byte[] data;
-
-    public void setData(byte[] data)
+    public void setTracker(int tracker)
     {
-        this.data = data;
+        this.tracker = tracker;
     }
 
-    @Override
-    public void encode(Encoder encoder)
+    public int getTracker()
     {
-        encoder.writeBoolean(true); // True if data is available. False otherwise.
-        encoder.write(data);
+        return tracker;
+    }
+
+    public void isResponseTo(TrackablePluginMessage other)
+    {
+        this.setTracker(other.getTracker());
     }
 }

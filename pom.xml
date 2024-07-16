@@ -3,7 +3,7 @@
 
     <groupId>no.jckf</groupId>
     <name>dh-support</name>
-    <version>0.1.0</version>
+    <version>0.2.0-SNAPSHOT</version>
     <artifactId>DHSupport</artifactId>
 
     <properties>
@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.20.4-R0.1-SNAPSHOT</version>
+            <version>1.21-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.2.0-jre</version>
+            <version>33.2.1-jre</version>
             <scope>compile</scope>
         </dependency>
 
@@ -59,13 +59,6 @@
             <artifactId>annotations</artifactId>
             <version>24.1.0</version>
             <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>4.1.97.Final</version> <!-- This version number should track the one in the targeted Minecraft server implementation. -->
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -96,7 +89,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.3</version>
+                <version>3.6.0</version>
 
                 <configuration>
                     <shadedArtifactAttached>true</shadedArtifactAttached>

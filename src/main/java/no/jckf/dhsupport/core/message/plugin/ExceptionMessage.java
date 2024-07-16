@@ -16,22 +16,53 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.socket;
+package no.jckf.dhsupport.core.message.plugin;
 
 import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
-public class CancelSocketMessage extends TrackableSocketMessage
+public class ExceptionMessage extends TrackablePluginMessage
 {
+    public static int TYPE_RATE_LIMITED = 0;
+    public static int TYPE_INVALID_LEVEL = 1;
+    public static int TYPE_INVALID_POSITION = 2;
+    public static int TYPE_REQUEST_REJECTED = 3;
+
+    protected int typeId;
+
+    protected String message;
+
+    public void setTypeId(int typeId)
+    {
+        this.typeId = typeId;
+    }
+
+    public int getTypeId()
+    {
+        return typeId;
+    }
+
+    public void setMessage(String message)
+    {
+        this.message = message;
+    }
+
+    public String getMessage()
+    {
+        return message;
+    }
+
     @Override
     public void encode(Encoder encoder)
     {
-
+        encoder.writeInt(this.typeId);
+        encoder.writeShortString(this.message);
     }
 
     @Override
     public void decode(Decoder decoder)
     {
-
+        this.typeId = decoder.readInt();
+        this.message = decoder.readShortString();
     }
 }

@@ -16,30 +16,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.socket;
+package no.jckf.dhsupport.core.message.plugin;
 
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
-public class ExceptionSocketMessage extends TrackableSocketMessage
+public class FullDataSourceResponseMessage extends TrackablePluginMessage
 {
-    protected int exceptionTypeId;
+    protected byte[] data;
 
-    protected String exceptionMessage;
+    public void setData(byte[] data)
+    {
+        this.data = data;
+    }
+
+    public byte[] getData()
+    {
+        return data;
+    }
 
     @Override
     public void encode(Encoder encoder)
     {
-        encoder.writeInt(this.exceptionTypeId);
-        encoder.writeString(this.exceptionMessage);
-    }
-
-    public void setExceptionTypeId(int typeId)
-    {
-        this.exceptionTypeId = typeId;
-    }
-
-    public void setExceptionMessage(String message)
-    {
-        this.exceptionMessage = message;
+        encoder.writeBoolean(true);
+        encoder.write(this.data);
     }
 }

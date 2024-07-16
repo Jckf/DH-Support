@@ -24,10 +24,7 @@ import no.jckf.dhsupport.core.bytestream.Decoder;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 import no.jckf.dhsupport.core.event.EventBus;
 import no.jckf.dhsupport.core.message.MessageTypeRegistry;
-import no.jckf.dhsupport.core.message.plugin.CurrentLevelKeyMessage;
-import no.jckf.dhsupport.core.message.plugin.HelloPluginMessage;
-import no.jckf.dhsupport.core.message.plugin.PluginMessage;
-import no.jckf.dhsupport.core.message.plugin.ServerConnectInfoMessage;
+import no.jckf.dhsupport.core.message.plugin.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -39,9 +36,9 @@ public class PluginMessageHandler
 
     private MessageTypeRegistry messageTypeRegistry;
 
-    public final String pluginChannel = "distant_horizons:plugin_channel";
+    public final String pluginChannel = "distant_horizons:message";
 
-    public final int protocolVersion = 1;
+    public final int protocolVersion = 2;
 
     private EventBus<PluginMessage> eventBus;
 
@@ -54,9 +51,14 @@ public class PluginMessageHandler
         // Define plugin channel message types.
         this.messageTypeRegistry = new MessageTypeRegistry();
         this.messageTypeRegistry.registerMessageType(0, null);
-        this.messageTypeRegistry.registerMessageType(1, HelloPluginMessage.class);
+        this.messageTypeRegistry.registerMessageType(1, CloseReasonMessage.class);
         this.messageTypeRegistry.registerMessageType(2, CurrentLevelKeyMessage.class);
-        this.messageTypeRegistry.registerMessageType(3, ServerConnectInfoMessage.class);
+        this.messageTypeRegistry.registerMessageType(3, RemotePlayerConfigMessage.class);
+        this.messageTypeRegistry.registerMessageType(4, CancelMessage.class);
+        this.messageTypeRegistry.registerMessageType(5, ExceptionMessage.class);
+        this.messageTypeRegistry.registerMessageType(6, FullDataSourceRequestMessage.class);
+        this.messageTypeRegistry.registerMessageType(7, FullDataSourceResponseMessage.class);
+        //this.messageTypeRegistry.registerMessageType(8, FullDataPartialUpdateMessage.class);
     }
 
     public void onEnable()
@@ -102,9 +104,6 @@ public class PluginMessageHandler
 
         Decoder decoder = new Decoder(data);
 
-        // Read and discard sub-channel. DH always sends a null byte here.
-        decoder.readByte();
-
         // Read the client's protocol version.
         short protocolVersion = decoder.readShort();
 
@@ -124,6 +123,11 @@ public class PluginMessageHandler
 
         try {
             message = messageClass.getConstructor().newInstance();
+
+            if (message instanceof TrackablePluginMessage) {
+                ((TrackablePluginMessage) message).setTracker(decoder.readInt());
+            }
+
             message.decode(decoder);
         } catch (Exception exception) {
             this.dhSupport.warning("Failed to init message class: " + exception.getClass() + " - " + exception.getMessage());
@@ -155,9 +159,12 @@ public class PluginMessageHandler
 
         Encoder encoder = new Encoder();
 
-        encoder.writeByte(0);
         encoder.writeShort(this.protocolVersion);
         encoder.writeShort(messageTypeId);
+
+        if (message instanceof TrackablePluginMessage) {
+            encoder.writeInt(((TrackablePluginMessage) message).getTracker());
+        }
 
         encoder.write(data);
 

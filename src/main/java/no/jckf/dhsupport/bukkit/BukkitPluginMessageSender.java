@@ -19,6 +19,7 @@
 package no.jckf.dhsupport.bukkit;
 
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
@@ -35,6 +36,12 @@ public class BukkitPluginMessageSender implements PluginMessageSender
     @Override
     public void sendPluginMessage(UUID recipientUuid, String channel, byte[] message)
     {
-        this.plugin.getServer().getPlayer(recipientUuid).sendPluginMessage(this.plugin, channel, message);
+        Player player = this.plugin.getServer().getPlayer(recipientUuid);
+
+        if (player == null) {
+            return;
+        }
+
+        player.sendPluginMessage(this.plugin, channel, message);
     }
 }
