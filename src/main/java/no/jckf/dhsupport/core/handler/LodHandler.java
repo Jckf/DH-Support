@@ -19,7 +19,6 @@
 package no.jckf.dhsupport.core.handler;
 
 import no.jckf.dhsupport.core.DhSupport;
-import no.jckf.dhsupport.core.message.plugin.ExceptionMessage;
 import no.jckf.dhsupport.core.message.plugin.FullDataSourceRequestMessage;
 import no.jckf.dhsupport.core.message.plugin.FullDataSourceResponseMessage;
 import org.bukkit.Bukkit;
@@ -32,8 +31,6 @@ public class LodHandler
 
     protected PluginMessageHandler pluginMessageHandler;
 
-    protected int activeRequests = 0;
-
     public LodHandler(DhSupport dhSupport, PluginMessageHandler pluginMessageHandler)
     {
         this.dhSupport = dhSupport;
@@ -43,40 +40,22 @@ public class LodHandler
     public void register()
     {
         this.pluginMessageHandler.getEventBus().registerHandler(FullDataSourceRequestMessage.class, (requestMessage) -> {
-            this.activeRequests++;
-
-            this.dhSupport.info("LOD request for " + requestMessage.getPosition().getX() + " x " + requestMessage.getPosition().getZ() + " (" + this.activeRequests + " active)");
+            //this.dhSupport.info("LOD request for " + requestMessage.getPosition().getX() + " x " + requestMessage.getPosition().getZ());
 
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
             UUID worldUuid = Bukkit.getPlayer(requestMessage.getSender()).getWorld().getUID();
 
             this.dhSupport.getLodData(worldUuid, requestMessage.getPosition())
                 .thenAccept((lod) -> {
-                    this.activeRequests--;
-
-                    // TODO: This is a temporary hack until we can implement packet splitting.
-                    if (lod.length > Bukkit.getMessenger().MAX_MESSAGE_SIZE) {
-                        this.dhSupport.warning("Generated LOD was over the size limit. Discarding.");
-
-                        ExceptionMessage exceptionResponse = new ExceptionMessage();
-                        exceptionResponse.isResponseTo(requestMessage);
-                        exceptionResponse.setTypeId(ExceptionMessage.TYPE_REQUEST_REJECTED);
-                        exceptionResponse.setMessage(":(");
-
-                        this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), exceptionResponse);
-                        return;
-                    }
-
                     FullDataSourceResponseMessage response = new FullDataSourceResponseMessage();
                     response.isResponseTo(requestMessage);
                     response.setData(lod);
 
                     this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), response);
 
-                    this.dhSupport.info("LOD sent for " + requestMessage.getPosition().getX() + " x " + requestMessage.getPosition().getZ() + " (" + this.activeRequests + " active)");
+                    //this.dhSupport.info("LOD sent for " + requestMessage.getPosition().getX() + " x " + requestMessage.getPosition().getZ());
                 })
                 .exceptionally((exception) -> {
-                    this.activeRequests--;
                     this.dhSupport.warning(exception.getMessage());
                     return null;
                 });
