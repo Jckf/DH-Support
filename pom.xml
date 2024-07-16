@@ -3,7 +3,7 @@
 
     <groupId>no.jckf</groupId>
     <name>dh-support</name>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <artifactId>DHSupport</artifactId>
 
     <properties>
