@@ -20,9 +20,13 @@ package no.jckf.dhsupport.core.message.plugin;
 
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
-public class FullDataSourceResponseMessage extends TrackablePluginMessage
+public class FullDataChunkMessage extends PluginMessage
 {
     protected int bufferId;
+
+    protected byte[] data;
+
+    protected boolean isFirst = true;
 
     public void setBufferId(int bufferId)
     {
@@ -34,10 +38,32 @@ public class FullDataSourceResponseMessage extends TrackablePluginMessage
         return bufferId;
     }
 
+    public void setData(byte[] data)
+    {
+        this.data = data;
+    }
+
+    public byte[] getData()
+    {
+        return data;
+    }
+
+    public void setIsFirst(boolean isFirst)
+    {
+        this.isFirst = isFirst;
+    }
+
+    public boolean getIsFirst()
+    {
+        return this.isFirst;
+    }
+
     @Override
     public void encode(Encoder encoder)
     {
-        encoder.writeBoolean(true);
         encoder.writeInt(this.bufferId);
+        encoder.writeInt(this.data.length);
+        encoder.write(this.data);
+        encoder.writeBoolean(this.isFirst);
     }
 }

@@ -19,17 +19,23 @@
 package no.jckf.dhsupport.core.handler;
 
 import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.core.message.plugin.FullDataChunkMessage;
 import no.jckf.dhsupport.core.message.plugin.FullDataSourceRequestMessage;
 import no.jckf.dhsupport.core.message.plugin.FullDataSourceResponseMessage;
 import org.bukkit.Bukkit;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 public class LodHandler
 {
+    protected static int CHUNK_SIZE = 1024 * 16; // TODO: Configurable?
+
     protected DhSupport dhSupport;
 
     protected PluginMessageHandler pluginMessageHandler;
+
+    protected int bufferId = 0; // TODO: Should be tracked per player instead of globally, and reset when a player disconnects.
 
     public LodHandler(DhSupport dhSupport, PluginMessageHandler pluginMessageHandler)
     {
@@ -42,18 +48,35 @@ public class LodHandler
         this.pluginMessageHandler.getEventBus().registerHandler(FullDataSourceRequestMessage.class, (requestMessage) -> {
             //this.dhSupport.info("LOD request for " + requestMessage.getPosition().getX() + " x " + requestMessage.getPosition().getZ());
 
+            int myBufferId = this.bufferId++;
+
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
             UUID worldUuid = Bukkit.getPlayer(requestMessage.getSender()).getWorld().getUID();
 
             this.dhSupport.getLodData(worldUuid, requestMessage.getPosition())
                 .thenAccept((lod) -> {
-                    FullDataSourceResponseMessage response = new FullDataSourceResponseMessage();
-                    response.isResponseTo(requestMessage);
-                    response.setData(lod);
+                    int chunkCount = (int) Math.ceil((double) lod.length / CHUNK_SIZE);
 
-                    this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), response);
+                    for (int chunkNo = 0; chunkNo < chunkCount; chunkNo++) {
+                        FullDataChunkMessage chunkResponse = new FullDataChunkMessage();
+                        chunkResponse.setBufferId(myBufferId);
+                        chunkResponse.setIsFirst(chunkNo == 0);
+                        chunkResponse.setData(Arrays.copyOfRange(
+                            lod,
+                            CHUNK_SIZE * chunkNo,
+                            Math.min(CHUNK_SIZE * chunkNo + CHUNK_SIZE, lod.length)
+                        ));
 
-                    //this.dhSupport.info("LOD sent for " + requestMessage.getPosition().getX() + " x " + requestMessage.getPosition().getZ());
+                        this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), chunkResponse);
+                    }
+
+                    FullDataSourceResponseMessage responseMessage = new FullDataSourceResponseMessage();
+                    responseMessage.isResponseTo(requestMessage);
+                    responseMessage.setBufferId(myBufferId);
+
+                    this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), responseMessage);
+
+                    //this.dhSupport.info("LOD in " + chunkCount + " parts sent for " + requestMessage.getPosition().getX() + " x " + requestMessage.getPosition().getZ());
                 })
                 .exceptionally((exception) -> {
                     this.dhSupport.warning(exception.getMessage());
