@@ -58,7 +58,8 @@ public class PluginMessageHandler
         this.messageTypeRegistry.registerMessageType(5, ExceptionMessage.class);
         this.messageTypeRegistry.registerMessageType(6, FullDataSourceRequestMessage.class);
         this.messageTypeRegistry.registerMessageType(7, FullDataSourceResponseMessage.class);
-        //this.messageTypeRegistry.registerMessageType(8, FullDataPartialUpdateMessage.class);
+        this.messageTypeRegistry.registerMessageType(8, /*FullDataPartialUpdateMessage.class*/ null);
+        this.messageTypeRegistry.registerMessageType(9, FullDataChunkMessage.class);
     }
 
     public void onEnable()
