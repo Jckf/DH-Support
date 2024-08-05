@@ -16,3 +16,7 @@ login_data_sync_enabled: true
 
 # TODO
 login_data_sync_rc_limit: 50
+
+# When running DHS on a proxied server, set this to a value that is unique to this specific server.
+# Optional.
+#level_key_prefix:

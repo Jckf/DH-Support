@@ -42,10 +42,9 @@ public class PlayerConfigHandler
     {
         this.pluginMessageHandler.getEventBus().registerHandler(RemotePlayerConfigMessage.class, (configMessage) -> {
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
-            // TODO: Should this be unique?
             Player player = Bukkit.getPlayer(configMessage.getSender());
 
-            String levelKey = player.getWorld().getName();
+            String levelKey = this.dhSupport.getConfig().getString(DhsConfig.LEVEL_KEY_PREFIX) + player.getWorld().getName();
 
             this.dhSupport.info("Received DH config for player " + player.getName() + " in world " + levelKey);
 
