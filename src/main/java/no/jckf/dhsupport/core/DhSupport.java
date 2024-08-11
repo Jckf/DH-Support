@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable
@@ -51,7 +52,7 @@ public class DhSupport implements Configurable
 
     protected PluginMessageSender pluginMessageSender;
 
-    protected Map<UUID, Map<String, byte[]>> lodCache = new HashMap<>();
+    protected Map<UUID, Map<String, byte[]>> lodCache = new ConcurrentHashMap<>();
 
     public DhSupport()
     {
