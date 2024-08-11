@@ -7,7 +7,7 @@
     <artifactId>DHSupport</artifactId>
 
     <properties>
-        <jdk>17</jdk>
+        <jdk>21</jdk>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.class>no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin</main.class>
     </properties>
@@ -27,15 +27,15 @@
         </repository>
 
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots</url>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
     </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
             <version>1.21-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>

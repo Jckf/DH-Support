@@ -24,6 +24,7 @@ import org.bukkit.block.Block;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class BukkitWorldInterface implements WorldInterface
 {
@@ -50,6 +51,12 @@ public class BukkitWorldInterface implements WorldInterface
         }
 
         return this.block;
+    }
+
+    @Override
+    public UUID getId()
+    {
+        return this.world.getUID();
     }
 
     @Override

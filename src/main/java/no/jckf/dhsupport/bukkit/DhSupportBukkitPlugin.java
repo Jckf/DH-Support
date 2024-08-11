@@ -23,7 +23,9 @@ import no.jckf.dhsupport.bukkit.handler.Handler;
 import no.jckf.dhsupport.bukkit.handler.PluginMessageProxy;
 import no.jckf.dhsupport.bukkit.handler.WorldHandler;
 import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.paper.PaperScheduler;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nullable;
@@ -47,6 +49,18 @@ public class DhSupportBukkitPlugin extends JavaPlugin
     {
         this.dhSupport = new DhSupport();
         this.dhSupport.setLogger(this.getLogger());
+
+        try {
+            Bukkit.class.getMethod("getRegionScheduler");
+
+            this.getLogger().info("Using Paper scheduler.");
+
+            this.dhSupport.setScheduler(new PaperScheduler(this));
+        } catch (NoSuchMethodException exception) {
+            this.getLogger().info("Using Bukkit scheduler.");
+
+            this.dhSupport.setScheduler(new BukkitScheduler());
+        }
 
         this.metrics = new Metrics(this, 21843);
 
