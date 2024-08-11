@@ -19,10 +19,13 @@
 package no.jckf.dhsupport.core.world;
 
 import java.util.Map;
+import java.util.UUID;
 
 public interface WorldInterface
 {
     WorldInterface newInstance();
+
+    UUID getId();
 
     int getMinY();
 

@@ -2,6 +2,7 @@ package no.jckf.dhsupport.bukkit;
 
 import no.jckf.dhsupport.core.scheduling.Scheduler;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,7 +30,7 @@ public class BukkitScheduler implements Scheduler
     }
 
     @Override
-    public <U> CompletableFuture<U> runRegional(Supplier<U> supplier)
+    public <U> CompletableFuture<U> runRegional(UUID worldId, int x, int z, Supplier<U> supplier)
     {
         return this.run(supplier);
     }

@@ -23,6 +23,7 @@ import no.jckf.dhsupport.bukkit.handler.Handler;
 import no.jckf.dhsupport.bukkit.handler.PluginMessageProxy;
 import no.jckf.dhsupport.bukkit.handler.WorldHandler;
 import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.paper.PaperScheduler;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -48,8 +49,19 @@ public class DhSupportBukkitPlugin extends JavaPlugin
         this.dhSupport = new DhSupport();
         this.dhSupport.setLogger(this.getLogger());
 
-        // TODO: Detect Paper/Folia.
-        this.dhSupport.setScheduler(new BukkitScheduler());
+        switch (this.getServer().getName()) {
+            case "Folia":
+                this.getLogger().info("Using Paper scheduler.");
+                this.dhSupport.setScheduler(new PaperScheduler(this));
+                break;
+
+            case "CraftBukkit":
+            default:
+                this.getLogger().info("Using Bukkit scheduler.");
+                this.dhSupport.setScheduler(new BukkitScheduler());
+                break;
+        }
+
 
         this.metrics = new Metrics(this, 21843);
 

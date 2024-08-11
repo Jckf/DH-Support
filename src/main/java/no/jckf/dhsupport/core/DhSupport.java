@@ -156,8 +156,12 @@ public class DhSupport implements Configurable
 
     public CompletableFuture<Lod> queueBuilder(LodBuilder builder)
     {
-        return this.getScheduler().runGlobal(builder::generate);
-        //return CompletableFuture.supplyAsync(builder::generate, this.executor);
+        return this.getScheduler().runRegional(
+            builder.worldInterface.getId(),
+            builder.position.getX() * 4,
+            builder.position.getZ() * 4,
+            builder::generate
+        );
     }
 
     public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position)
