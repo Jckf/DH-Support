@@ -27,6 +27,7 @@ import no.jckf.dhsupport.core.handler.LodHandler;
 import no.jckf.dhsupport.core.handler.PlayerConfigHandler;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
+import no.jckf.dhsupport.core.scheduling.Scheduler;
 import no.jckf.dhsupport.core.world.WorldInterface;
 
 import javax.annotation.Nullable;
@@ -34,8 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable
@@ -44,13 +43,13 @@ public class DhSupport implements Configurable
 
     protected Logger logger;
 
+    protected Scheduler scheduler;
+
     protected Map<UUID, WorldInterface> worldInterfaces = new HashMap<>();
 
     protected PluginMessageHandler pluginMessageHandler;
 
     protected PluginMessageSender pluginMessageSender;
-
-    protected ExecutorService executor;
 
     protected Map<UUID, Map<String, byte[]>> lodCache = new HashMap<>();
 
@@ -62,8 +61,6 @@ public class DhSupport implements Configurable
 
     public void onEnable()
     {
-        this.executor = Executors.newFixedThreadPool(4);
-
         (new PlayerConfigHandler(this, this.pluginMessageHandler)).register();
         (new LodHandler(this, this.pluginMessageHandler)).register();
 
@@ -75,6 +72,16 @@ public class DhSupport implements Configurable
         if (this.pluginMessageHandler != null) {
             this.pluginMessageHandler.onDisable();
         }
+    }
+
+    public void setScheduler(Scheduler scheduler)
+    {
+        this.scheduler = scheduler;
+    }
+
+    public Scheduler getScheduler()
+    {
+        return this.scheduler;
     }
 
     public void setWorldInterface(UUID id, @Nullable WorldInterface worldInterface)
@@ -149,7 +156,8 @@ public class DhSupport implements Configurable
 
     public CompletableFuture<Lod> queueBuilder(LodBuilder builder)
     {
-        return CompletableFuture.supplyAsync(builder::generate, this.executor);
+        return this.getScheduler().runGlobal(builder::generate);
+        //return CompletableFuture.supplyAsync(builder::generate, this.executor);
     }
 
     public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position)

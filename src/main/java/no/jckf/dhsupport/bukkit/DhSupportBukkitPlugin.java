@@ -48,6 +48,9 @@ public class DhSupportBukkitPlugin extends JavaPlugin
         this.dhSupport = new DhSupport();
         this.dhSupport.setLogger(this.getLogger());
 
+        // TODO: Detect Paper/Folia.
+        this.dhSupport.setScheduler(new BukkitScheduler());
+
         this.metrics = new Metrics(this, 21843);
 
         for (Class<? extends Handler> className : this.handlers.keySet()) {
