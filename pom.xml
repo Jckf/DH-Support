@@ -3,13 +3,15 @@
 
     <groupId>no.jckf</groupId>
     <name>dh-support</name>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>dev</version>
     <artifactId>DHSupport</artifactId>
+    <packaging>pom</packaging>
 
     <properties>
         <jdk>21</jdk>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.class>no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin</main.class>
+        <dh.release-version>0.3.0-SNAPSHOT</dh.release-version>
     </properties>
 
     <developers>
@@ -33,13 +35,6 @@
     </repositories>
 
     <dependencies>
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>1.21-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
@@ -70,7 +65,7 @@
     </dependencies>
 
     <build>
-        <defaultGoal>clean install</defaultGoal>
+        <defaultGoal>package</defaultGoal>
         <finalName>${project.artifactId}</finalName>
 
         <plugins>
@@ -150,4 +145,9 @@
             </resource>
         </resources>
     </build>
+
+    <modules>
+        <module>pom-1.20.6.xml</module>
+        <module>pom-1.21.1.xml</module>
+    </modules>
 </project>
