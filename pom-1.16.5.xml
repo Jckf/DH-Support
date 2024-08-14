@@ -1,0 +1,26 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>DHSupport-1.16.5</artifactId>
+    <version>${dh.release-version}</version>
+
+    <parent>
+        <groupId>no.jckf</groupId>
+        <artifactId>DHSupport</artifactId>
+        <version>dev</version>
+        <relativePath>./pom.xml</relativePath>
+    </parent>
+
+    <properties>
+        <mc.api-version>1.16.5</mc.api-version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.16.5-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

@@ -24,12 +24,6 @@ public class BukkitScheduler implements Scheduler
     }
 
     @Override
-    public <U> CompletableFuture<U> runGlobal(Supplier<U> supplier)
-    {
-        return this.run(supplier);
-    }
-
-    @Override
     public <U> CompletableFuture<U> runRegional(UUID worldId, int x, int z, Supplier<U> supplier)
     {
         return this.run(supplier);

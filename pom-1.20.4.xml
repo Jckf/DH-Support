@@ -1,7 +1,7 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>DHSupport-1.21.1</artifactId>
+    <artifactId>DHSupport-1.20.4</artifactId>
     <version>${dh.release-version}</version>
 
     <parent>
@@ -12,14 +12,14 @@
     </parent>
 
     <properties>
-        <mc.api-version>1.21.1</mc.api-version>
+        <mc.api-version>1.20.4</mc.api-version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.1-R0.1-SNAPSHOT</version>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
