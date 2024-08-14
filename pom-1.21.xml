@@ -1,13 +1,12 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>DHSupport-1.21</artifactId>
-    <version>${dh.release-version}</version>
+    <artifactId>DHSupport-${mc.api-version}</artifactId>
 
     <parent>
         <groupId>no.jckf</groupId>
         <artifactId>DHSupport</artifactId>
-        <version>dev</version>
+        <version>${revision}</version>
         <relativePath>./pom.xml</relativePath>
     </parent>
 
@@ -19,7 +18,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21-R0.1-SNAPSHOT</version>
+            <version>${mc.api-version}-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

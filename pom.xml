@@ -2,16 +2,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>no.jckf</groupId>
-    <name>dh-support</name>
-    <version>dev</version>
     <artifactId>DHSupport</artifactId>
+    <version>${revision}</version>
     <packaging>pom</packaging>
 
     <properties>
+        <revision>0.3.0-SNAPSHOT</revision>
         <jdk>21</jdk>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.class>no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin</main.class>
-        <dh.release-version>0.3.0-SNAPSHOT</dh.release-version>
     </properties>
 
     <developers>
@@ -83,7 +82,7 @@
 
     <build>
         <defaultGoal>package</defaultGoal>
-        <finalName>${project.artifactId}</finalName>
+        <finalName>DHS-${project.version}_for_MC-${mc.api-version}</finalName>
 
         <plugins>
             <plugin>
@@ -104,7 +103,7 @@
                 <version>3.6.0</version>
 
                 <configuration>
-                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedArtifactAttached>false</shadedArtifactAttached>
                     <shadedClassifierName>all</shadedClassifierName>
 
                     <relocations>
