@@ -2,11 +2,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>no.jckf</groupId>
-    <name>dh-support</name>
-    <version>0.3.0-SNAPSHOT</version>
     <artifactId>DHSupport</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
 
     <properties>
+        <revision>0.3.0-SNAPSHOT</revision>
         <jdk>21</jdk>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.class>no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin</main.class>
@@ -27,19 +28,22 @@
         </repository>
 
         <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots</url>
+        </repository>
+
+        <repository>
             <id>papermc</id>
-            <url>https://repo.papermc.io/repository/maven-public/</url>
+            <url>https://repo.papermc.io/repository/maven-public</url>
+        </repository>
+
+        <repository>
+            <id>jitpack</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
     <dependencies>
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>1.21-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
@@ -67,11 +71,18 @@
             <version>1.8.0</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.technicallycoded</groupId>
+            <artifactId>FoliaLib</artifactId>
+            <version>main-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
-        <defaultGoal>clean install</defaultGoal>
-        <finalName>${project.artifactId}</finalName>
+        <defaultGoal>package</defaultGoal>
+        <finalName>DHS-${project.version}_for_MC-${mc.api-version}</finalName>
 
         <plugins>
             <plugin>
@@ -92,7 +103,7 @@
                 <version>3.6.0</version>
 
                 <configuration>
-                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedArtifactAttached>false</shadedArtifactAttached>
                     <shadedClassifierName>all</shadedClassifierName>
 
                     <relocations>
@@ -104,6 +115,11 @@
                         <relocation>
                             <pattern>org.bstats</pattern>
                             <shadedPattern>no.jckf.dhsupport.bstats</shadedPattern>
+                        </relocation>
+
+                        <relocation>
+                            <pattern>com.tcoded.folialib</pattern>
+                            <shadedPattern>no.jckf.dhsupport.folialib</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
@@ -117,10 +133,19 @@
                         </goals>
 
                         <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <artifactSet>
                                 <includes>
                                     <include>org.lz4</include>
                                     <include>org.bstats</include>
+                                    <include>com.tcoded.folialib</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
@@ -150,4 +175,17 @@
             </resource>
         </resources>
     </build>
+
+    <modules>
+        <module>pom-1.16.5.xml</module>
+        <module>pom-1.17.1.xml</module>
+        <module>pom-1.18.2.xml</module>
+        <module>pom-1.19.2.xml</module>
+        <module>pom-1.19.4.xml</module>
+        <module>pom-1.20.1.xml</module>
+        <module>pom-1.20.2.xml</module>
+        <module>pom-1.20.4.xml</module>
+        <module>pom-1.20.6.xml</module>
+        <module>pom-1.21.xml</module>
+    </modules>
 </project>

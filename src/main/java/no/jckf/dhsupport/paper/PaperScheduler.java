@@ -1,11 +1,9 @@
 package no.jckf.dhsupport.paper;
 
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import com.tcoded.folialib.FoliaLib;
 import no.jckf.dhsupport.core.scheduling.Scheduler;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
+import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -15,9 +13,20 @@ public class PaperScheduler implements Scheduler
 {
     protected JavaPlugin plugin;
 
+    protected FoliaLib foliaLib;
+
     public PaperScheduler(JavaPlugin plugin)
     {
         this.plugin = plugin;
+    }
+
+    protected FoliaLib getFoliaLib()
+    {
+        if (this.foliaLib == null) {
+            this.foliaLib = new FoliaLib(this.plugin);
+        }
+
+        return this.foliaLib;
     }
 
     @Override
@@ -25,19 +34,7 @@ public class PaperScheduler implements Scheduler
     {
         CompletableFuture<U> future = new CompletableFuture<>();
 
-        Bukkit.getScheduler().runTask(this.plugin, () -> {
-            future.complete(supplier.get());
-        });
-
-        return future;
-    }
-
-    @Override
-    public <U> CompletableFuture<U> runGlobal(Supplier<U> supplier)
-    {
-        CompletableFuture<U> future = new CompletableFuture<>();
-
-        Bukkit.getGlobalRegionScheduler().run(this.plugin, (task) -> {
+        this.getFoliaLib().getScheduler().runAsync((task) -> {
             future.complete(supplier.get());
         });
 
@@ -49,10 +46,15 @@ public class PaperScheduler implements Scheduler
     {
         CompletableFuture<U> future = new CompletableFuture<>();
 
-        Bukkit.getRegionScheduler().run(this.plugin,
+        Location location = new Location(
             this.plugin.getServer().getWorld(worldId),
             x,
-            z,
+            0,
+            z
+        );
+
+        this.getFoliaLib().getScheduler().runAtLocation(
+            location,
             (task) -> future.complete(supplier.get())
         );
 

@@ -1,5 +1,5 @@
 name: DHSupport
-version: 0.3.0-SNAPSHOT
-main: no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin
-api-version: 1.20.6
+version: ${project.version}
+main: ${main.class}
+api-version: ${mc.api-version}
 folia-supported: true

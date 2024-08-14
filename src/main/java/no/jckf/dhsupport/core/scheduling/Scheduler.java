@@ -8,7 +8,5 @@ public interface Scheduler
 {
     <U> CompletableFuture<U> run(Supplier<U> supplier);
 
-    <U> CompletableFuture<U> runGlobal(Supplier<U> supplier);
-
     <U> CompletableFuture<U> runRegional(UUID worldId, int x, int z, Supplier<U> supplier);
 }
