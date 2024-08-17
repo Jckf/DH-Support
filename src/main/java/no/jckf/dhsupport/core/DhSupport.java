@@ -159,8 +159,8 @@ public class DhSupport implements Configurable
     {
         return this.getScheduler().runRegional(
             builder.worldInterface.getId(),
-            builder.position.getX() * 4,
-            builder.position.getZ() * 4,
+            builder.position.getX() * 64,
+            builder.position.getZ() * 64,
             builder::generate
         );
     }
