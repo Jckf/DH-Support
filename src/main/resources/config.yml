@@ -17,6 +17,10 @@ login_data_sync_enabled: true
 # TODO
 login_data_sync_rc_limit: 50
 
+# If a client requests LODs for a chunks that don't exist, should those chunks be generated?
+# Required.
+generate_new_chunks: true
+
 # When running DHS on a proxied server, set this to a value that is unique to this specific server.
 # Optional.
 #level_key_prefix:

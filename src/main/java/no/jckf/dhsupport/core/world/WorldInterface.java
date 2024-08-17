@@ -27,6 +27,8 @@ public interface WorldInterface
 
     UUID getId();
 
+    boolean chunkExists(int x, int z);
+
     int getMinY();
 
     int getMaxY();
