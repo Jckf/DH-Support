@@ -61,16 +61,19 @@ public class BukkitWorldInterface implements WorldInterface
 
     public boolean chunkExists(int x, int z)
     {
-        boolean alreadyLoaded = this.world.isChunkLoaded(x, z);
+        int chunkX = (int) Math.floor((double) x / 16);
+        int chunkZ = (int) Math.floor((double) z / 16);
+
+        boolean alreadyLoaded = this.world.isChunkLoaded(chunkX, chunkZ);
 
         if (alreadyLoaded) {
             return true;
         }
 
-        boolean exists = this.world.loadChunk(x, z, false);
+        boolean exists = this.world.loadChunk(chunkX, chunkZ, false);
 
         if (exists) {
-            this.world.unloadChunk(x, z, false);
+            this.world.unloadChunk(chunkX, chunkZ, false);
         }
 
         return exists;

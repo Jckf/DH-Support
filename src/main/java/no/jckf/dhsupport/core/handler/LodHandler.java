@@ -66,7 +66,6 @@ public class LodHandler
                         int worldZ = position.getZ() * 64 + relativeChunkZ * 16;
 
                         if (!this.dhSupport.getWorldInterface(worldUuid).chunkExists(worldX, worldZ)) {
-                            this.dhSupport.getLogger().info("Skipping LOD containing missing chunks");
                             ExceptionMessage exceptionMessage = new ExceptionMessage();
                             exceptionMessage.isResponseTo(requestMessage);
                             exceptionMessage.setTypeId(ExceptionMessage.TYPE_REQUEST_REJECTED);
