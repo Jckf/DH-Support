@@ -63,7 +63,7 @@ public class LodHandler
                 for (int relativeChunkX = 0; relativeChunkX < Lod.width / 16; relativeChunkX++) {
                     for (int relativeChunkZ = 0; relativeChunkZ < Lod.width / 16; relativeChunkZ++) {
                         int worldX = position.getX() * 64 + relativeChunkX * 16;
-                        int worldZ = position.getZ() * 64 * relativeChunkZ * 16;
+                        int worldZ = position.getZ() * 64 + relativeChunkZ * 16;
 
                         if (!this.dhSupport.getWorldInterface(worldUuid).chunkExists(worldX, worldZ)) {
                             this.dhSupport.getLogger().info("Skipping LOD containing missing chunks");
