@@ -59,6 +59,26 @@ public class BukkitWorldInterface implements WorldInterface
         return this.world.getUID();
     }
 
+    public boolean chunkExists(int x, int z)
+    {
+        int chunkX = (int) Math.floor((double) x / 16);
+        int chunkZ = (int) Math.floor((double) z / 16);
+
+        boolean alreadyLoaded = this.world.isChunkLoaded(chunkX, chunkZ);
+
+        if (alreadyLoaded) {
+            return true;
+        }
+
+        boolean exists = this.world.loadChunk(chunkX, chunkZ, false);
+
+        if (exists) {
+            this.world.unloadChunk(chunkX, chunkZ, false);
+        }
+
+        return exists;
+    }
+
     @Override
     public int getMinY()
     {
