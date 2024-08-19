@@ -11,6 +11,8 @@
         <jdk>21</jdk>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.class>no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin</main.class>
+        <mc.api-version></mc.api-version>
+        <mc.api-version-patch></mc.api-version-patch>
     </properties>
 
     <developers>
@@ -82,7 +84,7 @@
 
     <build>
         <defaultGoal>package</defaultGoal>
-        <finalName>DHS-${project.version}_for_MC-${mc.api-version}</finalName>
+        <finalName>DHS-${project.version}_for_MC-${mc.api-version}${mc.api-version-patch}</finalName>
 
         <plugins>
             <plugin>

@@ -1,7 +1,7 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>DHSupport-${mc.api-version}</artifactId>
+    <artifactId>DHSupport-${mc.api-version}${mc.api-version-patch}</artifactId>
 
     <parent>
         <groupId>no.jckf</groupId>
@@ -11,14 +11,15 @@
     </parent>
 
     <properties>
-        <mc.api-version>1.18.2</mc.api-version>
+        <mc.api-version>1.18</mc.api-version>
+        <mc.api-version-patch>.2</mc.api-version-patch>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>${mc.api-version}-R0.1-SNAPSHOT</version>
+            <version>${mc.api-version}${mc.api-version-patch}-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
