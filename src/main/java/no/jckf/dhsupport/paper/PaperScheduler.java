@@ -15,18 +15,10 @@ public class PaperScheduler implements Scheduler
 
     protected FoliaLib foliaLib;
 
-    public PaperScheduler(JavaPlugin plugin)
+    public PaperScheduler(JavaPlugin plugin, FoliaLib foliaLib)
     {
         this.plugin = plugin;
-    }
-
-    protected FoliaLib getFoliaLib()
-    {
-        if (this.foliaLib == null) {
-            this.foliaLib = new FoliaLib(this.plugin);
-        }
-
-        return this.foliaLib;
+        this.foliaLib = foliaLib;
     }
 
     @Override
@@ -34,7 +26,7 @@ public class PaperScheduler implements Scheduler
     {
         CompletableFuture<U> future = new CompletableFuture<>();
 
-        this.getFoliaLib().getScheduler().runAsync((task) -> {
+        this.foliaLib.getScheduler().runAsync((task) -> {
             future.complete(supplier.get());
         });
 
@@ -53,7 +45,7 @@ public class PaperScheduler implements Scheduler
             z
         );
 
-        this.getFoliaLib().getScheduler().runAtLocation(
+        this.foliaLib.getScheduler().runAtLocation(
             location,
             (task) -> future.complete(supplier.get())
         );

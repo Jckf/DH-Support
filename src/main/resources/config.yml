@@ -17,6 +17,10 @@ login_data_sync_enabled: true
 # TODO
 login_data_sync_rc_limit: 50
 
+# Number of worker threads used to generate LODs.
+# Required, except on Folia.
+generic_scheduler_threads: 4
+
 # If a client requests LODs with chunks that don't exist, should those chunks be generated?
 # Required.
 generate_new_chunks: true

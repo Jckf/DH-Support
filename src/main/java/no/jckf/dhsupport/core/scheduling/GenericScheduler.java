@@ -1,6 +1,4 @@
-package no.jckf.dhsupport.bukkit;
-
-import no.jckf.dhsupport.core.scheduling.Scheduler;
+package no.jckf.dhsupport.core.scheduling;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -8,13 +6,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
-public class BukkitScheduler implements Scheduler
+public class GenericScheduler implements Scheduler
 {
     protected ExecutorService executor;
 
-    public BukkitScheduler()
+    public GenericScheduler(int threads)
     {
-        this.executor = Executors.newFixedThreadPool(4);
+        this.executor = Executors.newFixedThreadPool(threads);
     }
 
     @Override
