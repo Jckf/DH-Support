@@ -3,4 +3,5 @@ version: ${project.version}
 main: ${main.class}
 api-version: ${mc.api-version}
 prefix: DHS
+load: STARTUP
 folia-supported: true
