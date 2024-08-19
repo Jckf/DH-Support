@@ -1,28 +1,42 @@
 # Maximum supported render distance. Clients will be capped to this value.
 # Required.
+# Default: 128
 render_distance: 128
 
-# TODO
+# Is LOD generation enabled at all?
+# Disable if you only want to use the plugin for level key info in a proxied setup.
+# Required.
+# Default: true
 distant_generation_enabled: true
 
-# TODO
+# Number of parallel LOD requests per client.
+# Required.
+# Default: 20
 full_data_request_concurrency_limit: 20
 
-# TODO
-real_time_updates_enabled: true
+# Currently unsupported.
+# Required.
+# Default: false
+real_time_updates_enabled: false
 
-# TODO
-login_data_sync_enabled: true
+# Currently unsupported.
+# Required.
+# Default: false
+login_data_sync_enabled: false
 
-# TODO
+# Currently unsupported.
+# Required.
+# Default: 50
 login_data_sync_rc_limit: 50
 
 # Number of worker threads used to generate LODs.
 # Required, except on Folia.
+# Default: 4
 generic_scheduler_threads: 4
 
 # If a client requests LODs with chunks that don't exist, should those chunks be generated?
 # Required.
+# Default: true
 generate_new_chunks: true
 
 # When running DHS on a proxied server, set this to a value that is unique to this specific server.
