@@ -105,6 +105,10 @@ public class PluginMessageHandler
 
         Decoder decoder = new Decoder(data);
 
+        #if READ_FORGE_BYTE == "true"
+            decoder.readByte();
+        #endif
+
         // Read the client's protocol version.
         short protocolVersion = decoder.readShort();
 

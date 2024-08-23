@@ -2,14 +2,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>no.jckf</groupId>
-    <name>dh-support</name>
-    <version>0.2.2</version>
     <artifactId>DHSupport</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
 
     <properties>
-        <jdk>17</jdk>
+        <revision>0.3.0</revision>
+        <jdk>21</jdk>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.class>no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin</main.class>
+        <mc.api-version></mc.api-version>
+        <mc.api-version-patch></mc.api-version-patch>
+        <dhs.read-forge-byte></dhs.read-forge-byte>
     </properties>
 
     <developers>
@@ -30,16 +34,19 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots</url>
         </repository>
+
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public</url>
+        </repository>
+
+        <repository>
+            <id>jitpack</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <dependencies>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.21-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
@@ -50,7 +57,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.2.1-jre</version>
+            <version>33.3.0-jre</version>
             <scope>compile</scope>
         </dependency>
 
@@ -67,11 +74,17 @@
             <version>1.8.0</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.technicallycoded</groupId>
+            <artifactId>FoliaLib</artifactId>
+            <version>v0.4.3</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
-        <defaultGoal>clean install</defaultGoal>
-        <finalName>${project.artifactId}</finalName>
+        <defaultGoal>clean package</defaultGoal>
 
         <plugins>
             <plugin>
@@ -83,6 +96,19 @@
                     <source>${jdk}</source>
                     <target>${jdk}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+
+                    <compilerArgs>
+                        <arg>-Xplugin:Manifold</arg>
+                        <arg>-AREAD_FORGE_BYTE=${dhs.read-forge-byte}</arg>
+                    </compilerArgs>
+
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>systems.manifold</groupId>
+                            <artifactId>manifold-preprocessor</artifactId>
+                            <version>2024.1.30</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
@@ -92,7 +118,7 @@
                 <version>3.6.0</version>
 
                 <configuration>
-                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedArtifactAttached>false</shadedArtifactAttached>
                     <shadedClassifierName>all</shadedClassifierName>
 
                     <relocations>
@@ -104,6 +130,11 @@
                         <relocation>
                             <pattern>org.bstats</pattern>
                             <shadedPattern>no.jckf.dhsupport.bstats</shadedPattern>
+                        </relocation>
+
+                        <relocation>
+                            <pattern>com.tcoded.folialib</pattern>
+                            <shadedPattern>no.jckf.dhsupport.folialib</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
@@ -117,12 +148,51 @@
                         </goals>
 
                         <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <artifactSet>
                                 <includes>
                                     <include>org.lz4</include>
                                     <include>org.bstats</include>
+                                    <include>com.github.technicallycoded</include>
                                 </includes>
                             </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+
+                        <configuration>
+                            <outputDirectory>jars</outputDirectory>
+
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>${project.packaging}</type>
+                                    <destFileName>DHS-${project.version}_for_MC-${mc.api-version}${mc.api-version-patch}.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
                         </configuration>
                     </execution>
                 </executions>
@@ -150,4 +220,17 @@
             </resource>
         </resources>
     </build>
+
+    <modules>
+        <module>pom-1.16.5.xml</module>
+        <module>pom-1.17.1.xml</module>
+        <module>pom-1.18.2.xml</module>
+        <module>pom-1.19.2.xml</module>
+        <module>pom-1.19.4.xml</module>
+        <module>pom-1.20.1.xml</module>
+        <module>pom-1.20.2.xml</module>
+        <module>pom-1.20.4.xml</module>
+        <module>pom-1.20.6.xml</module>
+        <module>pom-1.21.xml</module>
+    </modules>
 </project>

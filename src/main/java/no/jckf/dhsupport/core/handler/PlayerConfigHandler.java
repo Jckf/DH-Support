@@ -24,6 +24,7 @@ import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.message.plugin.CurrentLevelKeyMessage;
 import no.jckf.dhsupport.core.message.plugin.RemotePlayerConfigMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 public class PlayerConfigHandler
 {
@@ -41,19 +42,28 @@ public class PlayerConfigHandler
     {
         this.pluginMessageHandler.getEventBus().registerHandler(RemotePlayerConfigMessage.class, (configMessage) -> {
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
-            // TODO: Should this be unique?
-            String levelKey = Bukkit.getPlayer(configMessage.getSender()).getWorld().getName();
+            Player player = Bukkit.getPlayer(configMessage.getSender());
+
+            Configuration dhsConfig = this.dhSupport.getWorldInterface(player.getWorld().getUID()).getConfig();
+
+            String levelKeyPrefix = dhsConfig.getString(DhsConfig.LEVEL_KEY_PREFIX);
+            String levelKey = player.getWorld().getName();
+
+            if (levelKeyPrefix != null) {
+                levelKey = levelKeyPrefix + levelKey;
+            }
+
+            this.dhSupport.info("Received DH config for " + player.getName() + " in " + levelKey);
 
             CurrentLevelKeyMessage levelKeyResponse = new CurrentLevelKeyMessage();
             levelKeyResponse.setKey(levelKey);
             this.pluginMessageHandler.sendPluginMessage(configMessage.getSender(), levelKeyResponse);
 
-            Configuration dhsConfig = this.dhSupport.getConfig();
             Configuration clientConfig = configMessage.toConfiguration();
 
             // This is not very flexible, but will do for now.
-            for (String key : DhsConfig.getKeys()) {
-                //this.dhSupport.getLogger().info("Config key " + key + ":");
+            for (String key : RemotePlayerConfigMessage.KEYS) {
+                this.dhSupport.getLogger().info("Config key " + key + ":");
 
                 Object dhsValue = dhsConfig.get(key);
                 Object clientValue = clientConfig.get(key);
@@ -62,15 +72,15 @@ public class PlayerConfigHandler
                 if (dhsValue instanceof Boolean dhsBool && clientValue instanceof Boolean clientBool) {
                     keepValue = dhsBool && clientBool;
 
-                    //this.dhSupport.getLogger().info("    Server " + (dhsBool ? "Y" : "N") + " or client " + (clientBool ? "Y" : "N") + " = " + ((boolean) keepValue ? "Y" : "N"));
+                    this.dhSupport.getLogger().info("    Server " + (dhsBool ? "Y" : "N") + " or client " + (clientBool ? "Y" : "N") + " = " + ((boolean) keepValue ? "Y" : "N"));
                 } else if (dhsValue instanceof Integer dhsInt && clientValue instanceof Integer clientInt) {
                     keepValue = dhsInt < clientInt ? dhsInt : clientInt;
 
-                    //this.dhSupport.getLogger().info("    Server " + dhsInt + " or client " + clientInt + " = " + keepValue);
+                    this.dhSupport.getLogger().info("    Server " + dhsInt + " or client " + clientInt + " = " + keepValue);
                 } else {
                     keepValue = null;
 
-                    //this.dhSupport.getLogger().info("    Uhh... 😵‍💫");
+                    this.dhSupport.getLogger().info("    Uhh... 😵‍💫");
                 }
 
                 clientConfig.set(key, keepValue);

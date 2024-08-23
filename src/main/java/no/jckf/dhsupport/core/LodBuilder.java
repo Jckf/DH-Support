@@ -99,15 +99,15 @@ public class LodBuilder
                         }
                     }
 
-                    String compositeKey = biome + "|" + material;
-                    //String compositeKey = biome + "|" + material + "|" + this.worldInterface.getBlockStateAsStringAt(worldX, worldY, worldZ);
+                    //String compositeKey = biome + "|" + material;
+                    String compositeKey = biome + "|" + material + "|" + this.worldInterface.getBlockStateAsStringAt(worldX, worldY, worldZ);
 
                     @Nullable
                     Integer id = mapMap.get(compositeKey);
 
                     if (id == null) {
-                        idMappings.add(new IdMapping(biome, material, null));
-                        //idMappings.add(new IdMapping(biome, material, this.worldInterface.getBlockPropertiesAt(worldX, worldY, worldZ)));
+                        //idMappings.add(new IdMapping(biome, material, null));
+                        idMappings.add(new IdMapping(biome, material, this.worldInterface.getBlockPropertiesAt(worldX, worldY, worldZ)));
                         id = idMappings.size() - 1;
                         mapMap.put(compositeKey, id);
                     }

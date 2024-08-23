@@ -38,6 +38,16 @@ public abstract class DhsConfig
 
     public static String LOGIN_DATA_SYNC_RC_LIMIT = "login_data_sync_rc_limit";
 
+    public static String GENERIC_SCHEDULER_THREADS = "generic_scheduler_threads";
+
+    public static String GENERATE_NEW_CHUNKS = "generate_new_chunks";
+
+    public static String LEVEL_KEY_PREFIX = "level_key_prefix";
+
+    public static String BORDER_CENTER = "border_center";
+
+    public static String BORDER_RADIUS = "border_radius";
+
     public static Collection<String> getKeys()
     {
         List<String> keys = new ArrayList<>();

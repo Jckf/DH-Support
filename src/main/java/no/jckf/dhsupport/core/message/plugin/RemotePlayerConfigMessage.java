@@ -25,6 +25,15 @@ import no.jckf.dhsupport.core.configuration.DhsConfig;
 
 public class RemotePlayerConfigMessage extends PluginMessage
 {
+    public static String[] KEYS = {
+        DhsConfig.RENDER_DISTANCE,
+        DhsConfig.DISTANT_GENERATION_ENABLED,
+        DhsConfig.FULL_DATA_REQUEST_CONCURRENCY_LIMIT,
+        DhsConfig.REAL_TIME_UPDATES_ENABLED,
+        DhsConfig.LOGIN_DATA_SYNC_ENABLED,
+        DhsConfig.LOGIN_DATA_SYNC_RC_LIMIT,
+    };
+
     protected int renderDistance;
 
     protected boolean distantGenerationEnabled;

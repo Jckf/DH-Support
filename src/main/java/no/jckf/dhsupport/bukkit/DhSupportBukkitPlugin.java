@@ -18,11 +18,15 @@
 
 package no.jckf.dhsupport.bukkit;
 
+import com.tcoded.folialib.FoliaLib;
 import no.jckf.dhsupport.bukkit.handler.ConfigLoader;
 import no.jckf.dhsupport.bukkit.handler.Handler;
 import no.jckf.dhsupport.bukkit.handler.PluginMessageProxy;
 import no.jckf.dhsupport.bukkit.handler.WorldHandler;
 import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.core.configuration.DhsConfig;
+import no.jckf.dhsupport.core.scheduling.GenericScheduler;
+import no.jckf.dhsupport.paper.PaperScheduler;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -36,6 +40,8 @@ public class DhSupportBukkitPlugin extends JavaPlugin
 
     protected Metrics metrics;
 
+    protected FoliaLib foliaLib;
+
     protected final Map<Class<? extends Handler>, Handler> handlers = new HashMap<>()
     {{
         this.put(ConfigLoader.class, null);
@@ -47,6 +53,8 @@ public class DhSupportBukkitPlugin extends JavaPlugin
     {
         this.dhSupport = new DhSupport();
         this.dhSupport.setLogger(this.getLogger());
+
+        this.foliaLib = new FoliaLib(this);
 
         this.metrics = new Metrics(this, 21843);
 
@@ -68,6 +76,16 @@ public class DhSupportBukkitPlugin extends JavaPlugin
         }
 
         this.dhSupport.onEnable();
+
+        if (this.foliaLib.isFolia()) {
+            this.getLogger().info("Using Paper scheduler.");
+
+            this.dhSupport.setScheduler(new PaperScheduler(this, this.foliaLib));
+        } else {
+            this.getLogger().info("Using generic scheduler.");
+
+            this.dhSupport.setScheduler(new GenericScheduler(this.getDhSupport().getConfig().getInt(DhsConfig.GENERIC_SCHEDULER_THREADS)));
+        }
 
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
 

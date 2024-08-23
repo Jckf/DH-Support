@@ -18,12 +18,15 @@
 
 package no.jckf.dhsupport.bukkit;
 
+import no.jckf.dhsupport.core.configuration.Configuration;
+import no.jckf.dhsupport.core.configuration.WorldConfiguration;
 import no.jckf.dhsupport.core.world.WorldInterface;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class BukkitWorldInterface implements WorldInterface
 {
@@ -31,15 +34,21 @@ public class BukkitWorldInterface implements WorldInterface
 
     protected Block block;
 
-    public BukkitWorldInterface(World world)
+    protected Configuration config;
+
+    protected WorldConfiguration worldConfig;
+
+    public BukkitWorldInterface(World world, Configuration config)
     {
         this.world = world;
+        this.config = config;
+        this.worldConfig = new WorldConfiguration(this, config);
     }
 
     @Override
     public WorldInterface newInstance()
     {
-        return new BukkitWorldInterface(this.world);
+        return new BukkitWorldInterface(this.world, this.config);
     }
 
     // Shitty cache :)
@@ -50,6 +59,39 @@ public class BukkitWorldInterface implements WorldInterface
         }
 
         return this.block;
+    }
+
+    @Override
+    public UUID getId()
+    {
+        return this.world.getUID();
+    }
+
+    @Override
+    public String getName()
+    {
+        return this.world.getName();
+    }
+
+    @Override
+    public boolean chunkExists(int x, int z)
+    {
+        int chunkX = (int) Math.floor((double) x / 16);
+        int chunkZ = (int) Math.floor((double) z / 16);
+
+        boolean alreadyLoaded = this.world.isChunkLoaded(chunkX, chunkZ);
+
+        if (alreadyLoaded) {
+            return true;
+        }
+
+        boolean exists = this.world.loadChunk(chunkX, chunkZ, false);
+
+        if (exists) {
+            this.world.unloadChunk(chunkX, chunkZ, false);
+        }
+
+        return exists;
     }
 
     @Override
@@ -134,5 +176,11 @@ public class BukkitWorldInterface implements WorldInterface
     public boolean isTransparent(int x, int y, int z)
     {
         return this.getBlock(x, y, z).getBlockData().getMaterial().isTransparent();
+    }
+
+    @Override
+    public Configuration getConfig()
+    {
+        return this.worldConfig;
     }
 }
