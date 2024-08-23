@@ -44,7 +44,9 @@ public class PlayerConfigHandler
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
             Player player = Bukkit.getPlayer(configMessage.getSender());
 
-            String levelKeyPrefix = this.dhSupport.getConfig().getString(DhsConfig.LEVEL_KEY_PREFIX);
+            Configuration dhsConfig = this.dhSupport.getWorldInterface(player.getWorld().getUID()).getConfig();
+
+            String levelKeyPrefix = dhsConfig.getString(DhsConfig.LEVEL_KEY_PREFIX);
             String levelKey = player.getWorld().getName();
 
             if (levelKeyPrefix != null) {
@@ -57,12 +59,11 @@ public class PlayerConfigHandler
             levelKeyResponse.setKey(levelKey);
             this.pluginMessageHandler.sendPluginMessage(configMessage.getSender(), levelKeyResponse);
 
-            Configuration dhsConfig = this.dhSupport.getConfig();
             Configuration clientConfig = configMessage.toConfiguration();
 
             // This is not very flexible, but will do for now.
-            for (String key : DhsConfig.getKeys()) {
-                //this.dhSupport.getLogger().info("Config key " + key + ":");
+            for (String key : RemotePlayerConfigMessage.KEYS) {
+                this.dhSupport.getLogger().info("Config key " + key + ":");
 
                 Object dhsValue = dhsConfig.get(key);
                 Object clientValue = clientConfig.get(key);
@@ -71,15 +72,15 @@ public class PlayerConfigHandler
                 if (dhsValue instanceof Boolean dhsBool && clientValue instanceof Boolean clientBool) {
                     keepValue = dhsBool && clientBool;
 
-                    //this.dhSupport.getLogger().info("    Server " + (dhsBool ? "Y" : "N") + " or client " + (clientBool ? "Y" : "N") + " = " + ((boolean) keepValue ? "Y" : "N"));
+                    this.dhSupport.getLogger().info("    Server " + (dhsBool ? "Y" : "N") + " or client " + (clientBool ? "Y" : "N") + " = " + ((boolean) keepValue ? "Y" : "N"));
                 } else if (dhsValue instanceof Integer dhsInt && clientValue instanceof Integer clientInt) {
                     keepValue = dhsInt < clientInt ? dhsInt : clientInt;
 
-                    //this.dhSupport.getLogger().info("    Server " + dhsInt + " or client " + clientInt + " = " + keepValue);
+                    this.dhSupport.getLogger().info("    Server " + dhsInt + " or client " + clientInt + " = " + keepValue);
                 } else {
                     keepValue = null;
 
-                    //this.dhSupport.getLogger().info("    Uhh... 😵‍💫");
+                    this.dhSupport.getLogger().info("    Uhh... 😵‍💫");
                 }
 
                 clientConfig.set(key, keepValue);

@@ -19,6 +19,7 @@
 package no.jckf.dhsupport.core.handler;
 
 import no.jckf.dhsupport.core.DhSupport;
+import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
@@ -26,6 +27,7 @@ import no.jckf.dhsupport.core.message.plugin.ExceptionMessage;
 import no.jckf.dhsupport.core.message.plugin.FullDataChunkMessage;
 import no.jckf.dhsupport.core.message.plugin.FullDataSourceRequestMessage;
 import no.jckf.dhsupport.core.message.plugin.FullDataSourceResponseMessage;
+import no.jckf.dhsupport.core.world.WorldInterface;
 import org.bukkit.Bukkit;
 
 import java.util.Arrays;
@@ -55,9 +57,48 @@ public class LodHandler
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
             UUID worldUuid = Bukkit.getPlayer(requestMessage.getSender()).getWorld().getUID();
 
+            WorldInterface world = this.dhSupport.getWorldInterface(worldUuid);
+
+            Configuration config = world.getConfig();
+
             SectionPosition position = requestMessage.getPosition();
 
-            boolean generate = this.dhSupport.getConfig().getBool(DhsConfig.GENERATE_NEW_CHUNKS);
+            String borderCenter = config.getString(DhsConfig.BORDER_CENTER);
+            Integer borderRadius =config.getInt(DhsConfig.BORDER_RADIUS);
+
+            if (borderCenter != null && borderRadius != null) {
+                String[] centerXz = borderCenter.split(",");
+
+                if (centerXz.length != 2) {
+                    this.dhSupport.warning("Border for world " + world.getName() + " is misconfigured.");
+                } else {
+                    int centerX = Integer.getInteger(centerXz[0]);
+                    int centerZ = Integer.getInteger(centerXz[1]);
+
+                    int minX = centerX - borderRadius;
+                    int maxX = centerX + borderRadius;
+
+                    int minZ = centerZ - borderRadius;
+                    int maxZ = centerZ + borderRadius;
+
+                    int lowerLodX = position.getX() * 64;
+                    int higherLodX = lowerLodX + 64;
+
+                    int lowerLodZ = position.getZ() * 64;
+                    int higherLodZ = lowerLodZ + 64;
+
+                    if (higherLodX < minX || lowerLodX > maxX || higherLodZ < minZ || lowerLodZ > maxZ) {
+                        ExceptionMessage exceptionMessage = new ExceptionMessage();
+                        exceptionMessage.isResponseTo(requestMessage);
+                        exceptionMessage.setTypeId(ExceptionMessage.TYPE_REQUEST_REJECTED);
+                        exceptionMessage.setMessage("World border");
+                        this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), exceptionMessage);
+                        return;
+                    }
+                }
+            }
+
+            boolean generate = config.getBool(DhsConfig.GENERATE_NEW_CHUNKS);
 
             if (!generate) {
                 for (int relativeChunkX = 0; relativeChunkX < Lod.width / 16; relativeChunkX++) {
@@ -65,7 +106,7 @@ public class LodHandler
                         int worldX = position.getX() * 64 + relativeChunkX * 16;
                         int worldZ = position.getZ() * 64 + relativeChunkZ * 16;
 
-                        if (!this.dhSupport.getWorldInterface(worldUuid).chunkExists(worldX, worldZ)) {
+                        if (!world.chunkExists(worldX, worldZ)) {
                             ExceptionMessage exceptionMessage = new ExceptionMessage();
                             exceptionMessage.isResponseTo(requestMessage);
                             exceptionMessage.setTypeId(ExceptionMessage.TYPE_REQUEST_REJECTED);

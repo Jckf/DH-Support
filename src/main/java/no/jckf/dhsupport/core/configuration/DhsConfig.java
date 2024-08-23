@@ -44,6 +44,10 @@ public abstract class DhsConfig
 
     public static String LEVEL_KEY_PREFIX = "level_key_prefix";
 
+    public static String BORDER_CENTER = "border_center";
+
+    public static String BORDER_RADIUS = "border_radius";
+
     public static Collection<String> getKeys()
     {
         List<String> keys = new ArrayList<>();
