@@ -19,14 +19,14 @@ public class WorldConfiguration extends Configuration
     @Override
     public void set(String key, Object value)
     {
-        this.variables.put(WORLD_PREFIX.formatted(this.world.getName()) + key, value);
+        this.config.set(WORLD_PREFIX.formatted(this.world.getName()) + key, value);
     }
 
     @Override
     public Object get(String key)
     {
-        Object specific = this.variables.get(WORLD_PREFIX.formatted(this.world.getName()) + key);
+        Object specific = this.config.get(WORLD_PREFIX.formatted(this.world.getName()) + key);
 
-        return specific == null ? this.variables.get(key) : specific;
+        return specific == null ? this.config.get(key) : specific;
     }
 }
