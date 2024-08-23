@@ -164,6 +164,10 @@ public class PluginMessageHandler
 
         Encoder encoder = new Encoder();
 
+        #if READ_FORGE_BYTE == "true"
+            encoder.writeByte(0);
+        #endif
+
         encoder.writeShort(this.protocolVersion);
         encoder.writeShort(messageTypeId);
 
