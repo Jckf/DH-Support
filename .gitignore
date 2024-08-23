@@ -25,10 +25,13 @@ replay_pid*
 
 # IntelliJ IDEA project config
 /.idea
+/*.iml
 
 # Maven output
 /dependency-reduced-pom.xml
 /target
+/jars
 
 # Test server
 /server
+/folia

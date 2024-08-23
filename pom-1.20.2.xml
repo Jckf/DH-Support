@@ -13,6 +13,7 @@
     <properties>
         <mc.api-version>1.20</mc.api-version>
         <mc.api-version-patch>.2</mc.api-version-patch>
+        <dhs.read-forge-byte>true</dhs.read-forge-byte>
     </properties>
 
     <dependencies>

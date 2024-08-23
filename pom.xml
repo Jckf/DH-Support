@@ -13,6 +13,7 @@
         <main.class>no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin</main.class>
         <mc.api-version></mc.api-version>
         <mc.api-version-patch></mc.api-version-patch>
+        <dhs.read-forge-byte></dhs.read-forge-byte>
     </properties>
 
     <developers>
@@ -83,8 +84,7 @@
     </dependencies>
 
     <build>
-        <defaultGoal>package</defaultGoal>
-        <finalName>DHS-${project.version}_for_MC-${mc.api-version}${mc.api-version-patch}</finalName>
+        <defaultGoal>clean package</defaultGoal>
 
         <plugins>
             <plugin>
@@ -96,6 +96,19 @@
                     <source>${jdk}</source>
                     <target>${jdk}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+
+                    <compilerArgs>
+                        <arg>-Xplugin:Manifold</arg>
+                        <arg>-AREAD_FORGE_BYTE=${dhs.read-forge-byte}</arg>
+                    </compilerArgs>
+
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>systems.manifold</groupId>
+                            <artifactId>manifold-preprocessor</artifactId>
+                            <version>2024.1.30</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
@@ -150,6 +163,36 @@
                                     <include>com.github.technicallycoded</include>
                                 </includes>
                             </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+
+                        <configuration>
+                            <outputDirectory>jars</outputDirectory>
+
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>${project.packaging}</type>
+                                    <destFileName>DHS-${project.version}_for_MC-${mc.api-version}${mc.api-version-patch}.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
                         </configuration>
                     </execution>
                 </executions>
