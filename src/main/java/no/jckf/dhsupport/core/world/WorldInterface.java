@@ -18,14 +18,18 @@
 
 package no.jckf.dhsupport.core.world;
 
+import no.jckf.dhsupport.core.configuration.Configurable;
+
 import java.util.Map;
 import java.util.UUID;
 
-public interface WorldInterface
+public interface WorldInterface extends Configurable
 {
     WorldInterface newInstance();
 
     UUID getId();
+
+    String getName();
 
     boolean chunkExists(int x, int z);
 

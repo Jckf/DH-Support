@@ -44,7 +44,9 @@ public class PlayerConfigHandler
             // TODO: Some sort of Player wrapper or interface object. Bukkit classes should not be imported here.
             Player player = Bukkit.getPlayer(configMessage.getSender());
 
-            String levelKeyPrefix = this.dhSupport.getConfig().getString(DhsConfig.LEVEL_KEY_PREFIX);
+            Configuration dhsConfig = this.dhSupport.getWorldInterface(player.getWorld().getUID()).getConfig();
+
+            String levelKeyPrefix = dhsConfig.getString(DhsConfig.LEVEL_KEY_PREFIX);
             String levelKey = player.getWorld().getName();
 
             if (levelKeyPrefix != null) {
@@ -57,7 +59,6 @@ public class PlayerConfigHandler
             levelKeyResponse.setKey(levelKey);
             this.pluginMessageHandler.sendPluginMessage(configMessage.getSender(), levelKeyResponse);
 
-            Configuration dhsConfig = this.dhSupport.getConfig();
             Configuration clientConfig = configMessage.toConfiguration();
 
             // This is not very flexible, but will do for now.
