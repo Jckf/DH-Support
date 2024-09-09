@@ -106,7 +106,7 @@
                         <path>
                             <groupId>systems.manifold</groupId>
                             <artifactId>manifold-preprocessor</artifactId>
-                            <version>2024.1.30</version>
+                            <version>2024.1.32</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
