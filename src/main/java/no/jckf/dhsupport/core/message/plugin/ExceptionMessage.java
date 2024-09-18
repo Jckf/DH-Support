@@ -25,8 +25,7 @@ public class ExceptionMessage extends TrackablePluginMessage
 {
     public static int TYPE_RATE_LIMITED = 0;
     public static int TYPE_INVALID_LEVEL = 1;
-    public static int TYPE_INVALID_POSITION = 2;
-    public static int TYPE_REQUEST_REJECTED = 3;
+    public static int TYPE_REQUEST_REJECTED = 2;
 
     protected int typeId;
 
