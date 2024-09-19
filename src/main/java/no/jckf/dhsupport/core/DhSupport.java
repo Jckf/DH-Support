@@ -187,7 +187,7 @@ public class DhSupport implements Configurable
 
                 Constructor<? extends LodBuilder> constructor = builderClass.getConstructor(WorldInterface.class, SectionPosition.class);
 
-                builder = constructor.newInstance(world, position);
+                builder = constructor.newInstance(world.newInstance(), position);
             } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException exception) {
                 this.getLogger().severe(exception.toString());
 
