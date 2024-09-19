@@ -89,7 +89,7 @@ public class DhSupportBukkitPlugin extends JavaPlugin
 
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
 
-        this.getLogger().info("Ready 😀");
+        this.getLogger().info("Ready!");
     }
 
     @Override
@@ -115,7 +115,7 @@ public class DhSupportBukkitPlugin extends JavaPlugin
             this.handlers.replace(className, null);
         }
 
-        this.getLogger().info("👋😭");
+        this.getLogger().info("Lights out!");
     }
 
     @Nullable
