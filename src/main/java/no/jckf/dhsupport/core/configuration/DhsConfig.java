@@ -48,6 +48,8 @@ public abstract class DhsConfig
 
     public static String BORDER_RADIUS = "border_radius";
 
+    public static String BUILDER_TYPE = "builder_type";
+
     public static Collection<String> getKeys()
     {
         List<String> keys = new ArrayList<>();

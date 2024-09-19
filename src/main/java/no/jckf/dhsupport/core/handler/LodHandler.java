@@ -64,7 +64,7 @@ public class LodHandler
             SectionPosition position = requestMessage.getPosition();
 
             String borderCenter = config.getString(DhsConfig.BORDER_CENTER);
-            Integer borderRadius =config.getInt(DhsConfig.BORDER_RADIUS);
+            Integer borderRadius = config.getInt(DhsConfig.BORDER_RADIUS);
 
             if (borderCenter != null && borderRadius != null) {
                 String[] centerXz = borderCenter.split(",");
@@ -147,6 +147,13 @@ public class LodHandler
                 })
                 .exceptionally((exception) -> {
                     this.dhSupport.warning(exception.getMessage());
+
+                    ExceptionMessage exceptionMessage = new ExceptionMessage();
+                    exceptionMessage.isResponseTo(requestMessage);
+                    exceptionMessage.setTypeId(ExceptionMessage.TYPE_REQUEST_REJECTED);
+                    exceptionMessage.setMessage("Internal error");
+                    this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), exceptionMessage);
+
                     return null;
                 });
         });

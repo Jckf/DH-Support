@@ -21,16 +21,20 @@ package no.jckf.dhsupport.core;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 import no.jckf.dhsupport.core.configuration.Configurable;
 import no.jckf.dhsupport.core.configuration.Configuration;
+import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
 import no.jckf.dhsupport.core.handler.LodHandler;
 import no.jckf.dhsupport.core.handler.PlayerConfigHandler;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
+import no.jckf.dhsupport.core.lodbuilders.LodBuilder;
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
 import no.jckf.dhsupport.core.scheduling.Scheduler;
 import no.jckf.dhsupport.core.world.WorldInterface;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -155,12 +159,12 @@ public class DhSupport implements Configurable
         this.getLogger().warning(message);
     }
 
-    public CompletableFuture<Lod> queueBuilder(LodBuilder builder)
+    public CompletableFuture<Lod> queueBuilder(UUID worldId, SectionPosition position, LodBuilder builder)
     {
         return this.getScheduler().runRegional(
-            builder.worldInterface.getId(),
-            builder.position.getX() * 64,
-            builder.position.getZ() * 64,
+            worldId,
+            position.getX() * 64,
+            position.getZ() * 64,
             builder::generate
         );
     }
@@ -172,9 +176,25 @@ public class DhSupport implements Configurable
         if (!this.lodCache.get(worldId).containsKey(key)) {
             //this.info("Cache miss: " + worldId + " " + key);
 
-            LodBuilder builder = new LodBuilder(this.getWorldInterface(worldId).newInstance(), position);
+            WorldInterface world = this.getWorldInterface(worldId);
 
-            return this.queueBuilder(builder).thenApply((lod) -> {
+            String builderType = world.getConfig().getString(DhsConfig.BUILDER_TYPE);
+
+            LodBuilder builder;
+
+            try {
+                Class<? extends LodBuilder> builderClass = Class.forName("no.jckf.dhsupport.core.lodbuilders." + builderType).asSubclass(LodBuilder.class);
+
+                Constructor<? extends LodBuilder> constructor = builderClass.getConstructor(WorldInterface.class, SectionPosition.class);
+
+                builder = constructor.newInstance(world, position);
+            } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException exception) {
+                this.getLogger().severe(exception.toString());
+
+                return CompletableFuture.failedFuture(new Exception("Failed to instantiate LOD builder \"" + builderType + "\" for world \"" + world.getName() + "\"."));
+            }
+
+            return this.queueBuilder(worldId, position, builder).thenApply((lod) -> {
                 Encoder encoder = new Encoder();
                 lod.encode(encoder);
                 byte[] data = encoder.toByteArray();

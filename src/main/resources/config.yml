@@ -34,6 +34,11 @@ login_data_sync_rc_limit: 50
 # Default: true
 generate_new_chunks: true
 
+# Select which LOD builder to use.
+# Required.
+# Default: FullBuilder
+builder_type: FullBuilder
+
 # When running DHS on a proxied server, set this to a value that is unique to this specific server.
 # Optional.
 #level_key_prefix:
@@ -42,6 +47,9 @@ generate_new_chunks: true
 # You can override any of the above settings on a per-world basis.
 worlds:
   world:
+    # Use builder that is optimized for overworld.
+    builder_type: FastOverworldBuilder
+
     # Limit LOD generation to within this area.
     # Optional.
     #border_center: 0,0

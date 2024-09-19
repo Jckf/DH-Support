@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core;
+package no.jckf.dhsupport.core.lodbuilders;
 
 import no.jckf.dhsupport.core.dataobject.DataPoint;
 import no.jckf.dhsupport.core.dataobject.IdMapping;
@@ -30,16 +30,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LodBuilder
+public class FullBuilder extends LodBuilder
 {
-    protected WorldInterface worldInterface;
-
-    protected SectionPosition position;
-
-    public LodBuilder(WorldInterface worldInterface, SectionPosition position)
+    public FullBuilder(WorldInterface worldInterface, SectionPosition position)
     {
-        this.worldInterface = worldInterface;
-        this.position = position;
+        super(worldInterface, position);
     }
 
     public Lod generate()
@@ -47,9 +42,6 @@ public class LodBuilder
         int minY = this.worldInterface.getMinY();
         int maxY = this.worldInterface.getMaxY();
         int height = maxY - minY;
-
-        int seaLevel = this.worldInterface.getSeaLevel();
-        int relativeSeaLevel = seaLevel - minY;
 
         int offsetX = this.position.getX() * 64;
         int offsetZ = this.position.getZ() * 64;
@@ -79,34 +71,17 @@ public class LodBuilder
                 @Nullable
                 DataPoint previous = null;
 
-                @Nullable
-                Integer solidGround = null;
-
-                for (int relativeY = height; (solidGround == null || relativeY >= solidGround) && relativeY >= 0; relativeY--) {
+                for (int relativeY = height; relativeY >= 0; relativeY--) {
                     int worldY = minY + relativeY;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
 
-                    if (solidGround == null) {
-                        switch (material) {
-                            case "minecraft:stone":
-                            case "minecraft:grass":
-                            case "minecraft:dirt":
-                            case "minecraft:sand":
-                            case "minecraft:sandstone":
-                            case "minecraft:mycelium":
-                                solidGround = Math.min(relativeY - 10, relativeSeaLevel - 10);
-                        }
-                    }
-
-                    //String compositeKey = biome + "|" + material;
                     String compositeKey = biome + "|" + material + "|" + this.worldInterface.getBlockStateAsStringAt(worldX, worldY, worldZ);
 
                     @Nullable
                     Integer id = mapMap.get(compositeKey);
 
                     if (id == null) {
-                        //idMappings.add(new IdMapping(biome, material, null));
                         idMappings.add(new IdMapping(biome, material, this.worldInterface.getBlockPropertiesAt(worldX, worldY, worldZ)));
                         id = idMappings.size() - 1;
                         mapMap.put(compositeKey, id);
