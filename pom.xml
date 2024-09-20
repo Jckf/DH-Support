@@ -69,9 +69,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.lz4</groupId>
-            <artifactId>lz4-java</artifactId>
-            <version>1.8.0</version>
+            <groupId>org.tukaani</groupId>
+            <artifactId>xz</artifactId>
+            <version>1.9</version>
             <scope>compile</scope>
         </dependency>
 
@@ -158,7 +158,7 @@
                             </filters>
                             <artifactSet>
                                 <includes>
-                                    <include>org.lz4</include>
+                                    <include>org.tukaani</include>
                                     <include>org.bstats</include>
                                     <include>com.github.technicallycoded</include>
                                 </includes>
