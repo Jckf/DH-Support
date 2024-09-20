@@ -173,12 +173,6 @@ public class BukkitWorldInterface implements WorldInterface
     }
 
     @Override
-    public boolean isTransparent(int x, int y, int z)
-    {
-        return this.getBlock(x, y, z).getBlockData().getMaterial().isTransparent();
-    }
-
-    @Override
     public Configuration getConfig()
     {
         return this.worldConfig;
