@@ -1,7 +1,7 @@
 # Maximum supported render distance. Clients will be capped to this value.
 # Required.
-# Default: 128
-render_distance: 128
+# Default: 1024
+render_distance: 1024
 
 # Is LOD generation enabled at all?
 # Disable if you only want to use the plugin for level key info in a proxied setup.
