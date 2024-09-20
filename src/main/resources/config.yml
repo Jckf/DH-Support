@@ -39,6 +39,12 @@ generate_new_chunks: true
 # Default: FullBuilder
 builder_type: FullBuilder
 
+# Number of blocks to advance between each sample on the Y axis when generating LODs.
+# A setting of 1 will sample every block, while 2 will sample every other block, and so on.
+# Required.
+# Default: 2
+builder_resolution: 2
+
 # When running DHS on a proxied server, set this to a value that is unique to this specific server.
 # Optional.
 #level_key_prefix:

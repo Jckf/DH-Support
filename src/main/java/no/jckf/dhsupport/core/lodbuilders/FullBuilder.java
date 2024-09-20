@@ -18,6 +18,7 @@
 
 package no.jckf.dhsupport.core.lodbuilders;
 
+import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.dataobject.DataPoint;
 import no.jckf.dhsupport.core.dataobject.IdMapping;
 import no.jckf.dhsupport.core.dataobject.Lod;
@@ -46,6 +47,8 @@ public class FullBuilder extends LodBuilder
         int offsetX = this.position.getX() * 64;
         int offsetZ = this.position.getZ() * 64;
 
+        int yStep = this.worldInterface.getConfig().getInt(DhsConfig.BUILDER_RESOLUTION);
+
         List<IdMapping> idMappings = new ArrayList<>();
         Map<String, Integer> mapMap = new HashMap<>();
 
@@ -71,8 +74,11 @@ public class FullBuilder extends LodBuilder
                 @Nullable
                 DataPoint previous = null;
 
-                for (int relativeY = height; relativeY >= 0; relativeY--) {
+                for (int relativeY = height; relativeY >= 0; relativeY -= yStep) {
                     int worldY = minY + relativeY;
+
+                    int nextStep = relativeY - yStep;
+                    int thisStep = nextStep < 0 ? yStep + nextStep : yStep;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
 
@@ -92,18 +98,20 @@ public class FullBuilder extends LodBuilder
                     if (previous != null && previous.getMappingId() == id) {
                         point = previous;
 
-                        point.setStartY(point.getStartY() - 1);
-                        point.setHeight(point.getHeight() + 1);
+                        point.setStartY(point.getStartY() - thisStep);
+                        point.setHeight(point.getHeight() + thisStep);
                     } else {
                         point = new DataPoint();
                         column.add(point);
 
-                        point.setStartY(relativeY);
+                        point.setStartY(relativeY - thisStep + 1);
+                        point.setHeight(thisStep);
                         point.setMappingId(id);
 
                         point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
                         point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY + 1, worldZ));
 
+                        // Start by filling the top of the column with air, then jump down to the top layer.
                         if (relativeY == height && (material.equals("minecraft:air") || material.equals("minecraft:void_air"))) {
                             point.setStartY(relativeTopLayer + 1);
                             point.setHeight(height - relativeTopLayer);
