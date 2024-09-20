@@ -50,6 +50,8 @@ public abstract class DhsConfig
 
     public static String BUILDER_TYPE = "builder_type";
 
+    public static String BUILDER_RESOLUTION = "builder_resolution";
+
     public static Collection<String> getKeys()
     {
         List<String> keys = new ArrayList<>();
