@@ -45,7 +45,7 @@ public class ConfigLoader extends Handler
         Configuration dhsConfig = this.plugin.getDhSupport().getConfig();
 
         // Populate DH Support config.
-        pluginConfig.getKeys(false).forEach((key) -> dhsConfig.set(key, pluginConfig.get(key)));
+        pluginConfig.getKeys(true).forEach((key) -> dhsConfig.set(key, pluginConfig.get(key)));
     }
 
     @Override
