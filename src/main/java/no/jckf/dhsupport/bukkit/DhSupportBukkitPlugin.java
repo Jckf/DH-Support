@@ -53,6 +53,7 @@ public class DhSupportBukkitPlugin extends JavaPlugin
     {
         this.dhSupport = new DhSupport();
         this.dhSupport.setLogger(this.getLogger());
+        this.dhSupport.setDataDirectory(this.getDataFolder().getAbsolutePath());
 
         this.foliaLib = new FoliaLib(this);
 
