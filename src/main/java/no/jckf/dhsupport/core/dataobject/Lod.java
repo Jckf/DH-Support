@@ -18,16 +18,16 @@
 
 package no.jckf.dhsupport.core.dataobject;
 
-import net.jpountz.lz4.LZ4Factory;
-import net.jpountz.lz4.LZ4FrameOutputStream;
-import net.jpountz.xxhash.XXHashFactory;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 import no.jckf.dhsupport.core.enums.CompressionType;
 import no.jckf.dhsupport.core.enums.GenerationStep;
 import no.jckf.dhsupport.core.world.WorldInterface;
+import org.tukaani.xz.LZMA2Options;
+import org.tukaani.xz.XZ;
+import org.tukaani.xz.XZOutputStream;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class Lod extends DataObject
 {
     public static int dataFormatVersion = 1;
 
-    public static CompressionType compressionType = CompressionType.LZ4;
+    public static CompressionType compressionType = CompressionType.LZMA2;
 
     public static int width = 64;
 
@@ -140,14 +140,7 @@ public class Lod extends DataObject
         ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
 
         try {
-            LZ4FrameOutputStream compressorStream = new LZ4FrameOutputStream(
-                new BufferedOutputStream(compressedStream),
-                LZ4FrameOutputStream.BLOCKSIZE.SIZE_4MB,
-                uncompressedData.length,
-                LZ4Factory.fastestInstance().highCompressor(17),
-                XXHashFactory.fastestInstance().hash32(),
-                LZ4FrameOutputStream.FLG.Bits.BLOCK_INDEPENDENCE
-            );
+            OutputStream compressorStream = new XZOutputStream(compressedStream, new LZMA2Options(3), XZ.CHECK_CRC64);
 
             compressorStream.write(uncompressedData);
             compressorStream.flush();
