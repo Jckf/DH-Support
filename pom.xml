@@ -231,6 +231,6 @@
         <module>pom-1.20.2.xml</module>
         <module>pom-1.20.4.xml</module>
         <module>pom-1.20.6.xml</module>
-        <module>pom-1.21.xml</module>
+        <module>pom-1.21.1.xml</module>
     </modules>
 </project>
