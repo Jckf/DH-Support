@@ -123,11 +123,6 @@
 
                     <relocations>
                         <relocation>
-                            <pattern>net.jpountz</pattern>
-                            <shadedPattern>no.jckf.dhsupport.lz4</shadedPattern>
-                        </relocation>
-
-                        <relocation>
                             <pattern>org.bstats</pattern>
                             <shadedPattern>no.jckf.dhsupport.bstats</shadedPattern>
                         </relocation>
