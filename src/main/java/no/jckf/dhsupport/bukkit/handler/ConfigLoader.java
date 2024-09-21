@@ -38,9 +38,6 @@ public class ConfigLoader extends Handler
         // Bukkit plugin config.
         FileConfiguration pluginConfig = this.plugin.getConfig();
 
-        // Load missing values from default file.
-        pluginConfig.options().copyDefaults(true);
-
         // DH Support config.
         Configuration dhsConfig = this.plugin.getDhSupport().getConfig();
 
