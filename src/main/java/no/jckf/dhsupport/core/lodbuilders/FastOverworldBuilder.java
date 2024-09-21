@@ -85,7 +85,7 @@ public class FastOverworldBuilder extends LodBuilder
                     int worldY = minY + relativeY;
 
                     int nextStep = relativeY - yStep;
-                    int thisStep = nextStep < 0 ? yStep + nextStep : yStep;
+                    int thisStep = nextStep < 0 ? yStep + nextStep + 1 : yStep;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
 
