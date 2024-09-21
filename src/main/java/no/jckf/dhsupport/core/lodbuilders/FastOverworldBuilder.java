@@ -24,6 +24,7 @@ import no.jckf.dhsupport.core.dataobject.IdMapping;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
 import no.jckf.dhsupport.core.world.WorldInterface;
+import org.bukkit.Material;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -93,6 +94,7 @@ public class FastOverworldBuilder extends LodBuilder
                             case "minecraft:stone":
                             case "minecraft:grass":
                             case "minecraft:dirt":
+                            case "minecraft:gravel":
                             case "minecraft:sand":
                             case "minecraft:sandstone":
                             case "minecraft:mycelium":
@@ -100,13 +102,13 @@ public class FastOverworldBuilder extends LodBuilder
                         }
                     }
 
-                    String compositeKey = biome + "|" + material + "|" + this.worldInterface.getBlockStateAsStringAt(worldX, worldY, worldZ);
+                    String compositeKey = biome + "|" + material;
 
                     @Nullable
                     Integer id = mapMap.get(compositeKey);
 
                     if (id == null) {
-                        idMappings.add(new IdMapping(biome, material, this.worldInterface.getBlockPropertiesAt(worldX, worldY, worldZ)));
+                        idMappings.add(new IdMapping(biome, material, null));
                         id = idMappings.size() - 1;
                         mapMap.put(compositeKey, id);
                     }
