@@ -54,8 +54,6 @@ public class FullBuilder extends LodBuilder
 
         List<List<DataPoint>> columns = new ArrayList<>();
 
-        String biome = ""; // Initialize to squelch warnings.
-
         for (int relativeX = 0; relativeX < Lod.width; relativeX++) {
             for (int relativeZ = 0; relativeZ < Lod.width; relativeZ++) {
                 int worldX = offsetX + relativeX;
@@ -67,7 +65,7 @@ public class FullBuilder extends LodBuilder
                 // Distance from bottom to top-most block.
                 int relativeTopLayer = topLayer - minY;
 
-                biome = this.worldInterface.getBiomeAt(offsetX + relativeX, offsetZ + relativeZ);
+                String biome = this.worldInterface.getBiomeAt(worldX, worldZ);
 
                 List<DataPoint> column = new ArrayList<>();
 
