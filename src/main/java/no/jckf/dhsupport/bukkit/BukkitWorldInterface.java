@@ -24,6 +24,7 @@ import no.jckf.dhsupport.core.world.WorldInterface;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -83,6 +84,15 @@ public class BukkitWorldInterface implements WorldInterface
 
         if (alreadyLoaded) {
             return true;
+        }
+
+        int regionX = (int) Math.floor((double) chunkX / 32);
+        int regionZ = (int) Math.floor((double) chunkZ / 32);
+
+        File regionFile = new File(world.getWorldFolder() + "/region/r." + regionX + "." + regionZ + ".mca");
+
+        if (!regionFile.exists()) {
+            return false;
         }
 
         boolean exists = this.world.loadChunk(chunkX, chunkZ, false);
