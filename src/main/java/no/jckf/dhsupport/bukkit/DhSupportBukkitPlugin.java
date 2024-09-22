@@ -90,6 +90,14 @@ public class DhSupportBukkitPlugin extends JavaPlugin
 
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
 
+        this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            int inserted = this.dhSupport.executeQueuedInserts();
+
+            if (inserted != 0) {
+                this.getLogger().info("Executed " + inserted + " queued inserts.");
+            }
+        }, 0, 10 * 20);
+
         this.getLogger().info("Ready!");
     }
 

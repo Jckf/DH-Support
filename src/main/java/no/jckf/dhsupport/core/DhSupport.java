@@ -43,8 +43,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable
@@ -64,6 +66,8 @@ public class DhSupport implements Configurable
     protected PluginMessageHandler pluginMessageHandler;
 
     protected PluginMessageSender pluginMessageSender;
+
+    protected Queue<PreparedStatement> queuedInserts = new ConcurrentLinkedQueue<>();
 
     public DhSupport()
     {
@@ -204,21 +208,47 @@ public class DhSupport implements Configurable
         }
     }
 
-    // TODO: Thread safety?
-    public void insertLodIntoDatabase(UUID worldId, int x, int z, byte[] data)
+    public void queueInsertLodIntoDatabase(UUID worldId, int x, int z, byte[] data)
     {
         String sql = "INSERT INTO lods (worldId, x, z, data) VALUES (?, ?, ?, ?);";
 
-        try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
+        try {
+            PreparedStatement statement = this.database.getConnection().prepareStatement(sql);
+
             statement.setString(1, worldId.toString());
             statement.setInt(2, x);
             statement.setInt(3, z);
             statement.setBytes(4, data);
 
-            statement.executeUpdate();
+            this.queuedInserts.add(statement);
         } catch (SQLException | DatabaseException exception) {
-            this.warning("Error while saving LOD to database: " + exception.getMessage());
+            this.warning("Error while queuing insert: " + exception.getMessage());
         }
+    }
+
+    public int executeQueuedInserts()
+    {
+        if (this.queuedInserts.isEmpty()) {
+            return 0;
+        }
+
+        int inserted = 0;
+
+        while (true) {
+            try (PreparedStatement statement = this.queuedInserts.poll()) {
+                if (statement == null) {
+                    break;
+                }
+
+                statement.executeUpdate();
+
+                inserted++;
+            } catch (SQLException exception) {
+                this.warning("Error while executing queued insert: " + exception.getMessage());
+            }
+        }
+
+        return inserted;
     }
 
     public CompletableFuture<Lod> queueBuilder(UUID worldId, SectionPosition position, LodBuilder builder)
@@ -262,7 +292,7 @@ public class DhSupport implements Configurable
             lod.encode(encoder);
             byte[] data = encoder.toByteArray();
 
-            this.insertLodIntoDatabase(worldId, position.getX(), position.getZ(), data);
+            this.queueInsertLodIntoDatabase(worldId, position.getX(), position.getZ(), data);
 
             return data;
         });
