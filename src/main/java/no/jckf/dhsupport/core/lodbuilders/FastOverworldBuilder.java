@@ -24,7 +24,6 @@ import no.jckf.dhsupport.core.dataobject.IdMapping;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
 import no.jckf.dhsupport.core.world.WorldInterface;
-import org.bukkit.Material;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -81,11 +80,15 @@ public class FastOverworldBuilder extends LodBuilder
                 @Nullable
                 Integer solidGround = null;
 
-                for (int relativeY = height; (solidGround == null || relativeY >= solidGround) && relativeY >= 0; relativeY -= yStep) {
-                    int worldY = minY + relativeY;
+                for (int relativeY = height; (solidGround == null || relativeY >= solidGround) && relativeY >= 1 - yStep; relativeY -= yStep) {
+                    int thisStep = yStep;
 
-                    int nextStep = relativeY - yStep;
-                    int thisStep = nextStep < 0 ? yStep + nextStep + 1 : yStep;
+                    if (relativeY < 0) {
+                        thisStep -= -relativeY;
+                        relativeY = 0;
+                    }
+
+                    int worldY = minY + relativeY + thisStep - 1;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
 
@@ -124,7 +127,7 @@ public class FastOverworldBuilder extends LodBuilder
                         point = new DataPoint();
                         column.add(point);
 
-                        point.setStartY(relativeY - thisStep + 1);
+                        point.setStartY(relativeY);
                         point.setHeight(thisStep);
                         point.setMappingId(id);
 
