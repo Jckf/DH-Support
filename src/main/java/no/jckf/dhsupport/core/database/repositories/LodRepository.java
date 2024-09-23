@@ -42,7 +42,7 @@ public class LodRepository
 
     public boolean saveLod(UUID worldId, int sectionX, int sectionZ, byte[] data)
     {
-        String sql = "INSERT INTO lods (worldId, x, z, data) VALUES (?, ?, ?, ?);";
+        String sql = "INSERT INTO lods (worldId, x, z, data) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
             statement.setString(1, worldId.toString());
@@ -90,7 +90,7 @@ public class LodRepository
 
     public LodModel loadLod(UUID worldId, int sectionX, int sectionZ)
     {
-        String sql = "SELECT data, timestamp FROM lods WHERE worldId = ? AND x = ? AND z = ?";
+        String sql = "SELECT data, timestamp FROM lods WHERE worldId = ? AND x = ? AND z = ? LIMIT 1";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
             statement.setString(1, worldId.toString());
@@ -112,5 +112,41 @@ public class LodRepository
         } catch (SQLException exception) {
             return null;
         }
+    }
+
+    public boolean lodExists(UUID worldId, int sectionX, int sectionZ)
+    {
+        String sql = "SELECT timestamp FROM lods WHERE worldId = ? AND x = ? AND z = ? LIMIT 1";
+
+        try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
+            statement.setString(1, worldId.toString());
+            statement.setInt(2, sectionX);
+            statement.setInt(3, sectionZ);
+
+            ResultSet result = statement.executeQuery();
+
+            return result.first();
+        } catch (SQLException exception) {
+
+        }
+
+        return false;
+    }
+
+    public boolean deleteLod(UUID worldId, int sectionX, int sectionZ)
+    {
+        String sql = "DELETE FROM lods WHERE worldId = ? AND x = ? AND z = ? LIMIT 1";
+
+        try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
+            statement.setString(1, worldId.toString());
+            statement.setInt(2, sectionX);
+            statement.setInt(3, sectionZ);
+
+            statement.executeUpdate();
+        } catch (SQLException exception) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -67,6 +67,8 @@ public class DhSupport implements Configurable
 
     protected Map<String, CompletableFuture<Lod>> queuedBuilders = new HashMap<>();
 
+    protected Map<String, LodModel> touchedLods = new HashMap<>();
+
     public DhSupport()
     {
         this.configuration = new Configuration();
@@ -241,10 +243,17 @@ public class DhSupport implements Configurable
 
     public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position)
     {
-        LodModel lodModel = this.lodRepository.loadLod(worldId, position.getX(), position.getZ());
+        return this.getLodData(worldId, position, false);
+    }
 
-        if (lodModel != null) {
-            return CompletableFuture.completedFuture(lodModel.getData());
+    public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position, boolean recreate)
+    {
+        if (!recreate) {
+            LodModel lodModel = this.lodRepository.loadLod(worldId, position.getX(), position.getZ());
+
+            if (lodModel != null) {
+                return CompletableFuture.completedFuture(lodModel.getData());
+            }
         }
 
         LodBuilder builder = this.getBuilder(worldId, position);
@@ -258,5 +267,51 @@ public class DhSupport implements Configurable
 
             return data;
         });
+    }
+
+    public void touchLod(UUID worldId, int x, int z)
+    {
+        int sectionX = Coordinates.blockToSection(x);
+        int sectionZ = Coordinates.blockToSection(z);
+
+        if (!this.lodRepository.lodExists(worldId, sectionX, sectionZ)) {
+            return;
+        }
+
+        LodModel lodModel = LodModel.create()
+            .setWorldId(worldId)
+            .setX(sectionX)
+            .setZ(sectionZ);
+
+        String key = lodModel.toString();
+
+        if (this.touchedLods.containsKey(key)) {
+            return;
+        }
+
+        this.touchedLods.put(key, lodModel);
+    }
+
+    public int updateTouchedLods()
+    {
+        int updates = 0;
+
+        for (String key : this.touchedLods.keySet()) {
+            LodModel lodModel = this.touchedLods.get(key);
+
+            this.getLodRepository().deleteLod(lodModel.getWorldId(), lodModel.getX(), lodModel.getZ());
+
+            SectionPosition position = new SectionPosition();
+            position.setX(lodModel.getX());
+            position.setZ(lodModel.getZ());
+
+            this.getLodData(lodModel.getWorldId(), position, true);
+
+            updates++;
+
+            this.touchedLods.remove(key);
+        }
+
+        return updates;
     }
 }
