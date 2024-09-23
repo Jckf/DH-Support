@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable
@@ -67,7 +68,7 @@ public class DhSupport implements Configurable
 
     protected Map<String, CompletableFuture<Lod>> queuedBuilders = new HashMap<>();
 
-    protected Map<String, LodModel> touchedLods = new HashMap<>();
+    protected Map<String, LodModel> touchedLods = new ConcurrentHashMap<>();
 
     public DhSupport()
     {

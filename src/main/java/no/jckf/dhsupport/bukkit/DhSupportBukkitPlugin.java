@@ -80,15 +80,15 @@ public class DhSupportBukkitPlugin extends JavaPlugin
             if (inserted != 0) {
                 this.getLogger().info("Executed " + inserted + " queued inserts.");
             }
-        }, 0, 10 * 20);
+        }, 10 * 20, 10 * 20);
 
         this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            int updated = this.dhSupport.updateTouchedLods();
+            int updating = this.dhSupport.updateTouchedLods();
 
-            if (updated != 0) {
-                this.getLogger().info("Updated " + updated + " changed LODs.");
+            if (updating != 0) {
+                this.getLogger().info("Updating " + updating + " changed LODs.");
             }
-        }, 0, 60 * 20);
+        }, 60 * 20, 60 * 20);
 
         this.getLogger().info("Ready!");
     }
