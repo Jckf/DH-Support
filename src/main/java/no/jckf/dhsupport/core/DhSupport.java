@@ -24,9 +24,10 @@ import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.database.Database;
 import no.jckf.dhsupport.core.database.migrations.CreateLodsTable;
+import no.jckf.dhsupport.core.database.models.LodModel;
+import no.jckf.dhsupport.core.database.repositories.LodRepository;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
-import no.jckf.dhsupport.core.exceptions.DatabaseException;
 import no.jckf.dhsupport.core.handler.LodHandler;
 import no.jckf.dhsupport.core.handler.PlayerConfigHandler;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
@@ -38,15 +39,10 @@ import no.jckf.dhsupport.core.world.WorldInterface;
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable
@@ -54,6 +50,8 @@ public class DhSupport implements Configurable
     protected String dataDirectory;
 
     protected Database database;
+
+    protected LodRepository lodRepository;
 
     protected Configuration configuration;
 
@@ -67,11 +65,14 @@ public class DhSupport implements Configurable
 
     protected PluginMessageSender pluginMessageSender;
 
-    protected Queue<PreparedStatement> queuedInserts = new ConcurrentLinkedQueue<>();
+    protected Map<String, CompletableFuture<Lod>> queuedBuilders = new HashMap<>();
 
     public DhSupport()
     {
-        this.database = new Database(this);
+        this.configuration = new Configuration();
+
+        this.database = new Database();
+        this.lodRepository = new LodRepository(this.database);
 
         this.pluginMessageHandler = new PluginMessageHandler(this);
     }
@@ -79,12 +80,12 @@ public class DhSupport implements Configurable
     public void onEnable()
     {
         try {
-            this.database.open();
+            this.database.open(this.getDataDirectory() + "/data.sqlite");
 
-            this.database.addMigration("Create LODs table", CreateLodsTable.class);
+            this.database.addMigration(CreateLodsTable.class);
 
             this.database.migrate();
-        } catch (DatabaseException exception) {
+        } catch (Exception exception) {
             this.warning("Failed to initialize database: " + exception.getMessage());
             // TODO: Disable the plugin?
         }
@@ -125,13 +126,9 @@ public class DhSupport implements Configurable
     public void setWorldInterface(UUID id, @Nullable WorldInterface worldInterface)
     {
         if (worldInterface == null) {
-            //this.info("Removing world interface for " + id);
-
             this.worldInterfaces.remove(id);
             return;
         }
-
-        //this.info("Adding world interface for " + id);
 
         this.worldInterfaces.put(id, worldInterface);
     }
@@ -142,7 +139,6 @@ public class DhSupport implements Configurable
         return this.worldInterfaces.get(id);
     }
 
-    @Nullable
     public PluginMessageHandler getPluginMessageHandler()
     {
         return this.pluginMessageHandler;
@@ -159,13 +155,13 @@ public class DhSupport implements Configurable
         return this.pluginMessageSender;
     }
 
-    @Override
+    public LodRepository getLodRepository()
+    {
+        return this.lodRepository;
+    }
+
     public Configuration getConfig()
     {
-        if (this.configuration == null) {
-            this.configuration = new Configuration();
-        }
-
         return this.configuration;
     }
 
@@ -190,109 +186,75 @@ public class DhSupport implements Configurable
         this.getLogger().warning(message);
     }
 
-    public byte[] getLodFromDatabase(UUID worldId, int x, int z)
+    public LodBuilder getBuilder(UUID worldId, SectionPosition position)
     {
-        String sql = "SELECT data FROM lods WHERE worldId = ? AND x = ? AND z = ?;";
-
-        try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
-            statement.setString(1, worldId.toString());
-            statement.setInt(2, x);
-            statement.setInt(3, z);
-
-            ResultSet result = statement.executeQuery();
-
-            return result.getBytes(1);
-        } catch (SQLException | DatabaseException exception) {
-            this.warning("Error while fetching LOD from database: " + exception.getMessage());
-            return null;
-        }
-    }
-
-    public void queueInsertLodIntoDatabase(UUID worldId, int x, int z, byte[] data)
-    {
-        String sql = "INSERT INTO lods (worldId, x, z, data) VALUES (?, ?, ?, ?);";
-
-        try {
-            PreparedStatement statement = this.database.getConnection().prepareStatement(sql);
-
-            statement.setString(1, worldId.toString());
-            statement.setInt(2, x);
-            statement.setInt(3, z);
-            statement.setBytes(4, data);
-
-            this.queuedInserts.add(statement);
-        } catch (SQLException | DatabaseException exception) {
-            this.warning("Error while queuing insert: " + exception.getMessage());
-        }
-    }
-
-    public int executeQueuedInserts()
-    {
-        if (this.queuedInserts.isEmpty()) {
-            return 0;
-        }
-
-        int inserted = 0;
-
-        while (true) {
-            try (PreparedStatement statement = this.queuedInserts.poll()) {
-                if (statement == null) {
-                    break;
-                }
-
-                statement.executeUpdate();
-
-                inserted++;
-            } catch (SQLException exception) {
-                this.warning("Error while executing queued insert: " + exception.getMessage());
-            }
-        }
-
-        return inserted;
-    }
-
-    public CompletableFuture<Lod> queueBuilder(UUID worldId, SectionPosition position, LodBuilder builder)
-    {
-        return this.getScheduler().runRegional(
-            worldId,
-            position.getX() * 64,
-            position.getZ() * 64,
-            builder::generate
-        );
-    }
-
-    public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position)
-    {
-        byte[] fromDatabase = this.getLodFromDatabase(worldId, position.getX(), position.getZ());
-
-        if (fromDatabase != null) {
-            return CompletableFuture.completedFuture(fromDatabase);
-        }
-
-        WorldInterface world = this.getWorldInterface(worldId);
-
-        String builderType = world.getConfig().getString(DhsConfig.BUILDER_TYPE);
+        String builderType = this.getWorldInterface(worldId).getConfig().getString(DhsConfig.BUILDER_TYPE);
 
         LodBuilder builder;
 
         try {
-            Class<? extends LodBuilder> builderClass = Class.forName("no.jckf.dhsupport.core.lodbuilders." + builderType).asSubclass(LodBuilder.class);
+            Class<? extends LodBuilder> builderClass = Class.forName(LodBuilder.class.getPackageName() + "." + builderType).asSubclass(LodBuilder.class);
 
-            Constructor<? extends LodBuilder> constructor = builderClass.getConstructor(WorldInterface.class, SectionPosition.class);
+            Constructor<?> constructor = builderClass.getConstructor(WorldInterface.class, SectionPosition.class);
 
-            builder = constructor.newInstance(world.newInstance(), position);
-        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException exception) {
-            this.warning(exception.toString());
-
-            return CompletableFuture.failedFuture(new Exception("Failed to instantiate LOD builder \"" + builderType + "\" for world \"" + world.getName() + "\"."));
+            builder = (LodBuilder) constructor.newInstance(this.getWorldInterface(worldId).newInstance(), position);
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException | ClassNotFoundException exception) {
+            return null;
         }
+
+        return builder;
+    }
+
+    public CompletableFuture<Lod> queueBuilder(UUID worldId, SectionPosition position, LodBuilder builder)
+    {
+        String key = LodModel.create()
+            .setWorldId(worldId)
+            .setX(position.getX())
+            .setZ(position.getZ())
+            .toString();
+
+        if (this.queuedBuilders.containsKey(key)) {
+            return this.queuedBuilders.get(key);
+        }
+
+        CompletableFuture<Lod> queued = this.getScheduler().runRegional(
+                worldId,
+                Coordinates.sectionToBlock(position.getX()),
+                Coordinates.sectionToBlock(position.getZ()),
+                builder::generate
+            )
+            .thenApply((lod) -> {
+                this.queuedBuilders.remove(key);
+
+                return lod;
+            })
+            .exceptionally((nothing) -> {
+                this.queuedBuilders.remove(key);
+
+                return null;
+            });
+
+        this.queuedBuilders.put(key, queued);
+
+        return queued;
+    }
+
+    public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position)
+    {
+        LodModel lodModel = this.lodRepository.loadLod(worldId, position.getX(), position.getZ());
+
+        if (lodModel != null) {
+            return CompletableFuture.completedFuture(lodModel.getData());
+        }
+
+        LodBuilder builder = this.getBuilder(worldId, position);
 
         return this.queueBuilder(worldId, position, builder).thenApply((lod) -> {
             Encoder encoder = new Encoder();
             lod.encode(encoder);
             byte[] data = encoder.toByteArray();
 
-            this.queueInsertLodIntoDatabase(worldId, position.getX(), position.getZ(), data);
+            this.lodRepository.saveLodQueued(worldId, position.getX(), position.getZ(), data);
 
             return data;
         });

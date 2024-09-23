@@ -18,6 +18,7 @@
 
 package no.jckf.dhsupport.core.lodbuilders;
 
+import no.jckf.dhsupport.core.Coordinates;
 import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.dataobject.DataPoint;
 import no.jckf.dhsupport.core.dataobject.IdMapping;
@@ -44,8 +45,8 @@ public class FullBuilder extends LodBuilder
         int maxY = this.worldInterface.getMaxY();
         int height = maxY - minY;
 
-        int offsetX = this.position.getX() * 64;
-        int offsetZ = this.position.getZ() * 64;
+        int offsetX = Coordinates.sectionToBlock(this.position.getX());
+        int offsetZ = Coordinates.sectionToBlock(this.position.getZ());
 
         int yStep = this.worldInterface.getConfig().getInt(DhsConfig.BUILDER_RESOLUTION);
 

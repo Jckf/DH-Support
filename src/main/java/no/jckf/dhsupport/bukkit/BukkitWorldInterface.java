@@ -18,6 +18,7 @@
 
 package no.jckf.dhsupport.bukkit;
 
+import no.jckf.dhsupport.core.Coordinates;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.WorldConfiguration;
 import no.jckf.dhsupport.core.world.WorldInterface;
@@ -77,8 +78,8 @@ public class BukkitWorldInterface implements WorldInterface
     @Override
     public boolean chunkExists(int x, int z)
     {
-        int chunkX = (int) Math.floor((double) x / 16);
-        int chunkZ = (int) Math.floor((double) z / 16);
+        int chunkX = Coordinates.blockToChunk(x);
+        int chunkZ = Coordinates.blockToChunk(z);
 
         boolean alreadyLoaded = this.world.isChunkLoaded(chunkX, chunkZ);
 
@@ -86,8 +87,8 @@ public class BukkitWorldInterface implements WorldInterface
             return true;
         }
 
-        int regionX = (int) Math.floor((double) chunkX / 32);
-        int regionZ = (int) Math.floor((double) chunkZ / 32);
+        int regionX = Coordinates.chunkToRegion(chunkX);
+        int regionZ = Coordinates.chunkToRegion(chunkZ);
 
         File regionFile = new File(world.getWorldFolder() + "/region/r." + regionX + "." + regionZ + ".mca");
 
