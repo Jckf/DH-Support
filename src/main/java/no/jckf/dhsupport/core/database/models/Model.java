@@ -16,12 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.exceptions;
+package no.jckf.dhsupport.core.database.models;
 
-public class DatabaseException extends Exception
+public abstract class Model
 {
-    public DatabaseException(String message, Throwable cause)
-    {
-        super(message, cause);
-    }
+    public abstract String toString();
 }

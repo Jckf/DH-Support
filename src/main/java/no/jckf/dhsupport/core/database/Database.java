@@ -18,63 +18,47 @@
 
 package no.jckf.dhsupport.core.database;
 
-import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.database.migrations.Migration;
-import no.jckf.dhsupport.core.exceptions.DatabaseException;
 
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO: Logger
 public class Database
 {
-    protected DhSupport dhSupport;
+    protected String path;
 
     protected Connection connection;
 
     protected Map<String, Class<? extends Migration>> migrations = new HashMap<>();
 
-    public Database(DhSupport dhSupport)
+    public Connection getConnection() throws SQLException
     {
-        this.dhSupport = dhSupport;
-    }
-
-    public Connection getConnection() throws DatabaseException
-    {
-        try {
-            if (this.connection == null || this.connection.isClosed()) {
-                this.connection = DriverManager.getConnection("jdbc:sqlite:" + this.dhSupport.getDataDirectory() + "/data.sqlite");
-            }
-        } catch (SQLException exception) {
-            throw new DatabaseException(exception.getMessage(), exception);
+        if (this.connection == null || this.connection.isClosed()) {
+            this.connection = DriverManager.getConnection("jdbc:sqlite:" + this.path);
         }
 
         return this.connection;
     }
 
-    public void open() throws DatabaseException
+    public void open(String path) throws SQLException
     {
-        try {
-            this.getConnection();
-        } catch (DatabaseException exception) {
-            throw new DatabaseException(exception.getMessage(), exception);
-        }
+        this.path = path;
+
+        this.getConnection();
     }
 
-    public void close() throws DatabaseException
+    public void close() throws SQLException
     {
-        try {
-            if (this.connection == null || this.connection.isClosed()) {
-                return;
-            }
-
-            this.getConnection().close();
-        } catch (SQLException exception) {
-            throw new DatabaseException(exception.getMessage(), exception);
+        if (this.connection == null || this.connection.isClosed()) {
+            return;
         }
+
+        this.getConnection().close();
     }
 
-    protected void createMigrationsTable() throws DatabaseException
+    protected void createMigrationsTable() throws SQLException
     {
         String sql = """
             CREATE TABLE IF NOT EXISTS migrations (
@@ -85,17 +69,15 @@ public class Database
 
         try (Statement statement = this.getConnection().createStatement()) {
             statement.execute(sql);
-        } catch (SQLException exception) {
-            throw new DatabaseException(exception.getMessage(), exception);
         }
     }
 
-    public void addMigration(String name, Class<? extends Migration> migration)
+    public void addMigration(Class<? extends Migration> migration)
     {
-        this.migrations.put(name, migration);
+        this.migrations.put(migration.getSimpleName(), migration);
     }
 
-    public boolean hasMigrationRan(String name) throws DatabaseException
+    public boolean hasMigrationRan(String name) throws SQLException
     {
         String sql = "SELECT 1 FROM migrations WHERE name = ?;";
 
@@ -105,12 +87,10 @@ public class Database
             ResultSet result = statement.executeQuery();
 
             return result.next();
-        } catch (SQLException exception) {
-            throw new DatabaseException(exception.getMessage(), exception);
         }
     }
 
-    public void markMigrationAsRan(String name) throws DatabaseException
+    public void markMigrationAsRan(String name) throws SQLException
     {
         String sql = "INSERT INTO migrations (name, timestamp) VALUES (?, ?);";
 
@@ -119,12 +99,10 @@ public class Database
             statement.setInt(2, (int) (System.currentTimeMillis() / 1000));
 
             statement.executeUpdate();
-        } catch (SQLException exception) {
-            throw new DatabaseException(exception.getMessage(), exception);
         }
     }
 
-    public void migrate() throws DatabaseException
+    public void migrate() throws Exception
     {
         this.createMigrationsTable();
 
@@ -133,15 +111,9 @@ public class Database
                 continue;
             }
 
-            this.dhSupport.info("Running database migration: " + name);
+            Migration migration = this.migrations.get(name).getConstructor(this.getClass()).newInstance(this);
 
-            try {
-                Migration migration = this.migrations.get(name).getConstructor(this.getClass()).newInstance(this);
-
-                migration.up();
-            } catch (Exception exception) {
-                throw new DatabaseException(exception.getMessage(), exception);
-            }
+            migration.up();
 
             this.markMigrationAsRan(name);
         }

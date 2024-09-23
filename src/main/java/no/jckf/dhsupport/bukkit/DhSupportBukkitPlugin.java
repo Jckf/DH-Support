@@ -20,7 +20,6 @@ package no.jckf.dhsupport.bukkit;
 
 import com.tcoded.folialib.FoliaLib;
 import no.jckf.dhsupport.bukkit.handler.ConfigLoader;
-import no.jckf.dhsupport.bukkit.handler.Handler;
 import no.jckf.dhsupport.bukkit.handler.PluginMessageProxy;
 import no.jckf.dhsupport.bukkit.handler.WorldHandler;
 import no.jckf.dhsupport.core.DhSupport;
@@ -31,8 +30,6 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DhSupportBukkitPlugin extends JavaPlugin
 {
@@ -42,11 +39,9 @@ public class DhSupportBukkitPlugin extends JavaPlugin
 
     protected FoliaLib foliaLib;
 
-    protected final Map<Class<? extends Handler>, Handler> handlers = new HashMap<>()
-    {{
-        this.put(ConfigLoader.class, null);
-        this.put(PluginMessageProxy.class, null);
-    }};
+    protected ConfigLoader configLoader;
+
+    protected PluginMessageProxy pluginMessageProxy;
 
     @Override
     public void onEnable()
@@ -59,22 +54,11 @@ public class DhSupportBukkitPlugin extends JavaPlugin
 
         this.metrics = new Metrics(this, 21843);
 
-        for (Class<? extends Handler> className : this.handlers.keySet()) {
-            try {
-                Handler instance = className
-                    .getConstructor(DhSupportBukkitPlugin.class)
-                    .newInstance(this);
+        this.configLoader = new ConfigLoader(this);
+        this.configLoader.onEnable();
 
-                instance.onEnable();
-
-                this.handlers.replace(className, instance);
-            } catch (Exception exception) {
-                this.getLogger().warning("Failed to enable handler: " + className);
-                this.getLogger().warning(exception.getClass().getSimpleName() + " - " + exception.getMessage());
-                this.getServer().getPluginManager().disablePlugin(this);
-                return;
-            }
-        }
+        this.pluginMessageProxy = new PluginMessageProxy(this);
+        this.pluginMessageProxy.onEnable();
 
         this.dhSupport.onEnable();
 
@@ -91,7 +75,7 @@ public class DhSupportBukkitPlugin extends JavaPlugin
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
 
         this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            int inserted = this.dhSupport.executeQueuedInserts();
+            int inserted = this.dhSupport.getLodRepository().processQueuedSaves();
 
             if (inserted != 0) {
                 this.getLogger().info("Executed " + inserted + " queued inserts.");
@@ -104,24 +88,19 @@ public class DhSupportBukkitPlugin extends JavaPlugin
     @Override
     public void onDisable()
     {
+        if (this.pluginMessageProxy != null) {
+            this.pluginMessageProxy.onDisable();
+            this.pluginMessageProxy = null;
+        }
+
+        if (this.configLoader != null) {
+            this.configLoader.onDisable();
+            this.configLoader = null;
+        }
+
         if (this.dhSupport != null) {
             this.dhSupport.onDisable();
             this.dhSupport = null;
-        }
-
-        for (Class<? extends Handler> className : this.handlers.keySet()) {
-            Handler instance = this.handlers.get(className);
-
-            try {
-                if (instance != null) {
-                    instance.onDisable();
-                }
-            } catch (Exception exception) {
-                this.getLogger().warning("Failed to disable handler: " + className);
-                this.getLogger().warning(exception.getClass().getSimpleName() + " - " + exception.getMessage());
-            }
-
-            this.handlers.replace(className, null);
         }
 
         this.getLogger().info("Lights out!");
