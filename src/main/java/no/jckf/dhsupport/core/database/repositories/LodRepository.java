@@ -91,6 +91,17 @@ public class LodRepository
 
     public LodModel loadLod(UUID worldId, int sectionX, int sectionZ)
     {
+        LodModel lodModel = LodModel.create()
+            .setWorldId(worldId)
+            .setX(sectionX)
+            .setZ(sectionZ);
+
+        String key = lodModel.toString();
+
+        if (this.queuedSaves.containsKey(key)) {
+            return this.queuedSaves.get(key);
+        }
+
         String sql = "SELECT data, timestamp FROM lods WHERE worldId = ? AND x = ? AND z = ? LIMIT 1";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
@@ -106,10 +117,7 @@ public class LodRepository
                 return null;
             }
 
-            return LodModel.create()
-                .setWorldId(worldId)
-                .setX(sectionX)
-                .setZ(sectionZ)
+            return lodModel
                 .setData(data)
                 .setTimestamp(result.getInt("timestamp"));
         } catch (SQLException exception) {
@@ -119,6 +127,17 @@ public class LodRepository
 
     public boolean lodExists(UUID worldId, int sectionX, int sectionZ)
     {
+        LodModel lodModel = LodModel.create()
+            .setWorldId(worldId)
+            .setX(sectionX)
+            .setZ(sectionZ);
+
+        String key = lodModel.toString();
+
+        if (this.queuedSaves.containsKey(key)) {
+            return true;
+        }
+
         String sql = "SELECT EXISTS( SELECT 1 FROM lods WHERE worldId = ? AND x = ? AND z = ? )";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
@@ -138,6 +157,15 @@ public class LodRepository
 
     public boolean deleteLod(UUID worldId, int sectionX, int sectionZ)
     {
+        LodModel lodModel = LodModel.create()
+            .setWorldId(worldId)
+            .setX(sectionX)
+            .setZ(sectionZ);
+
+        String key = lodModel.toString();
+
+        this.queuedSaves.remove(key);
+
         String sql = "DELETE FROM lods WHERE worldId = ? AND x = ? AND z = ?";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
