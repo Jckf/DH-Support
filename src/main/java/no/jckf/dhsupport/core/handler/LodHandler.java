@@ -121,7 +121,7 @@ public class LodHandler
                     FullDataSourceResponseMessage responseMessage = new FullDataSourceResponseMessage();
                     responseMessage.isResponseTo(requestMessage);
 
-                    boolean sendData = requestMessage.getTimestamp() == null || requestMessage.getTimestamp() < (lodModel.getTimestamp() * 1000L);
+                    boolean sendData = requestMessage.getTimestamp() == null || (requestMessage.getTimestamp() / 1000) < lodModel.getTimestamp();
 
                     if (sendData) {
                         int myBufferId = this.bufferId++;
