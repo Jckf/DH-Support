@@ -50,6 +50,11 @@ public class WorldHandler implements Listener
         this.plugin.getDhSupport().setWorldInterface(world.getUID(), null);
     }
 
+    protected void touchLod(Location location)
+    {
+        this.plugin.getDhSupport().touchLod(location.getWorld().getUID(), location.getBlockX(), location.getBlockZ());
+    }
+
     @EventHandler
     public void onWorldLoad(WorldLoadEvent worldLoad)
     {
@@ -65,16 +70,12 @@ public class WorldHandler implements Listener
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent blockPlace)
     {
-        Location location = blockPlace.getBlock().getLocation();
-
-        this.plugin.getDhSupport().touchLod(location.getWorld().getUID(), location.getBlockX(), location.getBlockZ());
+        this.touchLod(blockPlace.getBlock().getLocation());
     }
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent blockBreak)
     {
-        Location location = blockBreak.getBlock().getLocation();
-
-        this.plugin.getDhSupport().touchLod(location.getWorld().getUID(), location.getBlockX(), location.getBlockZ());
+        this.touchLod(blockBreak.getBlock().getLocation());
     }
 }
