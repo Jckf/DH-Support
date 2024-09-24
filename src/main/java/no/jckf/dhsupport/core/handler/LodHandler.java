@@ -118,18 +118,20 @@ public class LodHandler
 
             int myBufferId = this.bufferId++;
 
-            this.dhSupport.getLodData(worldUuid, position)
-                .thenAccept((lod) -> {
-                    int chunkCount = (int) Math.ceil((double) lod.length / CHUNK_SIZE);
+            this.dhSupport.getLod(worldUuid, position)
+                .thenAccept((lodModel) -> {
+                    byte[] data = lodModel.getData();
+
+                    int chunkCount = (int) Math.ceil((double) data.length / CHUNK_SIZE);
 
                     for (int chunkNo = 0; chunkNo < chunkCount; chunkNo++) {
                         FullDataChunkMessage chunkResponse = new FullDataChunkMessage();
                         chunkResponse.setBufferId(myBufferId);
                         chunkResponse.setIsFirst(chunkNo == 0);
                         chunkResponse.setData(Arrays.copyOfRange(
-                            lod,
+                            data,
                             CHUNK_SIZE * chunkNo,
-                            Math.min(CHUNK_SIZE * chunkNo + CHUNK_SIZE, lod.length)
+                            Math.min(CHUNK_SIZE * chunkNo + CHUNK_SIZE, data.length)
                         ));
 
                         this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), chunkResponse);

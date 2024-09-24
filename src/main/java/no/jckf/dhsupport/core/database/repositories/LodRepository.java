@@ -72,7 +72,7 @@ public class LodRepository
         return true;
     }
 
-    public void saveLodQueued(UUID worldId, int sectionX, int sectionZ, byte[] data)
+    public LodModel saveLodQueued(UUID worldId, int sectionX, int sectionZ, byte[] data)
     {
         LodModel lod = LodModel.create()
             .setWorldId(worldId)
@@ -82,6 +82,8 @@ public class LodRepository
             .setTimestamp((int) (System.currentTimeMillis() / 1000));
 
         this.queuedSaves.put(lod.toString(), lod);
+
+        return lod;
     }
 
     public int processQueuedSaves()

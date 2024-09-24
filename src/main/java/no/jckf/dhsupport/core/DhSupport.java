@@ -244,32 +244,35 @@ public class DhSupport implements Configurable
         return queued;
     }
 
-    public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position)
+    public CompletableFuture<LodModel> getLod(UUID worldId, SectionPosition position)
     {
-        return this.getLodData(worldId, position, false);
+        return this.getLod(worldId, position, false);
     }
 
-    public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position, boolean recreate)
+    public CompletableFuture<LodModel> getLod(UUID worldId, SectionPosition position, boolean recreate)
     {
         if (!recreate) {
             LodModel lodModel = this.lodRepository.loadLod(worldId, position.getX(), position.getZ());
 
             if (lodModel != null) {
-                return CompletableFuture.completedFuture(lodModel.getData());
+                return CompletableFuture.completedFuture(lodModel);
             }
         }
 
         LodBuilder builder = this.getBuilder(worldId, position);
 
-        return this.queueBuilder(worldId, position, builder).thenApply((lod) -> {
-            Encoder encoder = new Encoder();
-            lod.encode(encoder);
-            byte[] data = encoder.toByteArray();
+        return this.queueBuilder(worldId, position, builder)
+            .thenApply((lod) -> {
+                Encoder encoder = new Encoder();
+                lod.encode(encoder);
 
-            this.lodRepository.saveLodQueued(worldId, position.getX(), position.getZ(), data);
-
-            return data;
-        });
+                return this.lodRepository.saveLodQueued(
+                    worldId,
+                    position.getX(),
+                    position.getZ(),
+                    encoder.toByteArray()
+                );
+            });
     }
 
     public void touchLod(UUID worldId, int x, int z)
@@ -309,7 +312,7 @@ public class DhSupport implements Configurable
             position.setX(lodModel.getX());
             position.setZ(lodModel.getZ());
 
-            this.getLodData(lodModel.getWorldId(), position, true);
+            this.getLod(lodModel.getWorldId(), position, true);
 
             updates++;
 
