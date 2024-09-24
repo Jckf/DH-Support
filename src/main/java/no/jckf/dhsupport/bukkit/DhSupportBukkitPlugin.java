@@ -33,6 +33,10 @@ import javax.annotation.Nullable;
 
 public class DhSupportBukkitPlugin extends JavaPlugin
 {
+    protected static int DB_WRITE_INTERVAL = 10 * 20;
+
+    protected static int LOD_REFRESH_INTERVAL = 60 * 20;
+
     protected DhSupport dhSupport;
 
     protected Metrics metrics;
@@ -75,12 +79,12 @@ public class DhSupportBukkitPlugin extends JavaPlugin
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
 
         this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            int inserted = this.dhSupport.getLodRepository().processQueuedSaves();
+            this.dhSupport.getLodRepository().processQueuedSaves();
+        }, DB_WRITE_INTERVAL, DB_WRITE_INTERVAL);
 
-            if (inserted != 0) {
-                this.getLogger().info("Executed " + inserted + " queued inserts.");
-            }
-        }, 0, 10 * 20);
+        this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            this.dhSupport.updateTouchedLods();
+        }, LOD_REFRESH_INTERVAL, LOD_REFRESH_INTERVAL);
 
         this.getLogger().info("Ready!");
     }

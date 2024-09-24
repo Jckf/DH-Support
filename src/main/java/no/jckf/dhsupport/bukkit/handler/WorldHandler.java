@@ -20,11 +20,12 @@ package no.jckf.dhsupport.bukkit.handler;
 
 import no.jckf.dhsupport.bukkit.BukkitWorldInterface;
 import no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 
@@ -49,6 +50,11 @@ public class WorldHandler implements Listener
         this.plugin.getDhSupport().setWorldInterface(world.getUID(), null);
     }
 
+    protected void touchLod(Location location)
+    {
+        this.plugin.getDhSupport().touchLod(location.getWorld().getUID(), location.getBlockX(), location.getBlockZ());
+    }
+
     @EventHandler
     public void onWorldLoad(WorldLoadEvent worldLoad)
     {
@@ -62,14 +68,14 @@ public class WorldHandler implements Listener
     }
 
     @EventHandler
-    public void onChunkLoad(ChunkLoadEvent chunkLoad)
+    public void onBlockPlace(BlockPlaceEvent blockPlace)
     {
-
+        this.touchLod(blockPlace.getBlock().getLocation());
     }
 
     @EventHandler
-    public void onChunkUnload(ChunkUnloadEvent chunkUnload)
+    public void onBlockBreak(BlockBreakEvent blockBreak)
     {
-
+        this.touchLod(blockBreak.getBlock().getLocation());
     }
 }

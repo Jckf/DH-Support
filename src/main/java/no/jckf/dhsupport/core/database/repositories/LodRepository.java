@@ -40,15 +40,16 @@ public class LodRepository
         this.database = database;
     }
 
-    public boolean saveLod(UUID worldId, int sectionX, int sectionZ, byte[] data)
+    public boolean saveLod(UUID worldId, int sectionX, int sectionZ, byte[] data, int timestamp)
     {
-        String sql = "INSERT INTO lods (worldId, x, z, data) VALUES (?, ?, ?, ?);";
+        String sql = "INSERT INTO lods (worldId, x, z, data, timestamp) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
             statement.setString(1, worldId.toString());
             statement.setInt(2, sectionX);
             statement.setInt(3, sectionZ);
             statement.setBytes(4, data);
+            statement.setInt(5, timestamp);
 
             statement.executeUpdate();
         } catch (SQLException exception) {
@@ -78,7 +79,7 @@ public class LodRepository
         {
             LodModel lod = this.queuedSaves.get(key);
 
-            if (this.saveLod(lod.getWorldId(), lod.getX(), lod.getZ(), lod.getData())) {
+            if (this.saveLod(lod.getWorldId(), lod.getX(), lod.getZ(), lod.getData(), lod.getTimestamp())) {
                 processed++;
             }
 
@@ -90,7 +91,7 @@ public class LodRepository
 
     public LodModel loadLod(UUID worldId, int sectionX, int sectionZ)
     {
-        String sql = "SELECT data, timestamp FROM lods WHERE worldId = ? AND x = ? AND z = ?";
+        String sql = "SELECT data, timestamp FROM lods WHERE worldId = ? AND x = ? AND z = ? LIMIT 1";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
             statement.setString(1, worldId.toString());
@@ -99,7 +100,9 @@ public class LodRepository
 
             ResultSet result = statement.executeQuery();
 
-            if (!result.first()) {
+            byte[] data = result.getBytes("data");
+
+            if (data == null) {
                 return null;
             }
 
@@ -107,10 +110,46 @@ public class LodRepository
                 .setWorldId(worldId)
                 .setX(sectionX)
                 .setZ(sectionZ)
-                .setData(result.getBytes("data"))
+                .setData(data)
                 .setTimestamp(result.getInt("timestamp"));
         } catch (SQLException exception) {
             return null;
         }
+    }
+
+    public boolean lodExists(UUID worldId, int sectionX, int sectionZ)
+    {
+        String sql = "SELECT EXISTS( SELECT 1 FROM lods WHERE worldId = ? AND x = ? AND z = ? )";
+
+        try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
+            statement.setString(1, worldId.toString());
+            statement.setInt(2, sectionX);
+            statement.setInt(3, sectionZ);
+
+            ResultSet result = statement.executeQuery();
+
+            return result.getInt(1) == 1;
+        } catch (SQLException exception) {
+
+        }
+
+        return false;
+    }
+
+    public boolean deleteLod(UUID worldId, int sectionX, int sectionZ)
+    {
+        String sql = "DELETE FROM lods WHERE worldId = ? AND x = ? AND z = ?";
+
+        try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
+            statement.setString(1, worldId.toString());
+            statement.setInt(2, sectionX);
+            statement.setInt(3, sectionZ);
+
+            statement.executeUpdate();
+        } catch (SQLException exception) {
+            return false;
+        }
+
+        return true;
     }
 }
