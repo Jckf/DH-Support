@@ -82,6 +82,8 @@ public class DhSupport implements Configurable
 
     public void onEnable()
     {
+        this.lodRepository.setLogger(this.getLogger());
+
         try {
             this.database.open(this.getDataDirectory() + "/data.sqlite");
 

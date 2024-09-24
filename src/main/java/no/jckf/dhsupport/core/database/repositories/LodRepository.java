@@ -27,17 +27,29 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
-// TODO: Add logger.
 public class LodRepository
 {
     protected Database database;
+
+    protected Logger logger;
 
     protected Map<String, LodModel> queuedSaves = new ConcurrentHashMap<>();
 
     public LodRepository(Database database)
     {
         this.database = database;
+    }
+
+    public void setLogger(Logger logger)
+    {
+        this.logger = logger;
+    }
+
+    public Logger getLogger()
+    {
+        return this.logger;
     }
 
     public boolean saveLod(UUID worldId, int sectionX, int sectionZ, byte[] data, int timestamp)
@@ -53,6 +65,7 @@ public class LodRepository
 
             statement.executeUpdate();
         } catch (SQLException exception) {
+            this.getLogger().warning("Could not save LOD: " + exception);
             return false;
         }
 
@@ -121,6 +134,7 @@ public class LodRepository
                 .setData(data)
                 .setTimestamp(result.getInt("timestamp"));
         } catch (SQLException exception) {
+            this.getLogger().warning("Coud not load LOD: " + exception);
             return null;
         }
     }
@@ -149,7 +163,7 @@ public class LodRepository
 
             return result.getInt(1) == 1;
         } catch (SQLException exception) {
-
+            this.getLogger().warning("Could not check LOD existence: " + exception);
         }
 
         return false;
@@ -175,6 +189,7 @@ public class LodRepository
 
             statement.executeUpdate();
         } catch (SQLException exception) {
+            this.getLogger().warning("Could not delete LOD: " + exception);
             return false;
         }
 
