@@ -148,7 +148,6 @@ public class Lod extends DataObject
             compressorStream.flush();
         } catch (Exception exception) {
             // Uhh...
-            System.out.println(exception.getClass().getSimpleName() + " - " + exception.getMessage());
         }
 
         return compressedStream.toByteArray();

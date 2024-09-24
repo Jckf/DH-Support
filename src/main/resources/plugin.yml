@@ -5,8 +5,3 @@ api-version: ${mc.api-version}
 prefix: DHS
 load: STARTUP
 folia-supported: true
-commands:
-  dhs:
-    description: Interact with DHS.
-    usage: /<command>
-    permission: dhs.command

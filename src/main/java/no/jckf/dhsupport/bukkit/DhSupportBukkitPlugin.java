@@ -19,7 +19,6 @@
 package no.jckf.dhsupport.bukkit;
 
 import com.tcoded.folialib.FoliaLib;
-import no.jckf.dhsupport.bukkit.commands.DhsCommand;
 import no.jckf.dhsupport.bukkit.handler.ConfigLoader;
 import no.jckf.dhsupport.bukkit.handler.PluginMessageProxy;
 import no.jckf.dhsupport.bukkit.handler.WorldHandler;
@@ -34,6 +33,10 @@ import javax.annotation.Nullable;
 
 public class DhSupportBukkitPlugin extends JavaPlugin
 {
+    protected static int DB_WRITE_INTERVAL = 10 * 20;
+
+    protected static int LOD_REFRESH_INTERVAL = 60 * 20;
+
     protected DhSupport dhSupport;
 
     protected Metrics metrics;
@@ -75,23 +78,13 @@ public class DhSupportBukkitPlugin extends JavaPlugin
 
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
 
-        this.getCommand("dhs").setExecutor(new DhsCommand(this));
+        this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            this.dhSupport.getLodRepository().processQueuedSaves();
+        }, DB_WRITE_INTERVAL, DB_WRITE_INTERVAL);
 
         this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            int inserted = this.dhSupport.getLodRepository().processQueuedSaves();
-
-            if (inserted != 0) {
-                this.getLogger().info("Executed " + inserted + " queued inserts.");
-            }
-        }, 10 * 20, 10 * 20);
-
-        this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            int updating = this.dhSupport.updateTouchedLods();
-
-            if (updating != 0) {
-                this.getLogger().info("Updating " + updating + " changed LODs.");
-            }
-        }, 60 * 20, 60 * 20);
+            this.dhSupport.updateTouchedLods();
+        }, LOD_REFRESH_INTERVAL, LOD_REFRESH_INTERVAL);
 
         this.getLogger().info("Ready!");
     }

@@ -113,7 +113,6 @@ public class LodRepository
                 .setData(data)
                 .setTimestamp(result.getInt("timestamp"));
         } catch (SQLException exception) {
-            System.out.println(exception.getMessage());
             return null;
         }
     }
@@ -131,7 +130,7 @@ public class LodRepository
 
             return result.getInt(1) == 1;
         } catch (SQLException exception) {
-            System.out.println(exception.getMessage());
+
         }
 
         return false;
@@ -139,8 +138,6 @@ public class LodRepository
 
     public boolean deleteLod(UUID worldId, int sectionX, int sectionZ)
     {
-        System.out.println("Deleting LOD " + sectionX + " x " + sectionZ);
-
         String sql = "DELETE FROM lods WHERE worldId = ? AND x = ? AND z = ?";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
@@ -150,7 +147,6 @@ public class LodRepository
 
             statement.executeUpdate();
         } catch (SQLException exception) {
-            System.out.println(exception.getMessage());
             return false;
         }
 
