@@ -131,10 +131,8 @@ public class Lod extends DataObject
 
         encoder.writeBoolean(true); // Apply to parent
 
-        long timestamp = System.currentTimeMillis();
-
-        encoder.writeLong(timestamp);
-        encoder.writeLong(timestamp);
+        encoder.writeLong(0); // TODO: Last modified TS.
+        encoder.writeLong(0); // TODO: Created TS.
     }
 
     protected byte[] compress(byte[] uncompressedData)
@@ -148,6 +146,7 @@ public class Lod extends DataObject
             compressorStream.flush();
         } catch (Exception exception) {
             // Uhh...
+            System.out.println(exception.getClass().getSimpleName() + " - " + exception.getMessage());
         }
 
         return compressedStream.toByteArray();
