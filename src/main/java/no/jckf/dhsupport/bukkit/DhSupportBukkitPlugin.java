@@ -19,6 +19,7 @@
 package no.jckf.dhsupport.bukkit;
 
 import com.tcoded.folialib.FoliaLib;
+import no.jckf.dhsupport.bukkit.commands.DhsCommand;
 import no.jckf.dhsupport.bukkit.handler.ConfigLoader;
 import no.jckf.dhsupport.bukkit.handler.PluginMessageProxy;
 import no.jckf.dhsupport.bukkit.handler.WorldHandler;
@@ -73,6 +74,8 @@ public class DhSupportBukkitPlugin extends JavaPlugin
         }
 
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
+
+        this.getCommand("dhs").setExecutor(new DhsCommand(this));
 
         this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
             int inserted = this.dhSupport.getLodRepository().processQueuedSaves();

@@ -303,6 +303,7 @@ public class DhSupport implements Configurable
             this.getLodRepository().deleteLod(lodModel.getWorldId(), lodModel.getX(), lodModel.getZ());
 
             SectionPosition position = new SectionPosition();
+            position.setDetailLevel(6);
             position.setX(lodModel.getX());
             position.setZ(lodModel.getZ());
 
