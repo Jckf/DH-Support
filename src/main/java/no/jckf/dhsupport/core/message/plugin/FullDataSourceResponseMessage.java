@@ -20,11 +20,13 @@ package no.jckf.dhsupport.core.message.plugin;
 
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
+import javax.annotation.Nullable;
+
 public class FullDataSourceResponseMessage extends TrackablePluginMessage
 {
-    protected int bufferId;
+    protected Integer bufferId;
 
-    public void setBufferId(int bufferId)
+    public void setBufferId(@Nullable Integer bufferId)
     {
         this.bufferId = bufferId;
     }
@@ -37,7 +39,8 @@ public class FullDataSourceResponseMessage extends TrackablePluginMessage
     @Override
     public void encode(Encoder encoder)
     {
-        encoder.writeBoolean(true);
-        encoder.writeInt(this.bufferId);
+        if (encoder.writeOptional(this.bufferId)) {
+            encoder.writeInt(this.bufferId);
+        }
     }
 }

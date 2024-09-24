@@ -19,10 +19,10 @@ full_data_request_concurrency_limit: 20
 # Default: false
 real_time_updates_enabled: false
 
-# Currently unsupported.
+# Let clients ask for updates to LODs they've previously downloaded.
 # Required.
-# Default: false
-login_data_sync_enabled: false
+# Default: true
+login_data_sync_enabled: true
 
 # Currently unsupported.
 # Required.

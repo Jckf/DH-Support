@@ -116,30 +116,35 @@ public class LodHandler
                 }
             }
 
-            int myBufferId = this.bufferId++;
-
             this.dhSupport.getLod(worldUuid, position)
                 .thenAccept((lodModel) -> {
-                    byte[] data = lodModel.getData();
-
-                    int chunkCount = (int) Math.ceil((double) data.length / CHUNK_SIZE);
-
-                    for (int chunkNo = 0; chunkNo < chunkCount; chunkNo++) {
-                        FullDataChunkMessage chunkResponse = new FullDataChunkMessage();
-                        chunkResponse.setBufferId(myBufferId);
-                        chunkResponse.setIsFirst(chunkNo == 0);
-                        chunkResponse.setData(Arrays.copyOfRange(
-                            data,
-                            CHUNK_SIZE * chunkNo,
-                            Math.min(CHUNK_SIZE * chunkNo + CHUNK_SIZE, data.length)
-                        ));
-
-                        this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), chunkResponse);
-                    }
-
                     FullDataSourceResponseMessage responseMessage = new FullDataSourceResponseMessage();
                     responseMessage.isResponseTo(requestMessage);
-                    responseMessage.setBufferId(myBufferId);
+
+                    boolean sendData = requestMessage.getTimestamp() == null || (requestMessage.getTimestamp() / 1000) < lodModel.getTimestamp();
+
+                    if (sendData) {
+                        int myBufferId = this.bufferId++;
+
+                        byte[] data = lodModel.getData();
+
+                        int chunkCount = (int) Math.ceil((double) data.length / CHUNK_SIZE);
+
+                        for (int chunkNo = 0; chunkNo < chunkCount; chunkNo++) {
+                            FullDataChunkMessage chunkResponse = new FullDataChunkMessage();
+                            chunkResponse.setBufferId(myBufferId);
+                            chunkResponse.setIsFirst(chunkNo == 0);
+                            chunkResponse.setData(Arrays.copyOfRange(
+                                data,
+                                CHUNK_SIZE * chunkNo,
+                                Math.min(CHUNK_SIZE * chunkNo + CHUNK_SIZE, data.length)
+                            ));
+
+                            this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), chunkResponse);
+                        }
+
+                        responseMessage.setBufferId(myBufferId);
+                    }
 
                     this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), responseMessage);
 
