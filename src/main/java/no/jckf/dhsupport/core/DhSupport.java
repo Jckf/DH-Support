@@ -25,7 +25,7 @@ import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.database.Database;
 import no.jckf.dhsupport.core.database.migrations.CreateLodsTable;
 import no.jckf.dhsupport.core.database.models.LodModel;
-import no.jckf.dhsupport.core.database.repositories.LodRepository;
+import no.jckf.dhsupport.core.database.repositories.AsyncLodRepository;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
 import no.jckf.dhsupport.core.handler.LodHandler;
@@ -52,7 +52,7 @@ public class DhSupport implements Configurable
 
     protected Database database;
 
-    protected LodRepository lodRepository;
+    protected AsyncLodRepository lodRepository;
 
     protected Configuration configuration;
 
@@ -75,7 +75,7 @@ public class DhSupport implements Configurable
         this.configuration = new Configuration();
 
         this.database = new Database();
-        this.lodRepository = new LodRepository(this.database);
+        this.lodRepository = new AsyncLodRepository(this.database);
 
         this.pluginMessageHandler = new PluginMessageHandler(this);
     }
@@ -160,7 +160,7 @@ public class DhSupport implements Configurable
         return this.pluginMessageSender;
     }
 
-    public LodRepository getLodRepository()
+    public AsyncLodRepository getLodRepository()
     {
         return this.lodRepository;
     }
@@ -246,32 +246,24 @@ public class DhSupport implements Configurable
 
     public CompletableFuture<LodModel> getLod(UUID worldId, SectionPosition position)
     {
-        return this.getLod(worldId, position, false);
-    }
+        return this.getLodRepository().loadLodAsync(worldId, position.getX(), position.getZ())
+            .thenCompose((lodModel) -> {
+                if (lodModel != null) {
+                    return CompletableFuture.completedFuture(lodModel);
+                }
 
-    public CompletableFuture<LodModel> getLod(UUID worldId, SectionPosition position, boolean recreate)
-    {
-        if (!recreate) {
-            LodModel lodModel = this.lodRepository.loadLod(worldId, position.getX(), position.getZ());
+                return this.queueBuilder(worldId, position, this.getBuilder(worldId, position))
+                    .thenApply((lod) -> {
+                        Encoder encoder = new Encoder();
+                        lod.encode(encoder);
 
-            if (lodModel != null) {
-                return CompletableFuture.completedFuture(lodModel);
-            }
-        }
-
-        LodBuilder builder = this.getBuilder(worldId, position);
-
-        return this.queueBuilder(worldId, position, builder)
-            .thenApply((lod) -> {
-                Encoder encoder = new Encoder();
-                lod.encode(encoder);
-
-                return this.lodRepository.saveLodQueued(
-                    worldId,
-                    position.getX(),
-                    position.getZ(),
-                    encoder.toByteArray()
-                );
+                        return this.lodRepository.saveLodQueued(
+                            worldId,
+                            position.getX(),
+                            position.getZ(),
+                            encoder.toByteArray()
+                        );
+                    });
             });
     }
 
@@ -312,7 +304,7 @@ public class DhSupport implements Configurable
             position.setX(lodModel.getX());
             position.setZ(lodModel.getZ());
 
-            this.getLod(lodModel.getWorldId(), position, true);
+            this.getLod(lodModel.getWorldId(), position);
 
             updates++;
 
