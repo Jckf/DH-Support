@@ -24,9 +24,7 @@ import no.jckf.dhsupport.core.database.models.LodModel;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public class LodRepository
@@ -34,8 +32,6 @@ public class LodRepository
     protected Database database;
 
     protected Logger logger;
-
-    protected Map<String, LodModel> queuedSaves = new ConcurrentHashMap<>();
 
     public LodRepository(Database database)
     {
@@ -52,9 +48,11 @@ public class LodRepository
         return this.logger;
     }
 
-    public boolean saveLod(UUID worldId, int sectionX, int sectionZ, byte[] data, int timestamp)
+    public LodModel saveLod(UUID worldId, int sectionX, int sectionZ, byte[] data)
     {
-        String sql = "INSERT INTO lods (worldId, x, z, data, timestamp) VALUES (?, ?, ?, ?, ?)";
+        int timestamp = (int) (System.currentTimeMillis() / 1000);
+
+        String sql = "REPLACE INTO lods (worldId, x, z, data, timestamp) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
             statement.setString(1, worldId.toString());
@@ -64,59 +62,22 @@ public class LodRepository
             statement.setInt(5, timestamp);
 
             statement.executeUpdate();
+
+            return LodModel.create()
+                .setWorldId(worldId)
+                .setX(sectionX)
+                .setZ(sectionZ)
+                .setData(data)
+                .setTimestamp(timestamp);
         } catch (SQLException exception) {
             this.getLogger().warning("Could not save LOD: " + exception);
-            return false;
+
+            return null;
         }
-
-        return true;
-    }
-
-    public LodModel saveLodQueued(UUID worldId, int sectionX, int sectionZ, byte[] data)
-    {
-        LodModel lod = LodModel.create()
-            .setWorldId(worldId)
-            .setX(sectionX)
-            .setZ(sectionZ)
-            .setData(data)
-            .setTimestamp((int) (System.currentTimeMillis() / 1000));
-
-        this.queuedSaves.put(lod.toString(), lod);
-
-        return lod;
-    }
-
-    public int processQueuedSaves()
-    {
-        int processed = 0;
-
-        for (String key : this.queuedSaves.keySet())
-        {
-            LodModel lod = this.queuedSaves.get(key);
-
-            if (this.saveLod(lod.getWorldId(), lod.getX(), lod.getZ(), lod.getData(), lod.getTimestamp())) {
-                processed++;
-            }
-
-            this.queuedSaves.remove(key);
-        }
-
-        return processed;
     }
 
     public LodModel loadLod(UUID worldId, int sectionX, int sectionZ)
     {
-        LodModel lodModel = LodModel.create()
-            .setWorldId(worldId)
-            .setX(sectionX)
-            .setZ(sectionZ);
-
-        String key = lodModel.toString();
-
-        if (this.queuedSaves.containsKey(key)) {
-            return this.queuedSaves.get(key);
-        }
-
         String sql = "SELECT data, timestamp FROM lods WHERE worldId = ? AND x = ? AND z = ? LIMIT 1";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
@@ -132,28 +93,21 @@ public class LodRepository
                 return null;
             }
 
-            return lodModel
+            return LodModel.create()
+                .setWorldId(worldId)
+                .setX(sectionX)
+                .setZ(sectionZ)
                 .setData(data)
                 .setTimestamp(result.getInt("timestamp"));
         } catch (SQLException exception) {
-            this.getLogger().warning("Coud not load LOD: " + exception);
+            this.getLogger().warning("Could not load LOD: " + exception);
+
             return null;
         }
     }
 
     public boolean lodExists(UUID worldId, int sectionX, int sectionZ)
     {
-        LodModel lodModel = LodModel.create()
-            .setWorldId(worldId)
-            .setX(sectionX)
-            .setZ(sectionZ);
-
-        String key = lodModel.toString();
-
-        if (this.queuedSaves.containsKey(key)) {
-            return true;
-        }
-
         String sql = "SELECT EXISTS( SELECT 1 FROM lods WHERE worldId = ? AND x = ? AND z = ? )";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
@@ -166,22 +120,13 @@ public class LodRepository
             return result.getInt(1) == 1;
         } catch (SQLException exception) {
             this.getLogger().warning("Could not check LOD existence: " + exception);
-        }
 
-        return false;
+            return false;
+        }
     }
 
     public boolean deleteLod(UUID worldId, int sectionX, int sectionZ)
     {
-        LodModel lodModel = LodModel.create()
-            .setWorldId(worldId)
-            .setX(sectionX)
-            .setZ(sectionZ);
-
-        String key = lodModel.toString();
-
-        this.queuedSaves.remove(key);
-
         String sql = "DELETE FROM lods WHERE worldId = ? AND x = ? AND z = ?";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
@@ -190,11 +135,12 @@ public class LodRepository
             statement.setInt(3, sectionZ);
 
             statement.executeUpdate();
+
+            return true;
         } catch (SQLException exception) {
             this.getLogger().warning("Could not delete LOD: " + exception);
+
             return false;
         }
-
-        return true;
     }
 }

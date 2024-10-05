@@ -253,11 +253,11 @@ public class DhSupport implements Configurable
                 }
 
                 return this.queueBuilder(worldId, position, this.getBuilder(worldId, position))
-                    .thenApply((lod) -> {
+                    .thenCompose((lod) -> {
                         Encoder encoder = new Encoder();
                         lod.encode(encoder);
 
-                        return this.lodRepository.saveLodQueued(
+                        return this.lodRepository.saveLodAsync(
                             worldId,
                             position.getX(),
                             position.getZ(),
@@ -271,10 +271,6 @@ public class DhSupport implements Configurable
     {
         int sectionX = Coordinates.blockToSection(x);
         int sectionZ = Coordinates.blockToSection(z);
-
-        if (!this.lodRepository.lodExists(worldId, sectionX, sectionZ)) {
-            return;
-        }
 
         LodModel lodModel = LodModel.create()
             .setWorldId(worldId)
@@ -290,27 +286,26 @@ public class DhSupport implements Configurable
         this.touchedLods.put(key, lodModel);
     }
 
-    public int updateTouchedLods()
+    public void updateTouchedLods()
     {
-        int updates = 0;
-
         for (String key : this.touchedLods.keySet()) {
             LodModel lodModel = this.touchedLods.get(key);
 
-            this.getLodRepository().deleteLod(lodModel.getWorldId(), lodModel.getX(), lodModel.getZ());
+            this.getLodRepository().deleteLodAsync(lodModel.getWorldId(), lodModel.getX(), lodModel.getZ())
+                .thenAccept((deleted) -> {
+                    if (!deleted) {
+                        return;
+                    }
 
-            SectionPosition position = new SectionPosition();
-            position.setDetailLevel(6);
-            position.setX(lodModel.getX());
-            position.setZ(lodModel.getZ());
+                    SectionPosition position = new SectionPosition();
+                    position.setDetailLevel(6);
+                    position.setX(lodModel.getX());
+                    position.setZ(lodModel.getZ());
 
-            this.getLod(lodModel.getWorldId(), position);
+                    this.getLod(lodModel.getWorldId(), position);
 
-            updates++;
-
-            this.touchedLods.remove(key);
+                    this.touchedLods.remove(key);
+                });
         }
-
-        return updates;
     }
 }
