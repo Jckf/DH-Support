@@ -20,6 +20,8 @@ package no.jckf.dhsupport.core.configuration;
 
 public abstract class DhsConfig
 {
+    public static String CONFIG_VERSION = "config_version";
+
     public static String RENDER_DISTANCE = "render_distance";
 
     public static String DISTANT_GENERATION_ENABLED = "distant_generation_enabled";

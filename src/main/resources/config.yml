@@ -1,3 +1,6 @@
+# Don't touch :)
+config_version: 1
+
 # Maximum supported render distance. Clients will be capped to this value.
 # Required.
 # Default: 1024

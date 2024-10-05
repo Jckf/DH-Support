@@ -20,6 +20,8 @@ package no.jckf.dhsupport.bukkit.handler;
 
 import no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin;
 import no.jckf.dhsupport.core.configuration.Configuration;
+import no.jckf.dhsupport.core.configuration.DhsConfig;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class ConfigLoader extends Handler
@@ -35,8 +37,28 @@ public class ConfigLoader extends Handler
         // Create config file if none is present.
         this.plugin.saveDefaultConfig();
 
-        // Bukkit plugin config.
+        // The server's current config.
         FileConfiguration pluginConfig = this.plugin.getConfig();
+
+        // The plugin's default config.
+        org.bukkit.configuration.Configuration defaultConfig = pluginConfig.getDefaults();
+
+        // Make sure nothing is returned for missing keys.
+        pluginConfig.setDefaults(new MemoryConfiguration());
+
+        // Get the config version value from the default config file.
+        Integer pluginConfigVersion = defaultConfig.getInt(DhsConfig.CONFIG_VERSION);
+
+        // Get the config version value from the server's config file.
+        Integer serverConfigVersion = pluginConfig.getInt(DhsConfig.CONFIG_VERSION);
+
+        // If the two values differ, load defaults for missing values.
+        if (!pluginConfigVersion.equals(serverConfigVersion)) {
+            this.plugin.getLogger().warning("Your config file is for an older version of this plugin.");
+
+            pluginConfig.setDefaults(defaultConfig);
+            pluginConfig.options().copyDefaults(true);
+        }
 
         // DH Support config.
         Configuration dhsConfig = this.plugin.getDhSupport().getConfig();
