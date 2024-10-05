@@ -10,6 +10,11 @@ import java.util.concurrent.Executors;
 
 public class AsyncLodRepository extends LodRepository
 {
+    protected interface Task<T>
+    {
+        T run();
+    }
+
     protected Executor executor = Executors.newSingleThreadExecutor();
 
     public AsyncLodRepository(Database database)
@@ -17,19 +22,38 @@ public class AsyncLodRepository extends LodRepository
         super(database);
     }
 
-    protected void queueTask(Runnable runnable)
+    protected <T> CompletableFuture<T> queueTask(Task<T> task)
     {
-        this.executor.execute(runnable);
+        CompletableFuture<T> future = new CompletableFuture<>();
+
+        this.executor.execute(() -> {
+            try {
+                future.complete(task.run());
+            } catch (Exception exception) {
+                future.completeExceptionally(exception);
+            }
+        });
+
+        return future;
+    }
+
+    public CompletableFuture<LodModel> saveLodAsync(UUID worldId, int sectionX, int sectionZ, byte[] data)
+    {
+        return this.queueTask(() -> this.saveLod(worldId, sectionX, sectionZ, data));
     }
 
     public CompletableFuture<LodModel> loadLodAsync(UUID worldId, int sectionX, int sectionZ)
     {
-        CompletableFuture<LodModel> future = new CompletableFuture<>();
+        return this.queueTask(() -> this.loadLod(worldId, sectionX, sectionZ));
+    }
 
-        this.queueTask(() -> {
-            future.complete(this.loadLod(worldId, sectionX, sectionZ));
-        });
+    public CompletableFuture<Boolean> lodExistsAsync(UUID worldId, int sectionX, int sectionZ)
+    {
+        return this.queueTask(() -> this.lodExists(worldId, sectionX, sectionZ));
+    }
 
-        return future;
+    public CompletableFuture<Boolean> deleteLodAsync(UUID worldId, int sectionX, int sectionZ)
+    {
+        return this.queueTask(() -> this.deleteLod(worldId, sectionX, sectionZ));
     }
 }
