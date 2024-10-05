@@ -41,6 +41,7 @@ public class FullDataSourceResponseMessage extends TrackablePluginMessage
     {
         if (encoder.writeOptional(this.bufferId)) {
             encoder.writeInt(this.bufferId);
+            encoder.writeInt(0); // TODO: Beacon collection.
         }
     }
 }
