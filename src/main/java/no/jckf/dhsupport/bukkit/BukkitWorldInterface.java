@@ -23,6 +23,8 @@ import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.WorldConfiguration;
 import no.jckf.dhsupport.core.dataobject.Beacon;
 import no.jckf.dhsupport.core.world.WorldInterface;
+import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -36,11 +38,11 @@ public class BukkitWorldInterface implements WorldInterface
 {
     protected World world;
 
-    protected Block block;
-
     protected Configuration config;
 
     protected WorldConfiguration worldConfig;
+
+    protected Map<String, ChunkSnapshot> chunks = new HashMap<>();
 
     public BukkitWorldInterface(World world, Configuration config)
     {
@@ -55,14 +57,22 @@ public class BukkitWorldInterface implements WorldInterface
         return new BukkitWorldInterface(this.world, this.config);
     }
 
-    // Shitty cache :)
-    protected Block getBlock(int x, int y, int z)
+    protected ChunkSnapshot getChunk(int x, int z)
     {
-        if (this.block == null || this.block.getY() != y || this.block.getX() != x || this.block.getZ() != z) {
-            this.block = this.world.getBlockAt(x, y, z);
+        int chunkX = Coordinates.blockToChunk(x);
+        int chunkZ = Coordinates.blockToChunk(z);
+
+        String key = chunkX + "x" + chunkZ;
+
+        if (this.chunks.containsKey(key)) {
+            return this.chunks.get(key);
         }
 
-        return this.block;
+        ChunkSnapshot chunk = this.world.getChunkAt(chunkX, chunkZ).getChunkSnapshot(true, true, false);
+
+        this.chunks.put(key, chunk);
+
+        return chunk;
     }
 
     @Override
@@ -128,25 +138,25 @@ public class BukkitWorldInterface implements WorldInterface
     @Override
     public int getHighestYAt(int x, int z)
     {
-        return this.world.getHighestBlockAt(x, z).getY();
+        return this.getChunk(x, z).getHighestBlockYAt(Coordinates.blockToChunkRelative(x), Coordinates.blockToChunkRelative(z));
     }
 
     @Override
     public String getBiomeAt(int x, int z)
     {
-        return this.getBlock(x, this.world.getSeaLevel(), z).getBiome().getKey().toString();
+        return this.getChunk(x, z).getBiome(Coordinates.blockToChunkRelative(x), this.getSeaLevel(), Coordinates.blockToChunkRelative(z)).getKey().toString();
     }
 
     @Override
     public String getMaterialAt(int x, int y, int z)
     {
-        return this.getBlock(x, y, z).getBlockData().getMaterial().getKey().toString();
+        return this.getChunk(x, z).getBlockType(Coordinates.blockToChunkRelative(x), y, Coordinates.blockToChunkRelative(z)).getKey().toString();
     }
 
     @Override
     public String getBlockStateAsStringAt(int x, int y, int z)
     {
-        return this.getBlock(x, y, z).getBlockData().getAsString();
+        return this.getChunk(x, z).getBlockData(Coordinates.blockToChunkRelative(x), y, Coordinates.blockToChunkRelative(z)).getAsString();
     }
 
     @Override
@@ -176,15 +186,16 @@ public class BukkitWorldInterface implements WorldInterface
     @Override
     public byte getBlockLightAt(int x, int y, int z)
     {
-        return this.getBlock(x, y, z).getLightFromBlocks();
+        return (byte) this.getChunk(x, z).getBlockEmittedLight(Coordinates.blockToChunkRelative(x), y, Coordinates.blockToChunkRelative(z));
     }
 
     @Override
     public byte getSkyLightAt(int x, int y, int z)
     {
-        return this.getBlock(x, y, z).getLightFromSky();
+        return (byte) this.getChunk(x, z).getBlockSkyLight(Coordinates.blockToChunkRelative(x), y, Coordinates.blockToChunkRelative(z));
     }
 
+    @Override
     public Collection<Beacon> getBeaconsInChunk(int x, int z)
     {
         Collection<Beacon> beacons = new ArrayList<>();

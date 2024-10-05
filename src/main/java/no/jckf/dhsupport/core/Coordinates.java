@@ -94,4 +94,11 @@ public class Coordinates
     {
         return value << (BLOCK_TO_CHUNK_POWER + CHUNK_TO_SECTION_POWER);
     }
+
+    // RELATIVE
+
+    public static int blockToChunkRelative(int value)
+    {
+        return value & 0x0F;
+    }
 }
