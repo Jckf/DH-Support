@@ -158,7 +158,8 @@ public class PluginMessageHandler
             message.encode(encoder);
             data = encoder.toByteArray();
         } catch (Exception exception) {
-            this.dhSupport.warning("Failed to encode " + message.getClass() + ": " + exception.getClass() + " - " + exception.getMessage());
+            this.dhSupport.warning("Failed to encode " + message.getClass().getSimpleName());
+            exception.printStackTrace();
             return;
         }
 

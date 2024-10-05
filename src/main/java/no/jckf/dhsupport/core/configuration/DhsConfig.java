@@ -34,7 +34,7 @@ public abstract class DhsConfig
 
     public static String LOGIN_DATA_SYNC_RC_LIMIT = "login_data_sync_rc_limit";
 
-    public static String GENERIC_SCHEDULER_THREADS = "generic_scheduler_threads";
+    public static String SCHEDULER_THREADS = "scheduler_threads";
 
     public static String GENERATE_NEW_CHUNKS = "generate_new_chunks";
 

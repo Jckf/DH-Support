@@ -41,6 +41,18 @@ public class SectionPosition extends DataObject
 
     protected int z;
 
+    public SectionPosition()
+    {
+
+    }
+
+    public SectionPosition(int x, int z, int detailLevel)
+    {
+        this.x = x;
+        this.z = z;
+        this.detailLevel = detailLevel;
+    }
+
     public void setDetailLevel(int level)
     {
         this.detailLevel = level;

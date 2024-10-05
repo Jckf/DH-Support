@@ -26,6 +26,8 @@ public class FullDataSourceResponseMessage extends TrackablePluginMessage
 {
     protected Integer bufferId;
 
+    protected byte[] beacons;
+
     public void setBufferId(@Nullable Integer bufferId)
     {
         this.bufferId = bufferId;
@@ -36,12 +38,22 @@ public class FullDataSourceResponseMessage extends TrackablePluginMessage
         return bufferId;
     }
 
+    public void setBeacons(byte[] beacons)
+    {
+        this.beacons = beacons;
+    }
+
+    public byte[] getBeacons()
+    {
+        return beacons;
+    }
+
     @Override
     public void encode(Encoder encoder)
     {
         if (encoder.writeOptional(this.bufferId)) {
             encoder.writeInt(this.bufferId);
-            encoder.writeInt(0); // TODO: Beacon collection.
+            encoder.write(this.beacons);
         }
     }
 }

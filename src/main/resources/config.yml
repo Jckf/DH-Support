@@ -70,6 +70,7 @@ worlds:
     render_distance: 64
 
 # Number of worker threads used to generate LODs.
-# Required, except on Folia.
+# Does not affect Folia servers.
+# Required.
 # Default: 4
-generic_scheduler_threads: 4
+scheduler_threads: 4

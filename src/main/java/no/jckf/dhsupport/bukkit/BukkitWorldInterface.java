@@ -21,14 +21,16 @@ package no.jckf.dhsupport.bukkit;
 import no.jckf.dhsupport.core.Coordinates;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.WorldConfiguration;
+import no.jckf.dhsupport.core.dataobject.Beacon;
 import no.jckf.dhsupport.core.world.WorldInterface;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 
+import java.awt.*;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class BukkitWorldInterface implements WorldInterface
 {
@@ -181,6 +183,30 @@ public class BukkitWorldInterface implements WorldInterface
     public byte getSkyLightAt(int x, int y, int z)
     {
         return this.getBlock(x, y, z).getLightFromSky();
+    }
+
+    public Collection<Beacon> getBeaconsInChunk(int x, int z)
+    {
+        Collection<Beacon> beacons = new ArrayList<>();
+
+        BlockState[] blocks = this.world.getChunkAt(Coordinates.blockToChunk(x), Coordinates.blockToChunk(z)).getTileEntities();
+
+        for (BlockState block : blocks) {
+            if (!block.getType().equals(Material.BEACON)) {
+                continue;
+            }
+
+            beacons.add(
+                new Beacon(
+                    block.getX(),
+                    block.getY(),
+                    block.getZ(),
+                    Color.WHITE.getRGB() // TODO?
+                )
+            );
+        }
+
+        return beacons;
     }
 
     @Override

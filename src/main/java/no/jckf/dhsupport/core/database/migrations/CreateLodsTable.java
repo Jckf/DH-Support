@@ -39,6 +39,7 @@ public class CreateLodsTable extends Migration
                     x INTEGER NOT NULL,
                     z INTEGER NOT NULL,
                     data BLOB NOT NULL,
+                    beacons BLOB NOT NULL,
                     timestamp INTEGER NOT NULL,
                     PRIMARY KEY (worldId, x, z)
                 );
