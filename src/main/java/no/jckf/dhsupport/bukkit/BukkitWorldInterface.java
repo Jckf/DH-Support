@@ -23,11 +23,9 @@ import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.WorldConfiguration;
 import no.jckf.dhsupport.core.dataobject.Beacon;
 import no.jckf.dhsupport.core.world.WorldInterface;
-import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 
 import java.awt.*;
