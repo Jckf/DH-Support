@@ -79,7 +79,7 @@ public class FastOverworldBuilder extends LodBuilder
                 @Nullable
                 Integer solidGround = null;
 
-                for (int relativeY = height; (solidGround == null || relativeY >= solidGround) && relativeY >= 1 - yStep; relativeY -= yStep) {
+                for (int relativeY = height - 1; (solidGround == null || relativeY >= solidGround) && relativeY >= 1 - yStep; relativeY -= yStep) {
                     int thisStep = yStep;
 
                     if (relativeY < 0) {
@@ -87,7 +87,7 @@ public class FastOverworldBuilder extends LodBuilder
                         relativeY = 0;
                     }
 
-                    int worldY = minY + relativeY + thisStep - 1;
+                    int worldY = minY + relativeY;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
 
@@ -130,8 +130,10 @@ public class FastOverworldBuilder extends LodBuilder
                         point.setHeight(thisStep);
                         point.setMappingId(id);
 
-                        point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
-                        point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY + 1, worldZ));
+                        if (worldY + 1 < maxY) {
+                            point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
+                            point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY + 1, worldZ));
+                        }
 
                         // Start by filling the top of the column with air, then jump down to the top layer.
                         if (relativeY == height && (material.equals("minecraft:air") || material.equals("minecraft:void_air"))) {
