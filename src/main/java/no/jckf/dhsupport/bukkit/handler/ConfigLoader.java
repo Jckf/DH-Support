@@ -18,15 +18,11 @@
 
 package no.jckf.dhsupport.bukkit.handler;
 
-import com.google.common.base.Charsets;
 import no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.DhsConfig;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-
-import java.io.InputStreamReader;
 
 public class ConfigLoader extends Handler
 {
@@ -41,12 +37,14 @@ public class ConfigLoader extends Handler
         // Create config file if none is present.
         this.plugin.saveDefaultConfig();
 
-        // The server's current config, without defaults.
+        // The server's current config.
         FileConfiguration pluginConfig = this.plugin.getConfig();
-        pluginConfig.setDefaults(new MemoryConfiguration());
 
         // The plugin's default config.
-        YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(this.plugin.getResource("config.yml"), Charsets.UTF_8));
+        org.bukkit.configuration.Configuration defaultConfig = pluginConfig.getDefaults();
+
+        // Make sure nothing is returned for missing keys.
+        pluginConfig.setDefaults(new MemoryConfiguration());
 
         // Get the config version value from the default config file.
         Integer pluginConfigVersion = defaultConfig.getInt(DhsConfig.CONFIG_VERSION);
