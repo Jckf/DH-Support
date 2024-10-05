@@ -253,14 +253,14 @@ public class DhSupport implements Configurable
                     return CompletableFuture.completedFuture(lodModel);
                 }
 
-                int worldX = Coordinates.sectionToBlock(position.getX());
-                int worldZ = Coordinates.sectionToBlock(position.getZ());
-
                 return this.queueBuilder(worldId, position, this.getBuilder(worldId, position))
                     .thenCompose((lod) -> {
-                        WorldInterface world = this.getWorldInterface(worldId);
-
                         Collection<Beacon> beacons = this.getScheduler().runOnMainThread(() -> {
+                            WorldInterface world = this.getWorldInterface(worldId);
+
+                            int worldX = Coordinates.sectionToBlock(position.getX());
+                            int worldZ = Coordinates.sectionToBlock(position.getZ());
+
                             Collection<Beacon> accumulator = new ArrayList<>();
 
                             for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
