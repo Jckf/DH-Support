@@ -221,13 +221,24 @@ public class DhSupport implements Configurable
             return this.queuedBuilders.get(key);
         }
 
-        CompletableFuture<Lod> queued = this.getScheduler().runOnRegionThread(
+        Scheduler scheduler = this.getScheduler();
+
+        CompletableFuture<Lod> queued;
+
+        if (scheduler.canReadWorldAsync()) {
+            queued = this.getScheduler().runOnSeparateThread(
+                builder::generate
+            );
+        } else {
+            queued = this.getScheduler().runOnRegionThread(
                 worldId,
                 Coordinates.sectionToBlock(position.getX()),
                 Coordinates.sectionToBlock(position.getZ()),
                 builder::generate
-            )
-            .thenApply((lod) -> {
+            );
+        }
+
+        queued = queued.thenApply((lod) -> {
                 this.queuedBuilders.remove(key);
 
                 return lod;
@@ -255,12 +266,12 @@ public class DhSupport implements Configurable
 
                 return this.queueBuilder(worldId, position, this.getBuilder(worldId, position))
                     .thenCompose((lod) -> {
-                        Collection<Beacon> beacons = this.getScheduler().runOnMainThread(() -> {
-                            WorldInterface world = this.getWorldInterface(worldId);
+                        WorldInterface world = this.getWorldInterface(worldId);
 
-                            int worldX = Coordinates.sectionToBlock(position.getX());
-                            int worldZ = Coordinates.sectionToBlock(position.getZ());
+                        int worldX = Coordinates.sectionToBlock(position.getX());
+                        int worldZ = Coordinates.sectionToBlock(position.getZ());
 
+                        Collection<Beacon> beacons = this.getScheduler().runOnRegionThread(worldId, worldX, worldZ, () -> {
                             Collection<Beacon> accumulator = new ArrayList<>();
 
                             for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {

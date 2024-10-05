@@ -24,6 +24,8 @@ import java.util.function.Supplier;
 
 public interface Scheduler
 {
+    boolean canReadWorldAsync();
+
     <U> CompletableFuture<U> runOnMainThread(Supplier<U> supplier);
 
     <U> CompletableFuture<U> runOnRegionThread(UUID worldId, int x, int z, Supplier<U> supplier);

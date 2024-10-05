@@ -47,6 +47,12 @@ public class BukkitScheduler implements Scheduler
     }
 
     @Override
+    public boolean canReadWorldAsync()
+    {
+        return !this.foliaLib.isFolia();
+    }
+
+    @Override
     public <U> CompletableFuture<U> runOnMainThread(Supplier<U> supplier)
     {
         CompletableFuture<U> future = new CompletableFuture<>();
@@ -65,11 +71,6 @@ public class BukkitScheduler implements Scheduler
     @Override
     public <U> CompletableFuture<U> runOnRegionThread(UUID worldId, int x, int z, Supplier<U> supplier)
     {
-        // We can read most things async on normal Bukkit/Spigot/Paper implementations.
-        if (!this.foliaLib.isFolia()) {
-            return this.runOnSeparateThread(supplier);
-        }
-
         CompletableFuture<U> future = new CompletableFuture<>();
 
         Location location = new Location(
