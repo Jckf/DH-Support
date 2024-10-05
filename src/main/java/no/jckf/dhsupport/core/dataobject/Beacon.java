@@ -16,32 +16,37 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.scheduling;
+package no.jckf.dhsupport.core.dataobject;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Supplier;
+import no.jckf.dhsupport.core.bytestream.Encoder;
 
-public class GenericScheduler implements Scheduler
+public class Beacon extends DataObject
 {
-    protected ExecutorService executor;
+    protected BlockPosition position;
 
-    public GenericScheduler(int threads)
+    protected int color;
+
+    public Beacon()
     {
-        this.executor = Executors.newFixedThreadPool(threads);
+
+    }
+
+    public Beacon(BlockPosition position, int color)
+    {
+        this.position = position;
+        this.color = color;
+    }
+
+    public Beacon(int x, int y, int z, int color)
+    {
+        this(new BlockPosition(x, y, z), color);
     }
 
     @Override
-    public <U> CompletableFuture<U> run(Supplier<U> supplier)
+    public void encode(Encoder encoder)
     {
-        return CompletableFuture.supplyAsync(supplier, this.executor);
-    }
+        this.position.encode(encoder);
 
-    @Override
-    public <U> CompletableFuture<U> runRegional(UUID worldId, int x, int z, Supplier<U> supplier)
-    {
-        return this.run(supplier);
+        encoder.writeInt(this.color);
     }
 }

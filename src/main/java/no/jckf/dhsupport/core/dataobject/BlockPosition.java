@@ -16,44 +16,65 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.plugin;
+package no.jckf.dhsupport.core.dataobject;
 
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
-import javax.annotation.Nullable;
-
-public class FullDataSourceResponseMessage extends TrackablePluginMessage
+public class BlockPosition extends DataObject
 {
-    protected Integer bufferId;
+    protected int x;
 
-    protected byte[] beacons;
+    protected int y;
 
-    public void setBufferId(@Nullable Integer bufferId)
+    protected int z;
+
+    public BlockPosition()
     {
-        this.bufferId = bufferId;
+
     }
 
-    public int getBufferId()
+    public BlockPosition(int x, int y, int z)
     {
-        return bufferId;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
-    public void setBeacons(byte[] beacons)
+    public void setX(int x)
     {
-        this.beacons = beacons;
+        this.x = x;
     }
 
-    public byte[] getBeacons()
+    public int getX()
     {
-        return beacons;
+        return x;
+    }
+
+    public void setY(int y)
+    {
+        this.y = y;
+    }
+
+    public int getY()
+    {
+        return y;
+    }
+
+    public void setZ(int z)
+    {
+        this.z = z;
+    }
+
+    public int getZ()
+    {
+        return z;
     }
 
     @Override
     public void encode(Encoder encoder)
     {
-        if (encoder.writeOptional(this.bufferId)) {
-            encoder.writeInt(this.bufferId);
-            encoder.write(this.beacons);
-        }
+        encoder.writeInt(this.x);
+        encoder.writeInt(this.y);
+        encoder.writeInt(this.z);
     }
 }

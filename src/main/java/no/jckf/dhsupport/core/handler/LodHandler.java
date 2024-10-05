@@ -126,6 +126,9 @@ public class LodHandler
                     if (sendData) {
                         int myBufferId = this.bufferId++;
 
+                        responseMessage.setBufferId(myBufferId);
+                        responseMessage.setBeacons(lodModel.getBeacons());
+
                         byte[] data = lodModel.getData();
 
                         int chunkCount = (int) Math.ceil((double) data.length / CHUNK_SIZE);
@@ -142,8 +145,6 @@ public class LodHandler
 
                             this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), chunkResponse);
                         }
-
-                        responseMessage.setBufferId(myBufferId);
                     }
 
                     this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), responseMessage);
@@ -151,7 +152,7 @@ public class LodHandler
                     //this.dhSupport.info("LOD in " + chunkCount + " parts sent for " + requestMessage.getPosition().getX() + " x " + requestMessage.getPosition().getZ());
                 })
                 .exceptionally((exception) -> {
-                    this.dhSupport.warning(exception.getMessage());
+                    exception.printStackTrace();
 
                     ExceptionMessage exceptionMessage = new ExceptionMessage();
                     exceptionMessage.isResponseTo(requestMessage);

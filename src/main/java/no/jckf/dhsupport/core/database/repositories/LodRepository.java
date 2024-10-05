@@ -48,18 +48,19 @@ public class LodRepository
         return this.logger;
     }
 
-    public LodModel saveLod(UUID worldId, int sectionX, int sectionZ, byte[] data)
+    public LodModel saveLod(UUID worldId, int sectionX, int sectionZ, byte[] data, byte[] beacons)
     {
         int timestamp = (int) (System.currentTimeMillis() / 1000);
 
-        String sql = "REPLACE INTO lods (worldId, x, z, data, timestamp) VALUES (?, ?, ?, ?, ?)";
+        String sql = "REPLACE INTO lods (worldId, x, z, data, beacons, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
             statement.setString(1, worldId.toString());
             statement.setInt(2, sectionX);
             statement.setInt(3, sectionZ);
             statement.setBytes(4, data);
-            statement.setInt(5, timestamp);
+            statement.setBytes(5, beacons);
+            statement.setInt(6, timestamp);
 
             statement.executeUpdate();
 
@@ -68,6 +69,7 @@ public class LodRepository
                 .setX(sectionX)
                 .setZ(sectionZ)
                 .setData(data)
+                .setBeacons(beacons)
                 .setTimestamp(timestamp);
         } catch (SQLException exception) {
             this.getLogger().warning("Could not save LOD: " + exception);
@@ -78,7 +80,7 @@ public class LodRepository
 
     public LodModel loadLod(UUID worldId, int sectionX, int sectionZ)
     {
-        String sql = "SELECT data, timestamp FROM lods WHERE worldId = ? AND x = ? AND z = ? LIMIT 1";
+        String sql = "SELECT data, beacons, timestamp FROM lods WHERE worldId = ? AND x = ? AND z = ? LIMIT 1";
 
         try (PreparedStatement statement = this.database.getConnection().prepareStatement(sql)) {
             statement.setString(1, worldId.toString());
@@ -98,6 +100,7 @@ public class LodRepository
                 .setX(sectionX)
                 .setZ(sectionZ)
                 .setData(data)
+                .setBeacons(result.getBytes("beacons"))
                 .setTimestamp(result.getInt("timestamp"));
         } catch (SQLException exception) {
             this.getLogger().warning("Could not load LOD: " + exception);

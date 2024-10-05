@@ -35,6 +35,8 @@ public class LodModel extends Model
 
     protected byte[] data;
 
+    protected byte[] beacons;
+
     protected int timestamp;
 
     public LodModel setWorldId(UUID worldId)
@@ -83,6 +85,18 @@ public class LodModel extends Model
     public byte[] getData()
     {
         return data;
+    }
+
+    public LodModel setBeacons(byte[] beacons)
+    {
+        this.beacons = beacons;
+
+        return this;
+    }
+
+    public byte[] getBeacons()
+    {
+        return beacons;
     }
 
     public LodModel setTimestamp(int timestamp)

@@ -29,6 +29,7 @@ import org.tukaani.xz.XZOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**

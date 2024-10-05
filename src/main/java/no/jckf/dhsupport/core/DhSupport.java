@@ -26,6 +26,7 @@ import no.jckf.dhsupport.core.database.Database;
 import no.jckf.dhsupport.core.database.migrations.CreateLodsTable;
 import no.jckf.dhsupport.core.database.models.LodModel;
 import no.jckf.dhsupport.core.database.repositories.AsyncLodRepository;
+import no.jckf.dhsupport.core.dataobject.Beacon;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
 import no.jckf.dhsupport.core.handler.LodHandler;
@@ -39,9 +40,7 @@ import no.jckf.dhsupport.core.world.WorldInterface;
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -222,7 +221,7 @@ public class DhSupport implements Configurable
             return this.queuedBuilders.get(key);
         }
 
-        CompletableFuture<Lod> queued = this.getScheduler().runRegional(
+        CompletableFuture<Lod> queued = this.getScheduler().runOnRegionThread(
                 worldId,
                 Coordinates.sectionToBlock(position.getX()),
                 Coordinates.sectionToBlock(position.getZ()),
@@ -233,7 +232,9 @@ public class DhSupport implements Configurable
 
                 return lod;
             })
-            .exceptionally((nothing) -> {
+            .exceptionally((exception) -> {
+                exception.printStackTrace();
+
                 this.queuedBuilders.remove(key);
 
                 return null;
@@ -254,14 +255,35 @@ public class DhSupport implements Configurable
 
                 return this.queueBuilder(worldId, position, this.getBuilder(worldId, position))
                     .thenCompose((lod) -> {
-                        Encoder encoder = new Encoder();
-                        lod.encode(encoder);
+                        Collection<Beacon> beacons = this.getScheduler().runOnMainThread(() -> {
+                            WorldInterface world = this.getWorldInterface(worldId);
+
+                            int worldX = Coordinates.sectionToBlock(position.getX());
+                            int worldZ = Coordinates.sectionToBlock(position.getZ());
+
+                            Collection<Beacon> accumulator = new ArrayList<>();
+
+                            for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                                for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                                    accumulator.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
+                                }
+                            }
+
+                            return accumulator;
+                        }).join();
+
+                        Encoder lodEncoder = new Encoder();
+                        lod.encode(lodEncoder);
+
+                        Encoder beaconEncoder = new Encoder();
+                        beaconEncoder.writeCollection(beacons);
 
                         return this.lodRepository.saveLodAsync(
                             worldId,
                             position.getX(),
                             position.getZ(),
-                            encoder.toByteArray()
+                            lodEncoder.toByteArray(),
+                            beaconEncoder.toByteArray()
                         );
                     });
             });
