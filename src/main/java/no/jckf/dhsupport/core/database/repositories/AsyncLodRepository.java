@@ -25,14 +25,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 public class AsyncLodRepository extends LodRepository
 {
-    protected interface Task<T>
-    {
-        T run();
-    }
-
     protected Executor executor = Executors.newSingleThreadExecutor();
 
     public AsyncLodRepository(Database database)
@@ -40,13 +36,13 @@ public class AsyncLodRepository extends LodRepository
         super(database);
     }
 
-    protected <T> CompletableFuture<T> queueTask(Task<T> task)
+    protected <T> CompletableFuture<T> queueTask(Supplier<T> task)
     {
         CompletableFuture<T> future = new CompletableFuture<>();
 
         this.executor.execute(() -> {
             try {
-                future.complete(task.run());
+                future.complete(task.get());
             } catch (Exception exception) {
                 future.completeExceptionally(exception);
             }
