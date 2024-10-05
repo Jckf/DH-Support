@@ -257,27 +257,26 @@ public class DhSupport implements Configurable
                 int worldZ = Coordinates.sectionToBlock(position.getZ());
 
                 return this.queueBuilder(worldId, position, this.getBuilder(worldId, position))
-                    .thenCompose((lod) -> this.getScheduler().runOnMainThread(() -> {
+                    .thenCompose((lod) -> {
                         WorldInterface world = this.getWorldInterface(worldId);
 
-                        Collection<Beacon> beacons = new ArrayList<>();
+                        Collection<Beacon> beacons = this.getScheduler().runOnMainThread(() -> {
+                            Collection<Beacon> accumulator = new ArrayList<>();
 
-                        for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
-                            for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
-                                beacons.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
+                            for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                                for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                                    accumulator.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
+                                }
                             }
-                        }
 
-                        lod.setBeacons(beacons);
+                            return accumulator;
+                        }).join();
 
-                        return lod;
-                    }))
-                    .thenCompose((lod) -> {
                         Encoder lodEncoder = new Encoder();
                         lod.encode(lodEncoder);
 
                         Encoder beaconEncoder = new Encoder();
-                        beaconEncoder.writeCollection(lod.getBeacons());
+                        beaconEncoder.writeCollection(beacons);
 
                         return this.lodRepository.saveLodAsync(
                             worldId,

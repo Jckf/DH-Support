@@ -51,25 +51,12 @@ public class Lod extends DataObject
 
     protected List<List<DataPoint>> columns;
 
-    protected Collection<Beacon> beacons;
-
     public Lod(WorldInterface worldInterface, SectionPosition position, List<IdMapping> idMappings, List<List<DataPoint>> columns)
     {
         this.worldInterface = worldInterface;
         this.position = position;
         this.idMappings = idMappings;
         this.columns = columns;
-        this.beacons = beacons;
-    }
-
-    public void setBeacons(Collection<Beacon> beacons)
-    {
-        this.beacons = beacons;
-    }
-
-    public Collection<Beacon> getBeacons()
-    {
-        return beacons;
     }
 
     protected void encodeData(Encoder encoder)
