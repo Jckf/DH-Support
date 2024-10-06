@@ -16,19 +16,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.scheduling;
+package no.jckf.dhsupport.core.lodbuilders;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
+import no.jckf.dhsupport.core.dataobject.Lod;
+import no.jckf.dhsupport.core.dataobject.SectionPosition;
+import no.jckf.dhsupport.core.world.WorldInterface;
 
-public interface Scheduler
+public abstract class LodBuilder
 {
-    boolean canReadWorldAsync();
+    protected WorldInterface worldInterface;
 
-    <U> CompletableFuture<U> runOnMainThread(Supplier<U> supplier);
+    protected SectionPosition position;
 
-    <U> CompletableFuture<U> runOnRegionThread(UUID worldId, int x, int z, Supplier<U> supplier);
+    public LodBuilder(WorldInterface worldInterface, SectionPosition position)
+    {
+        this.worldInterface = worldInterface;
+        this.position = position;
+    }
 
-    <U> CompletableFuture<U> runOnSeparateThread(Supplier<U> supplier);
+    public abstract Lod generate();
 }

@@ -18,104 +18,77 @@
 
 package no.jckf.dhsupport.bukkit;
 
-import com.tcoded.folialib.FoliaLib;
 import no.jckf.dhsupport.bukkit.handler.ConfigLoader;
-import no.jckf.dhsupport.bukkit.handler.Handler;
 import no.jckf.dhsupport.bukkit.handler.PluginMessageProxy;
 import no.jckf.dhsupport.bukkit.handler.WorldHandler;
 import no.jckf.dhsupport.core.DhSupport;
-import no.jckf.dhsupport.core.configuration.DhsConfig;
-import no.jckf.dhsupport.core.scheduling.GenericScheduler;
-import no.jckf.dhsupport.paper.PaperScheduler;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DhSupportBukkitPlugin extends JavaPlugin
 {
+    protected static int LOD_REFRESH_INTERVAL = 60 * 20;
+
     protected DhSupport dhSupport;
 
     protected Metrics metrics;
 
-    protected FoliaLib foliaLib;
+    protected ConfigLoader configLoader;
 
-    protected final Map<Class<? extends Handler>, Handler> handlers = new HashMap<>()
-    {{
-        this.put(ConfigLoader.class, null);
-        this.put(PluginMessageProxy.class, null);
-    }};
+    protected PluginMessageProxy pluginMessageProxy;
+
+    protected BukkitScheduler scheduler;
 
     @Override
     public void onEnable()
     {
         this.dhSupport = new DhSupport();
         this.dhSupport.setLogger(this.getLogger());
-
-        this.foliaLib = new FoliaLib(this);
+        this.dhSupport.setDataDirectory(this.getDataFolder().getAbsolutePath());
 
         this.metrics = new Metrics(this, 21843);
 
-        for (Class<? extends Handler> className : this.handlers.keySet()) {
-            try {
-                Handler instance = className
-                    .getConstructor(DhSupportBukkitPlugin.class)
-                    .newInstance(this);
+        this.configLoader = new ConfigLoader(this);
+        this.configLoader.onEnable();
 
-                instance.onEnable();
-
-                this.handlers.replace(className, instance);
-            } catch (Exception exception) {
-                this.getLogger().warning("Failed to enable handler: " + className);
-                this.getLogger().warning(exception.getClass().getSimpleName() + " - " + exception.getMessage());
-                this.getServer().getPluginManager().disablePlugin(this);
-                return;
-            }
-        }
+        this.pluginMessageProxy = new PluginMessageProxy(this);
+        this.pluginMessageProxy.onEnable();
 
         this.dhSupport.onEnable();
 
-        if (this.foliaLib.isFolia()) {
-            this.getLogger().info("Using Paper scheduler.");
+        this.scheduler = new BukkitScheduler(this);
+        this.dhSupport.setScheduler(this.scheduler);
 
-            this.dhSupport.setScheduler(new PaperScheduler(this, this.foliaLib));
-        } else {
-            this.getLogger().info("Using generic scheduler.");
-
-            this.dhSupport.setScheduler(new GenericScheduler(this.getDhSupport().getConfig().getInt(DhsConfig.GENERIC_SCHEDULER_THREADS)));
-        }
+        this.scheduler.runTimer(() -> {
+            this.dhSupport.updateTouchedLods();
+        }, LOD_REFRESH_INTERVAL, LOD_REFRESH_INTERVAL);
 
         this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
 
-        this.getLogger().info("Ready 😀");
+        this.getLogger().info("Ready!");
     }
 
     @Override
     public void onDisable()
     {
+        if (this.pluginMessageProxy != null) {
+            this.pluginMessageProxy.onDisable();
+            this.pluginMessageProxy = null;
+        }
+
+        if (this.configLoader != null) {
+            this.configLoader.onDisable();
+            this.configLoader = null;
+        }
+
         if (this.dhSupport != null) {
             this.dhSupport.onDisable();
             this.dhSupport = null;
         }
 
-        for (Class<? extends Handler> className : this.handlers.keySet()) {
-            Handler instance = this.handlers.get(className);
-
-            try {
-                if (instance != null) {
-                    instance.onDisable();
-                }
-            } catch (Exception exception) {
-                this.getLogger().warning("Failed to disable handler: " + className);
-                this.getLogger().warning(exception.getClass().getSimpleName() + " - " + exception.getMessage());
-            }
-
-            this.handlers.replace(className, null);
-        }
-
-        this.getLogger().info("👋😭");
+        this.getLogger().info("Lights out!");
     }
 
     @Nullable

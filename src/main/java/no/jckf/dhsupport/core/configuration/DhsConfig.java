@@ -18,14 +18,10 @@
 
 package no.jckf.dhsupport.core.configuration;
 
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 public abstract class DhsConfig
 {
+    public static String CONFIG_VERSION = "config_version";
+
     public static String RENDER_DISTANCE = "render_distance";
 
     public static String DISTANT_GENERATION_ENABLED = "distant_generation_enabled";
@@ -38,7 +34,7 @@ public abstract class DhsConfig
 
     public static String LOGIN_DATA_SYNC_RC_LIMIT = "login_data_sync_rc_limit";
 
-    public static String GENERIC_SCHEDULER_THREADS = "generic_scheduler_threads";
+    public static String SCHEDULER_THREADS = "scheduler_threads";
 
     public static String GENERATE_NEW_CHUNKS = "generate_new_chunks";
 
@@ -48,20 +44,7 @@ public abstract class DhsConfig
 
     public static String BORDER_RADIUS = "border_radius";
 
-    public static Collection<String> getKeys()
-    {
-        List<String> keys = new ArrayList<>();
+    public static String BUILDER_TYPE = "builder_type";
 
-        Arrays.stream(DhsConfig.class.getDeclaredFields())
-                .filter((field) -> Modifier.isStatic(field.getModifiers()))
-                .forEach((field) -> {
-                    try {
-                        keys.add((String) field.get(DhsConfig.class));
-                    } catch (IllegalAccessException exception) {
-                        throw new RuntimeException(exception);
-                    }
-                });
-
-        return keys;
-    }
+    public static String BUILDER_RESOLUTION = "builder_resolution";
 }

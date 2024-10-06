@@ -19,6 +19,7 @@
 package no.jckf.dhsupport.core;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 public class Utils
 {
@@ -33,5 +34,19 @@ public class Utils
             hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
         }
         return new String(hexChars, StandardCharsets.UTF_8);
+    }
+
+    public static String ucFirst(String string, Locale locale)
+    {
+        if (string.isEmpty()) {
+            return "";
+        }
+
+        return string.substring(0, 1).toUpperCase(locale) + string.substring(1);
+    }
+
+    public static String ucFirst(String string)
+    {
+        return ucFirst(string, Locale.getDefault());
     }
 }

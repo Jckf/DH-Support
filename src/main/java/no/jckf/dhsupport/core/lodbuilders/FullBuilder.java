@@ -16,8 +16,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core;
+package no.jckf.dhsupport.core.lodbuilders;
 
+import no.jckf.dhsupport.core.Coordinates;
+import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.dataobject.DataPoint;
 import no.jckf.dhsupport.core.dataobject.IdMapping;
 import no.jckf.dhsupport.core.dataobject.Lod;
@@ -30,16 +32,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LodBuilder
+public class FullBuilder extends LodBuilder
 {
-    protected WorldInterface worldInterface;
-
-    protected SectionPosition position;
-
-    public LodBuilder(WorldInterface worldInterface, SectionPosition position)
+    public FullBuilder(WorldInterface worldInterface, SectionPosition position)
     {
-        this.worldInterface = worldInterface;
-        this.position = position;
+        super(worldInterface, position);
     }
 
     public Lod generate()
@@ -48,18 +45,15 @@ public class LodBuilder
         int maxY = this.worldInterface.getMaxY();
         int height = maxY - minY;
 
-        int seaLevel = this.worldInterface.getSeaLevel();
-        int relativeSeaLevel = seaLevel - minY;
+        int offsetX = Coordinates.sectionToBlock(this.position.getX());
+        int offsetZ = Coordinates.sectionToBlock(this.position.getZ());
 
-        int offsetX = this.position.getX() * 64;
-        int offsetZ = this.position.getZ() * 64;
+        int yStep = this.worldInterface.getConfig().getInt(DhsConfig.BUILDER_RESOLUTION);
 
         List<IdMapping> idMappings = new ArrayList<>();
         Map<String, Integer> mapMap = new HashMap<>();
 
         List<List<DataPoint>> columns = new ArrayList<>();
-
-        String biome = ""; // Initialize to squelch warnings.
 
         for (int relativeX = 0; relativeX < Lod.width; relativeX++) {
             for (int relativeZ = 0; relativeZ < Lod.width; relativeZ++) {
@@ -69,44 +63,54 @@ public class LodBuilder
                 // Actual Y of top-most block.
                 int topLayer = this.worldInterface.getHighestYAt(worldX, worldZ);
 
+                if (topLayer + 1 < maxY) {
+                    outer: while (true) {
+                        String topSample = this.worldInterface.getMaterialAt(worldX, topLayer + 1, worldZ);
+
+                        switch (topSample) {
+                            case "minecraft:air":
+                            case "minecraft:void_air":
+                                break outer;
+                        }
+
+                        topLayer++;
+                    }
+                }
+
                 // Distance from bottom to top-most block.
                 int relativeTopLayer = topLayer - minY;
 
-                biome = this.worldInterface.getBiomeAt(offsetX + relativeX, offsetZ + relativeZ);
+                String biome = this.worldInterface.getBiomeAt(worldX, worldZ);
 
                 List<DataPoint> column = new ArrayList<>();
 
                 @Nullable
                 DataPoint previous = null;
 
-                @Nullable
-                Integer solidGround = null;
+                int firstY = height - yStep;
 
-                for (int relativeY = height; (solidGround == null || relativeY >= solidGround) && relativeY >= 0; relativeY--) {
-                    int worldY = minY + relativeY;
+                for (int relativeY = firstY; relativeY >= 1 - yStep; relativeY -= yStep) {
+                    int thisStep = yStep;
+
+                    if (relativeY < 0) {
+                        thisStep -= -relativeY;
+                        relativeY = 0;
+                    }
+
+                    int worldY = minY + relativeY + thisStep - 1;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
 
-                    if (solidGround == null) {
-                        switch (material) {
-                            case "minecraft:stone":
-                            case "minecraft:grass":
-                            case "minecraft:dirt":
-                            case "minecraft:sand":
-                            case "minecraft:sandstone":
-                            case "minecraft:mycelium":
-                                solidGround = Math.min(relativeY - 10, relativeSeaLevel - 10);
-                        }
+                    if (material.equals("minecraft:snow") && thisStep > 1) {
+                        material += "_block";
                     }
 
-                    //String compositeKey = biome + "|" + material;
                     String compositeKey = biome + "|" + material + "|" + this.worldInterface.getBlockStateAsStringAt(worldX, worldY, worldZ);
 
                     @Nullable
                     Integer id = mapMap.get(compositeKey);
 
                     if (id == null) {
-                        //idMappings.add(new IdMapping(biome, material, null));
                         idMappings.add(new IdMapping(biome, material, this.worldInterface.getBlockPropertiesAt(worldX, worldY, worldZ)));
                         id = idMappings.size() - 1;
                         mapMap.put(compositeKey, id);
@@ -117,19 +121,23 @@ public class LodBuilder
                     if (previous != null && previous.getMappingId() == id) {
                         point = previous;
 
-                        point.setStartY(point.getStartY() - 1);
-                        point.setHeight(point.getHeight() + 1);
+                        point.setStartY(point.getStartY() - thisStep);
+                        point.setHeight(point.getHeight() + thisStep);
                     } else {
                         point = new DataPoint();
                         column.add(point);
 
                         point.setStartY(relativeY);
+                        point.setHeight(thisStep);
                         point.setMappingId(id);
 
-                        point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
-                        point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY + 1, worldZ));
+                        if (worldY + 1 < maxY) {
+                            point.setSkyLight(this.worldInterface.getSkyLightAt(worldX, worldY + 1, worldZ));
+                            point.setBlockLight(this.worldInterface.getBlockLightAt(worldX, worldY + 1, worldZ));
+                        }
 
-                        if (relativeY == height && (material.equals("minecraft:air") || material.equals("minecraft:void_air"))) {
+                        // Start by filling the top of the column with air, then jump down to the top layer.
+                        if (relativeY == firstY && (material.equals("minecraft:air") || material.equals("minecraft:void_air"))) {
                             point.setStartY(relativeTopLayer + 1);
                             point.setHeight(height - relativeTopLayer);
 

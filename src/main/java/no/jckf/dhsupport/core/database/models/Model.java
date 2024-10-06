@@ -16,19 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.scheduling;
+package no.jckf.dhsupport.core.database.models;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
-
-public interface Scheduler
+public abstract class Model
 {
-    boolean canReadWorldAsync();
-
-    <U> CompletableFuture<U> runOnMainThread(Supplier<U> supplier);
-
-    <U> CompletableFuture<U> runOnRegionThread(UUID worldId, int x, int z, Supplier<U> supplier);
-
-    <U> CompletableFuture<U> runOnSeparateThread(Supplier<U> supplier);
+    public abstract String toString();
 }

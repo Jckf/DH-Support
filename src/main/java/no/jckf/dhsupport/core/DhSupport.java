@@ -21,25 +21,38 @@ package no.jckf.dhsupport.core;
 import no.jckf.dhsupport.core.bytestream.Encoder;
 import no.jckf.dhsupport.core.configuration.Configurable;
 import no.jckf.dhsupport.core.configuration.Configuration;
+import no.jckf.dhsupport.core.configuration.DhsConfig;
+import no.jckf.dhsupport.core.database.Database;
+import no.jckf.dhsupport.core.database.migrations.CreateLodsTable;
+import no.jckf.dhsupport.core.database.models.LodModel;
+import no.jckf.dhsupport.core.database.repositories.AsyncLodRepository;
+import no.jckf.dhsupport.core.dataobject.Beacon;
 import no.jckf.dhsupport.core.dataobject.Lod;
 import no.jckf.dhsupport.core.dataobject.SectionPosition;
 import no.jckf.dhsupport.core.handler.LodHandler;
 import no.jckf.dhsupport.core.handler.PlayerConfigHandler;
 import no.jckf.dhsupport.core.handler.PluginMessageHandler;
+import no.jckf.dhsupport.core.lodbuilders.LodBuilder;
 import no.jckf.dhsupport.core.message.plugin.PluginMessageSender;
 import no.jckf.dhsupport.core.scheduling.Scheduler;
 import no.jckf.dhsupport.core.world.WorldInterface;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public class DhSupport implements Configurable
 {
+    protected String dataDirectory;
+
+    protected Database database;
+
+    protected AsyncLodRepository lodRepository;
+
     protected Configuration configuration;
 
     protected Logger logger;
@@ -52,16 +65,35 @@ public class DhSupport implements Configurable
 
     protected PluginMessageSender pluginMessageSender;
 
-    protected Map<UUID, Map<String, byte[]>> lodCache = new ConcurrentHashMap<>();
+    protected Map<String, CompletableFuture<Lod>> queuedBuilders = new HashMap<>();
+
+    protected Map<String, LodModel> touchedLods = new ConcurrentHashMap<>();
 
     public DhSupport()
     {
-        // Mumble mumble. Something about passing references to an incomplete "this".
+        this.configuration = new Configuration();
+
+        this.database = new Database();
+        this.lodRepository = new AsyncLodRepository(this.database);
+
         this.pluginMessageHandler = new PluginMessageHandler(this);
     }
 
     public void onEnable()
     {
+        this.lodRepository.setLogger(this.getLogger());
+
+        try {
+            this.database.open(this.getDataDirectory() + "/data.sqlite");
+
+            this.database.addMigration(CreateLodsTable.class);
+
+            this.database.migrate();
+        } catch (Exception exception) {
+            this.warning("Failed to initialize database: " + exception.getMessage());
+            // TODO: Disable the plugin?
+        }
+
         (new PlayerConfigHandler(this, this.pluginMessageHandler)).register();
         (new LodHandler(this, this.pluginMessageHandler)).register();
 
@@ -73,6 +105,16 @@ public class DhSupport implements Configurable
         if (this.pluginMessageHandler != null) {
             this.pluginMessageHandler.onDisable();
         }
+    }
+
+    public void setDataDirectory(String dataDirectory)
+    {
+        this.dataDirectory = dataDirectory;
+    }
+
+    public String getDataDirectory()
+    {
+        return this.dataDirectory;
     }
 
     public void setScheduler(Scheduler scheduler)
@@ -88,17 +130,11 @@ public class DhSupport implements Configurable
     public void setWorldInterface(UUID id, @Nullable WorldInterface worldInterface)
     {
         if (worldInterface == null) {
-            //this.info("Removing world interface for " + id);
-
             this.worldInterfaces.remove(id);
-            this.lodCache.remove(id);
             return;
         }
 
-        //this.info("Adding world interface for " + id);
-
         this.worldInterfaces.put(id, worldInterface);
-        this.lodCache.put(id, new HashMap<>());
     }
 
     @Nullable
@@ -107,7 +143,6 @@ public class DhSupport implements Configurable
         return this.worldInterfaces.get(id);
     }
 
-    @Nullable
     public PluginMessageHandler getPluginMessageHandler()
     {
         return this.pluginMessageHandler;
@@ -124,13 +159,13 @@ public class DhSupport implements Configurable
         return this.pluginMessageSender;
     }
 
-    @Override
+    public AsyncLodRepository getLodRepository()
+    {
+        return this.lodRepository;
+    }
+
     public Configuration getConfig()
     {
-        if (this.configuration == null) {
-            this.configuration = new Configuration();
-        }
-
         return this.configuration;
     }
 
@@ -155,38 +190,188 @@ public class DhSupport implements Configurable
         this.getLogger().warning(message);
     }
 
-    public CompletableFuture<Lod> queueBuilder(LodBuilder builder)
+    public LodBuilder getBuilder(WorldInterface world, SectionPosition position)
     {
-        return this.getScheduler().runRegional(
-            builder.worldInterface.getId(),
-            builder.position.getX() * 64,
-            builder.position.getZ() * 64,
-            builder::generate
-        );
-    }
+        String builderType = world.getConfig().getString(DhsConfig.BUILDER_TYPE);
 
-    public CompletableFuture<byte[]> getLodData(UUID worldId, SectionPosition position)
-    {
-        String key = position.getX() + "x" + position.getZ();
+        LodBuilder builder;
 
-        if (!this.lodCache.get(worldId).containsKey(key)) {
-            //this.info("Cache miss: " + worldId + " " + key);
+        try {
+            Class<? extends LodBuilder> builderClass = Class.forName(LodBuilder.class.getPackageName() + "." + builderType).asSubclass(LodBuilder.class);
 
-            LodBuilder builder = new LodBuilder(this.getWorldInterface(worldId).newInstance(), position);
+            Constructor<?> constructor = builderClass.getConstructor(WorldInterface.class, SectionPosition.class);
 
-            return this.queueBuilder(builder).thenApply((lod) -> {
-                Encoder encoder = new Encoder();
-                lod.encode(encoder);
-                byte[] data = encoder.toByteArray();
-
-                this.lodCache.get(worldId).put(key, data);
-
-                return data;
-            });
+            builder = (LodBuilder) constructor.newInstance(world, position);
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException | ClassNotFoundException exception) {
+            return null;
         }
 
-        //this.info("Cache hit: " + worldId + " " + key);
+        return builder;
+    }
 
-        return CompletableFuture.completedFuture(this.lodCache.get(worldId).get(key));
+    public CompletableFuture<Lod> queueBuilder(UUID worldId, SectionPosition position, LodBuilder builder)
+    {
+        String key = LodModel.create()
+            .setWorldId(worldId)
+            .setX(position.getX())
+            .setZ(position.getZ())
+            .toString();
+
+        if (this.queuedBuilders.containsKey(key)) {
+            return this.queuedBuilders.get(key);
+        }
+
+        Scheduler scheduler = this.getScheduler();
+
+        CompletableFuture<Lod> queued;
+
+        // TODO: Fetch chunk data on region thread, then move to builder thread.
+        if (scheduler.canReadWorldAsync()) {
+            queued = this.getScheduler().runOnSeparateThread(
+                builder::generate
+            );
+        } else {
+            queued = this.getScheduler().runOnRegionThread(
+                worldId,
+                Coordinates.sectionToBlock(position.getX()),
+                Coordinates.sectionToBlock(position.getZ()),
+                builder::generate
+            );
+        }
+
+        queued = queued.thenApply((lod) -> {
+                this.queuedBuilders.remove(key);
+
+                return lod;
+            })
+            .exceptionally((exception) -> {
+                exception.printStackTrace();
+
+                this.queuedBuilders.remove(key);
+
+                return null;
+            });
+
+        this.queuedBuilders.put(key, queued);
+
+        return queued;
+    }
+
+    public CompletableFuture<LodModel> getLod(UUID worldId, SectionPosition position)
+    {
+        int worldX = Coordinates.sectionToBlock(position.getX());
+        int worldZ = Coordinates.sectionToBlock(position.getZ());
+
+        return this.getLodRepository()
+            .loadLodAsync(worldId, position.getX(), position.getZ())
+            .thenCompose((modelFromDb) -> {
+                // If a LOD was found in the database, return it.
+                if (modelFromDb != null) {
+                    return CompletableFuture.completedFuture(modelFromDb);
+                }
+
+                WorldInterface world = this.getWorldInterface(worldId).newInstance();
+
+                List<CompletableFuture<Boolean>> loads = new ArrayList<>();
+
+                // Load all the chunks we need for this request.
+                for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                    for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                        loads.add(world.loadChunkAsync(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
+                    }
+                }
+
+                // Wait for chunk loads, then...
+                return CompletableFuture.allOf(loads.toArray(new CompletableFuture[loads.size()]))
+                    .thenCompose((asd) -> {
+                        // No LOD was found. Start building a new one.
+                        CompletableFuture<Lod> lodFuture = this.queueBuilder(worldId, position, this.getBuilder(world, position));
+
+                        // Find any beacons that should appear in this LOD.
+                        CompletableFuture<Collection<Beacon>> beaconFuture = this.getScheduler().runOnRegionThread(worldId, worldX, worldZ, () -> {
+                            Collection<Beacon> accumulator = new ArrayList<>();
+
+                            for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                                for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                                    accumulator.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
+                                }
+                            }
+
+                            return accumulator;
+                        });
+
+                        // Combine the LOD and beacons and save the result in the database.
+                        return lodFuture.thenCombine(beaconFuture, (lod, beacons) -> {
+                                // Ask for all the chunks in the area to be unloaded.
+                                // It's unlikely that they all should be, but we'll leave that up to the server.
+                                this.getScheduler().runOnRegionThread(worldId, worldX, worldZ, () -> {
+                                    for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                                        for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                                            world.unloadChunkAsync(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer);
+                                        }
+                                    }
+
+                                    return null;
+                                });
+
+                                Encoder lodEncoder = new Encoder();
+                                lod.encode(lodEncoder);
+
+                                Encoder beaconEncoder = new Encoder();
+                                beaconEncoder.writeCollection(beacons);
+
+                                return this.lodRepository.saveLodAsync(
+                                    worldId,
+                                    position.getX(),
+                                    position.getZ(),
+                                    lodEncoder.toByteArray(),
+                                    beaconEncoder.toByteArray()
+                                );
+                            })
+                            .thenCompose((f) -> f); // Unwrap the nested future.
+                    });
+            });
+    }
+
+    public void touchLod(UUID worldId, int x, int z)
+    {
+        int sectionX = Coordinates.blockToSection(x);
+        int sectionZ = Coordinates.blockToSection(z);
+
+        LodModel lodModel = LodModel.create()
+            .setWorldId(worldId)
+            .setX(sectionX)
+            .setZ(sectionZ);
+
+        String key = lodModel.toString();
+
+        if (this.touchedLods.containsKey(key)) {
+            return;
+        }
+
+        this.touchedLods.put(key, lodModel);
+    }
+
+    public void updateTouchedLods()
+    {
+        for (String key : this.touchedLods.keySet()) {
+            LodModel lodModel = this.touchedLods.get(key);
+
+            this.getLodRepository().deleteLodAsync(lodModel.getWorldId(), lodModel.getX(), lodModel.getZ())
+                .thenAccept((deleted) -> {
+                    if (!deleted) {
+                        return;
+                    }
+
+                    SectionPosition position = new SectionPosition();
+                    position.setDetailLevel(6);
+                    position.setX(lodModel.getX());
+                    position.setZ(lodModel.getZ());
+
+                    this.getLod(lodModel.getWorldId(), position);
+
+                    this.touchedLods.remove(key);
+                });
+        }
     }
 }

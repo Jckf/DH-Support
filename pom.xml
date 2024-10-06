@@ -7,7 +7,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>0.4.0</revision>
+        <revision>0.5.0</revision>
         <jdk>21</jdk>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.class>no.jckf.dhsupport.bukkit.DhSupportBukkitPlugin</main.class>
@@ -50,28 +50,28 @@
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
-            <version>3.0.3</version>
+            <version>3.1.0</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.3.0-jre</version>
+            <version>33.3.1-jre</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>24.1.0</version>
+            <version>25.0.0</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.lz4</groupId>
-            <artifactId>lz4-java</artifactId>
-            <version>1.8.0</version>
+            <groupId>org.tukaani</groupId>
+            <artifactId>xz</artifactId>
+            <version>1.10</version>
             <scope>compile</scope>
         </dependency>
 
@@ -106,7 +106,7 @@
                         <path>
                             <groupId>systems.manifold</groupId>
                             <artifactId>manifold-preprocessor</artifactId>
-                            <version>2024.1.33</version>
+                            <version>2024.1.34</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -122,11 +122,6 @@
                     <shadedClassifierName>all</shadedClassifierName>
 
                     <relocations>
-                        <relocation>
-                            <pattern>net.jpountz</pattern>
-                            <shadedPattern>no.jckf.dhsupport.lz4</shadedPattern>
-                        </relocation>
-
                         <relocation>
                             <pattern>org.bstats</pattern>
                             <shadedPattern>no.jckf.dhsupport.bstats</shadedPattern>
@@ -158,7 +153,7 @@
                             </filters>
                             <artifactSet>
                                 <includes>
-                                    <include>org.lz4</include>
+                                    <include>org.tukaani</include>
                                     <include>org.bstats</include>
                                     <include>com.github.technicallycoded</include>
                                 </includes>
@@ -231,6 +226,6 @@
         <module>pom-1.20.2.xml</module>
         <module>pom-1.20.4.xml</module>
         <module>pom-1.20.6.xml</module>
-        <module>pom-1.21.xml</module>
+        <module>pom-1.21.1.xml</module>
     </modules>
 </project>

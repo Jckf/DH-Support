@@ -38,7 +38,7 @@ public class PluginMessageHandler
 
     public final String pluginChannel = "distant_horizons:message";
 
-    public final int protocolVersion = 4;
+    public final int protocolVersion = 5;
 
     private EventBus<PluginMessage> eventBus;
 
@@ -158,7 +158,8 @@ public class PluginMessageHandler
             message.encode(encoder);
             data = encoder.toByteArray();
         } catch (Exception exception) {
-            this.dhSupport.warning("Failed to encode " + message.getClass() + ": " + exception.getClass() + " - " + exception.getMessage());
+            this.dhSupport.warning("Failed to encode " + message.getClass().getSimpleName());
+            exception.printStackTrace();
             return;
         }
 

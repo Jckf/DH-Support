@@ -16,44 +16,37 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.message.plugin;
+package no.jckf.dhsupport.core.dataobject;
 
 import no.jckf.dhsupport.core.bytestream.Encoder;
 
-import javax.annotation.Nullable;
-
-public class FullDataSourceResponseMessage extends TrackablePluginMessage
+public class Beacon extends DataObject
 {
-    protected Integer bufferId;
+    protected BlockPosition position;
 
-    protected byte[] beacons;
+    protected int color;
 
-    public void setBufferId(@Nullable Integer bufferId)
+    public Beacon()
     {
-        this.bufferId = bufferId;
+
     }
 
-    public int getBufferId()
+    public Beacon(BlockPosition position, int color)
     {
-        return bufferId;
+        this.position = position;
+        this.color = color;
     }
 
-    public void setBeacons(byte[] beacons)
+    public Beacon(int x, int y, int z, int color)
     {
-        this.beacons = beacons;
-    }
-
-    public byte[] getBeacons()
-    {
-        return beacons;
+        this(new BlockPosition(x, y, z), color);
     }
 
     @Override
     public void encode(Encoder encoder)
     {
-        if (encoder.writeOptional(this.bufferId)) {
-            encoder.writeInt(this.bufferId);
-            encoder.write(this.beacons);
-        }
+        this.position.encode(encoder);
+
+        encoder.writeInt(this.color);
     }
 }

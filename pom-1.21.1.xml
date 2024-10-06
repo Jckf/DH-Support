@@ -11,7 +11,7 @@
     </parent>
 
     <properties>
-        <mc.api-version>1.21</mc.api-version>
+        <mc.api-version>1.21.1</mc.api-version>
     </properties>
 
     <dependencies>

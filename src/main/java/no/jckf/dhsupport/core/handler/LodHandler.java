@@ -18,6 +18,7 @@
 
 package no.jckf.dhsupport.core.handler;
 
+import no.jckf.dhsupport.core.Coordinates;
 import no.jckf.dhsupport.core.DhSupport;
 import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.DhsConfig;
@@ -63,8 +64,11 @@ public class LodHandler
 
             SectionPosition position = requestMessage.getPosition();
 
+            int worldX = Coordinates.sectionToBlock(position.getX());
+            int worldZ = Coordinates.sectionToBlock(position.getZ());
+
             String borderCenter = config.getString(DhsConfig.BORDER_CENTER);
-            Integer borderRadius =config.getInt(DhsConfig.BORDER_RADIUS);
+            Integer borderRadius = config.getInt(DhsConfig.BORDER_RADIUS);
 
             if (borderCenter != null && borderRadius != null) {
                 String[] centerXz = borderCenter.split(",");
@@ -81,13 +85,10 @@ public class LodHandler
                     int minZ = centerZ - borderRadius;
                     int maxZ = centerZ + borderRadius;
 
-                    int lowerLodX = position.getX() * 64;
-                    int higherLodX = lowerLodX + 64;
+                    int higherLodX = worldX + 64;
+                    int higherLodZ = worldZ + 64;
 
-                    int lowerLodZ = position.getZ() * 64;
-                    int higherLodZ = lowerLodZ + 64;
-
-                    if (higherLodX < minX || lowerLodX > maxX || higherLodZ < minZ || lowerLodZ > maxZ) {
+                    if (higherLodX < minX || worldX > maxX || higherLodZ < minZ || worldZ > maxZ) {
                         ExceptionMessage exceptionMessage = new ExceptionMessage();
                         exceptionMessage.isResponseTo(requestMessage);
                         exceptionMessage.setTypeId(ExceptionMessage.TYPE_REQUEST_REJECTED);
@@ -103,10 +104,7 @@ public class LodHandler
             if (!generate) {
                 for (int relativeChunkX = 0; relativeChunkX < Lod.width / 16; relativeChunkX++) {
                     for (int relativeChunkZ = 0; relativeChunkZ < Lod.width / 16; relativeChunkZ++) {
-                        int worldX = position.getX() * 64 + relativeChunkX * 16;
-                        int worldZ = position.getZ() * 64 + relativeChunkZ * 16;
-
-                        if (!world.chunkExists(worldX, worldZ)) {
+                        if (!world.chunkExists(worldX + relativeChunkX * 16, worldZ + relativeChunkZ * 16)) {
                             ExceptionMessage exceptionMessage = new ExceptionMessage();
                             exceptionMessage.isResponseTo(requestMessage);
                             exceptionMessage.setTypeId(ExceptionMessage.TYPE_REQUEST_REJECTED);
@@ -118,35 +116,50 @@ public class LodHandler
                 }
             }
 
-            int myBufferId = this.bufferId++;
-
-            this.dhSupport.getLodData(worldUuid, position)
-                .thenAccept((lod) -> {
-                    int chunkCount = (int) Math.ceil((double) lod.length / CHUNK_SIZE);
-
-                    for (int chunkNo = 0; chunkNo < chunkCount; chunkNo++) {
-                        FullDataChunkMessage chunkResponse = new FullDataChunkMessage();
-                        chunkResponse.setBufferId(myBufferId);
-                        chunkResponse.setIsFirst(chunkNo == 0);
-                        chunkResponse.setData(Arrays.copyOfRange(
-                            lod,
-                            CHUNK_SIZE * chunkNo,
-                            Math.min(CHUNK_SIZE * chunkNo + CHUNK_SIZE, lod.length)
-                        ));
-
-                        this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), chunkResponse);
-                    }
-
+            this.dhSupport.getLod(worldUuid, position)
+                .thenAccept((lodModel) -> {
                     FullDataSourceResponseMessage responseMessage = new FullDataSourceResponseMessage();
                     responseMessage.isResponseTo(requestMessage);
-                    responseMessage.setBufferId(myBufferId);
+
+                    boolean sendData = requestMessage.getTimestamp() == null || (requestMessage.getTimestamp() / 1000) < lodModel.getTimestamp();
+
+                    if (sendData) {
+                        int myBufferId = this.bufferId++;
+
+                        responseMessage.setBufferId(myBufferId);
+                        responseMessage.setBeacons(lodModel.getBeacons());
+
+                        byte[] data = lodModel.getData();
+
+                        int chunkCount = (int) Math.ceil((double) data.length / CHUNK_SIZE);
+
+                        for (int chunkNo = 0; chunkNo < chunkCount; chunkNo++) {
+                            FullDataChunkMessage chunkResponse = new FullDataChunkMessage();
+                            chunkResponse.setBufferId(myBufferId);
+                            chunkResponse.setIsFirst(chunkNo == 0);
+                            chunkResponse.setData(Arrays.copyOfRange(
+                                data,
+                                CHUNK_SIZE * chunkNo,
+                                Math.min(CHUNK_SIZE * chunkNo + CHUNK_SIZE, data.length)
+                            ));
+
+                            this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), chunkResponse);
+                        }
+                    }
 
                     this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), responseMessage);
 
                     //this.dhSupport.info("LOD in " + chunkCount + " parts sent for " + requestMessage.getPosition().getX() + " x " + requestMessage.getPosition().getZ());
                 })
                 .exceptionally((exception) -> {
-                    this.dhSupport.warning(exception.getMessage());
+                    exception.printStackTrace();
+
+                    ExceptionMessage exceptionMessage = new ExceptionMessage();
+                    exceptionMessage.isResponseTo(requestMessage);
+                    exceptionMessage.setTypeId(ExceptionMessage.TYPE_REQUEST_REJECTED);
+                    exceptionMessage.setMessage("Internal error");
+                    this.pluginMessageHandler.sendPluginMessage(requestMessage.getSender(), exceptionMessage);
+
                     return null;
                 });
         });

@@ -16,19 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package no.jckf.dhsupport.core.scheduling;
+package no.jckf.dhsupport.core.database.migrations;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
+import no.jckf.dhsupport.core.database.Database;
 
-public interface Scheduler
+public abstract class Migration
 {
-    boolean canReadWorldAsync();
+    protected Database database;
 
-    <U> CompletableFuture<U> runOnMainThread(Supplier<U> supplier);
+    public Migration(Database database)
+    {
+        this.database = database;
+    }
 
-    <U> CompletableFuture<U> runOnRegionThread(UUID worldId, int x, int z, Supplier<U> supplier);
-
-    <U> CompletableFuture<U> runOnSeparateThread(Supplier<U> supplier);
+    public abstract void up() throws Exception;
 }

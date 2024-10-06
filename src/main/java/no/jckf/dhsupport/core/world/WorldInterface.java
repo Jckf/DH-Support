@@ -19,9 +19,12 @@
 package no.jckf.dhsupport.core.world;
 
 import no.jckf.dhsupport.core.configuration.Configurable;
+import no.jckf.dhsupport.core.dataobject.Beacon;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public interface WorldInterface extends Configurable
 {
@@ -32,6 +35,14 @@ public interface WorldInterface extends Configurable
     String getName();
 
     boolean chunkExists(int x, int z);
+
+    boolean loadChunk(int x, int z);
+
+    CompletableFuture<Boolean> loadChunkAsync(int x, int z);
+
+    boolean unloadChunk(int x, int z);
+
+    boolean unloadChunkAsync(int x, int z);
 
     int getMinY();
 
@@ -53,5 +64,5 @@ public interface WorldInterface extends Configurable
 
     byte getSkyLightAt(int x, int y, int z);
 
-    boolean isTransparent(int x, int y, int z);
+    Collection<Beacon> getBeaconsInChunk(int x, int z);
 }
