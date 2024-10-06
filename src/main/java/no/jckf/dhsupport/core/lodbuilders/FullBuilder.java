@@ -73,7 +73,9 @@ public class FullBuilder extends LodBuilder
                 @Nullable
                 DataPoint previous = null;
 
-                for (int relativeY = height - 1; relativeY >= 1 - yStep; relativeY -= yStep) {
+                int firstY = height - yStep;
+
+                for (int relativeY = firstY; relativeY >= 1 - yStep; relativeY -= yStep) {
                     int thisStep = yStep;
 
                     if (relativeY < 0) {
@@ -81,7 +83,7 @@ public class FullBuilder extends LodBuilder
                         relativeY = 0;
                     }
 
-                    int worldY = minY + relativeY;
+                    int worldY = minY + relativeY + thisStep - 1;
 
                     String material = this.worldInterface.getMaterialAt(worldX, worldY, worldZ);
 
@@ -117,7 +119,7 @@ public class FullBuilder extends LodBuilder
                         }
 
                         // Start by filling the top of the column with air, then jump down to the top layer.
-                        if (relativeY == height && (material.equals("minecraft:air") || material.equals("minecraft:void_air"))) {
+                        if (relativeY == firstY && (material.equals("minecraft:air") || material.equals("minecraft:void_air"))) {
                             point.setStartY(relativeTopLayer + 1);
                             point.setHeight(height - relativeTopLayer);
 
