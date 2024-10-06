@@ -258,31 +258,37 @@ public class DhSupport implements Configurable
 
     public CompletableFuture<LodModel> getLod(UUID worldId, SectionPosition position)
     {
-        return this.getLodRepository().loadLodAsync(worldId, position.getX(), position.getZ())
-            .thenCompose((lodModel) -> {
-                if (lodModel != null) {
-                    return CompletableFuture.completedFuture(lodModel);
+        int worldX = Coordinates.sectionToBlock(position.getX());
+        int worldZ = Coordinates.sectionToBlock(position.getZ());
+
+        return this.getLodRepository()
+            .loadLodAsync(worldId, position.getX(), position.getZ())
+            .thenCompose((modelFromDb) -> {
+                // If a LOD was found in the database, return it.
+                if (modelFromDb != null) {
+                    return CompletableFuture.completedFuture(modelFromDb);
                 }
 
-                return this.queueBuilder(worldId, position, this.getBuilder(worldId, position))
-                    .thenCompose((lod) -> {
-                        WorldInterface world = this.getWorldInterface(worldId);
+                // No LOD was found. Start building a new one.
+                CompletableFuture<Lod> lodFuture = this.queueBuilder(worldId, position, this.getBuilder(worldId, position));
 
-                        int worldX = Coordinates.sectionToBlock(position.getX());
-                        int worldZ = Coordinates.sectionToBlock(position.getZ());
+                // Find any beacons that should appear in this LOD.
+                CompletableFuture<Collection<Beacon>> beaconFuture = this.getScheduler().runOnRegionThread(worldId, worldX, worldZ, () -> {
+                    Collection<Beacon> accumulator = new ArrayList<>();
 
-                        Collection<Beacon> beacons = this.getScheduler().runOnRegionThread(worldId, worldX, worldZ, () -> {
-                            Collection<Beacon> accumulator = new ArrayList<>();
+                    WorldInterface world = this.getWorldInterface(worldId);
 
-                            for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
-                                for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
-                                    accumulator.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
-                                }
-                            }
+                    for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                        for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                            accumulator.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
+                        }
+                    }
 
-                            return accumulator;
-                        }).join();
+                    return accumulator;
+                });
 
+                // Combine the LOD and beacons and save the result in the database.
+                return lodFuture.thenCombine(beaconFuture, (lod, beacons) -> {
                         Encoder lodEncoder = new Encoder();
                         lod.encode(lodEncoder);
 
@@ -296,7 +302,8 @@ public class DhSupport implements Configurable
                             lodEncoder.toByteArray(),
                             beaconEncoder.toByteArray()
                         );
-                    });
+                    })
+                    .thenCompose((f) -> f); // Unwrap the nested future.
             });
     }
 
