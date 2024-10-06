@@ -32,11 +32,14 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 public class BukkitWorldInterface implements WorldInterface
 {
     protected static boolean BIOME_KEY_WARNING_SENT = false;
+
+    protected static boolean ASYNC_LOAD_WARNING_SENT = false;
 
     protected World world;
 
@@ -52,6 +55,9 @@ public class BukkitWorldInterface implements WorldInterface
 
     @Nullable
     protected Method getBiomeKey;
+
+    @Nullable
+    protected Method getChunkAtAsync;
 
     public BukkitWorldInterface(World world, Configuration config)
     {
@@ -73,6 +79,14 @@ public class BukkitWorldInterface implements WorldInterface
 
                 BIOME_KEY_WARNING_SENT = true;
             }
+        }
+
+        try {
+            this.getChunkAtAsync = this.world.getClass().getMethod("getChunkAtAsyncUrgently", int.class, int.class);
+        } catch (NoSuchMethodException exception) {
+            this.getLogger().warning("Async chunk loading is not supported on this server. Performance will suffer.");
+
+            ASYNC_LOAD_WARNING_SENT = true;
         }
     }
 
@@ -157,6 +171,48 @@ public class BukkitWorldInterface implements WorldInterface
     }
 
     @Override
+    public boolean loadChunk(int x, int z)
+    {
+        int chunkX = Coordinates.blockToChunk(x);
+        int chunkZ = Coordinates.blockToChunk(z);
+
+        this.world.loadChunk(chunkX, chunkZ);
+
+        return true;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> loadChunkAsync(int x, int z)
+    {
+        if (this.getChunkAtAsync == null) {
+            return CompletableFuture.completedFuture(this.loadChunk(x, z));
+        }
+
+        int chunkX = Coordinates.blockToChunk(x);
+        int chunkZ = Coordinates.blockToChunk(z);
+
+        try {
+            CompletableFuture<Chunk> chunkFuture = (CompletableFuture<Chunk>) this.getChunkAtAsync.invoke(this.world, chunkX, chunkZ);
+
+            return chunkFuture.thenApply((chunk) -> true);
+        } catch (InvocationTargetException | IllegalAccessException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    @Override
+    public boolean unloadChunk(int x, int z)
+    {
+        return this.world.unloadChunk(x, z);
+    }
+
+    @Override
+    public boolean unloadChunkAsync(int x, int z)
+    {
+        return this.world.unloadChunkRequest(x, z);
+    }
+
+    @Override
     public int getMinY()
     {
         return this.world.getMinHeight();
@@ -190,7 +246,7 @@ public class BukkitWorldInterface implements WorldInterface
             try {
                 key = (NamespacedKey) this.getBiomeKey.invoke(this.unsafeValues, this.world, x, this.getSeaLevel(), z);
             } catch (IllegalAccessException | InvocationTargetException exception) {
-                exception.printStackTrace();
+                throw new RuntimeException(exception);
             }
         }
 

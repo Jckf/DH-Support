@@ -190,9 +190,9 @@ public class DhSupport implements Configurable
         this.getLogger().warning(message);
     }
 
-    public LodBuilder getBuilder(UUID worldId, SectionPosition position)
+    public LodBuilder getBuilder(WorldInterface world, SectionPosition position)
     {
-        String builderType = this.getWorldInterface(worldId).getConfig().getString(DhsConfig.BUILDER_TYPE);
+        String builderType = world.getConfig().getString(DhsConfig.BUILDER_TYPE);
 
         LodBuilder builder;
 
@@ -201,7 +201,7 @@ public class DhSupport implements Configurable
 
             Constructor<?> constructor = builderClass.getConstructor(WorldInterface.class, SectionPosition.class);
 
-            builder = (LodBuilder) constructor.newInstance(this.getWorldInterface(worldId).newInstance(), position);
+            builder = (LodBuilder) constructor.newInstance(world, position);
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException | ClassNotFoundException exception) {
             return null;
         }
@@ -225,6 +225,7 @@ public class DhSupport implements Configurable
 
         CompletableFuture<Lod> queued;
 
+        // TODO: Fetch chunk data on region thread, then move to builder thread.
         if (scheduler.canReadWorldAsync()) {
             queued = this.getScheduler().runOnSeparateThread(
                 builder::generate
@@ -269,41 +270,66 @@ public class DhSupport implements Configurable
                     return CompletableFuture.completedFuture(modelFromDb);
                 }
 
-                // No LOD was found. Start building a new one.
-                CompletableFuture<Lod> lodFuture = this.queueBuilder(worldId, position, this.getBuilder(worldId, position));
+                WorldInterface world = this.getWorldInterface(worldId).newInstance();
 
-                // Find any beacons that should appear in this LOD.
-                CompletableFuture<Collection<Beacon>> beaconFuture = this.getScheduler().runOnRegionThread(worldId, worldX, worldZ, () -> {
-                    Collection<Beacon> accumulator = new ArrayList<>();
+                List<CompletableFuture<Boolean>> loads = new ArrayList<>();
 
-                    WorldInterface world = this.getWorldInterface(worldId).newInstance();
-
-                    for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
-                        for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
-                            accumulator.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
-                        }
+                // Load all the chunks we need for this request.
+                for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                    for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                        loads.add(world.loadChunkAsync(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
                     }
+                }
 
-                    return accumulator;
-                });
+                // Wait for chunk loads, then...
+                return CompletableFuture.allOf(loads.toArray(new CompletableFuture[loads.size()]))
+                    .thenCompose((asd) -> {
+                        // No LOD was found. Start building a new one.
+                        CompletableFuture<Lod> lodFuture = this.queueBuilder(worldId, position, this.getBuilder(world, position));
 
-                // Combine the LOD and beacons and save the result in the database.
-                return lodFuture.thenCombine(beaconFuture, (lod, beacons) -> {
-                        Encoder lodEncoder = new Encoder();
-                        lod.encode(lodEncoder);
+                        // Find any beacons that should appear in this LOD.
+                        CompletableFuture<Collection<Beacon>> beaconFuture = this.getScheduler().runOnRegionThread(worldId, worldX, worldZ, () -> {
+                            Collection<Beacon> accumulator = new ArrayList<>();
 
-                        Encoder beaconEncoder = new Encoder();
-                        beaconEncoder.writeCollection(beacons);
+                            for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                                for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                                    accumulator.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
+                                }
+                            }
 
-                        return this.lodRepository.saveLodAsync(
-                            worldId,
-                            position.getX(),
-                            position.getZ(),
-                            lodEncoder.toByteArray(),
-                            beaconEncoder.toByteArray()
-                        );
-                    })
-                    .thenCompose((f) -> f); // Unwrap the nested future.
+                            return accumulator;
+                        });
+
+                        // Combine the LOD and beacons and save the result in the database.
+                        return lodFuture.thenCombine(beaconFuture, (lod, beacons) -> {
+                                // Ask for all the chunks in the area to be unloaded.
+                                // It's unlikely that they all should be, but we'll leave that up to the server.
+                                this.getScheduler().runOnRegionThread(worldId, worldX, worldZ, () -> {
+                                    for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                                        for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                                            world.unloadChunkAsync(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer);
+                                        }
+                                    }
+
+                                    return null;
+                                });
+
+                                Encoder lodEncoder = new Encoder();
+                                lod.encode(lodEncoder);
+
+                                Encoder beaconEncoder = new Encoder();
+                                beaconEncoder.writeCollection(beacons);
+
+                                return this.lodRepository.saveLodAsync(
+                                    worldId,
+                                    position.getX(),
+                                    position.getZ(),
+                                    lodEncoder.toByteArray(),
+                                    beaconEncoder.toByteArray()
+                                );
+                            })
+                            .thenCompose((f) -> f); // Unwrap the nested future.
+                    });
             });
     }
 
