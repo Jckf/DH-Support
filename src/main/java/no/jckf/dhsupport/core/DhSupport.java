@@ -297,8 +297,8 @@ public class DhSupport implements Configurable
 
                         return this.lodRepository.saveLodAsync(
                             worldId,
-                            worldX,
-                            worldZ,
+                            position.getX(),
+                            position.getZ(),
                             lodEncoder.toByteArray(),
                             beaconEncoder.toByteArray()
                         );
