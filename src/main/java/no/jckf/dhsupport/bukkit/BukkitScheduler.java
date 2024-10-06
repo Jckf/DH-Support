@@ -19,6 +19,7 @@
 package no.jckf.dhsupport.bukkit;
 
 import com.tcoded.folialib.FoliaLib;
+import no.jckf.dhsupport.core.Utils;
 import no.jckf.dhsupport.core.configuration.DhsConfig;
 import no.jckf.dhsupport.core.scheduling.Scheduler;
 import org.bukkit.Location;
@@ -44,6 +45,8 @@ public class BukkitScheduler implements Scheduler
         this.foliaLib = new FoliaLib(this.plugin);
 
         this.executor = Executors.newFixedThreadPool(this.plugin.getDhSupport().getConfig().getInt(DhsConfig.SCHEDULER_THREADS));
+
+        this.plugin.getDhSupport().info("Using " + Utils.ucFirst(this.foliaLib.getImplType().name().toLowerCase().replace('_', ' ')) + " scheduler.");
     }
 
     @Override
@@ -108,5 +111,10 @@ public class BukkitScheduler implements Scheduler
         });
 
         return future;
+    }
+
+    public void runTimer(Runnable runnable, long initialDelay, long interval)
+    {
+        this.foliaLib.getScheduler().runTimer(runnable, initialDelay, interval);
     }
 }

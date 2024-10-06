@@ -271,17 +271,19 @@ public class DhSupport implements Configurable
                         int worldX = Coordinates.sectionToBlock(position.getX());
                         int worldZ = Coordinates.sectionToBlock(position.getZ());
 
-                        Collection<Beacon> beacons = this.getScheduler().runOnRegionThread(worldId, worldX, worldZ, () -> {
-                            Collection<Beacon> accumulator = new ArrayList<>();
+                        Collection<Beacon> beacons = this.getScheduler()
+                            .runOnRegionThread(worldId, worldX, worldZ, () -> {
+                                Collection<Beacon> accumulator = new ArrayList<>();
 
-                            for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
-                                for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
-                                    accumulator.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
+                                for (int xMultiplier = 0; xMultiplier < 4; xMultiplier++) {
+                                    for (int zMultiplayer = 0; zMultiplayer < 4; zMultiplayer++) {
+                                        accumulator.addAll(world.getBeaconsInChunk(worldX + 16 * xMultiplier, worldZ + 16 * zMultiplayer));
+                                    }
                                 }
-                            }
 
-                            return accumulator;
-                        }).join();
+                                return accumulator;
+                            })
+                            .join();
 
                         Encoder lodEncoder = new Encoder();
                         lod.encode(lodEncoder);

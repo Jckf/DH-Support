@@ -39,6 +39,8 @@ public class DhSupportBukkitPlugin extends JavaPlugin
 
     protected PluginMessageProxy pluginMessageProxy;
 
+    protected BukkitScheduler scheduler;
+
     @Override
     public void onEnable()
     {
@@ -56,13 +58,14 @@ public class DhSupportBukkitPlugin extends JavaPlugin
 
         this.dhSupport.onEnable();
 
-        this.dhSupport.setScheduler(new BukkitScheduler(this));
+        this.scheduler = new BukkitScheduler(this);
+        this.dhSupport.setScheduler(this.scheduler);
 
-        this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
-
-        this.getServer().getScheduler().runTaskTimer(this, () -> {
+        this.scheduler.runTimer(() -> {
             this.dhSupport.updateTouchedLods();
         }, LOD_REFRESH_INTERVAL, LOD_REFRESH_INTERVAL);
+
+        this.getServer().getPluginManager().registerEvents(new WorldHandler(this), this);
 
         this.getLogger().info("Ready!");
     }
