@@ -4,3 +4,4 @@ main: ${main.class}
 api-version: ${mc.api-version}
 prefix: DHS
 folia-supported: true
+author: Jckf
