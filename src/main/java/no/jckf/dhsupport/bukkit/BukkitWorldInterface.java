@@ -23,36 +23,77 @@ import no.jckf.dhsupport.core.configuration.Configuration;
 import no.jckf.dhsupport.core.configuration.WorldConfiguration;
 import no.jckf.dhsupport.core.dataobject.Beacon;
 import no.jckf.dhsupport.core.world.WorldInterface;
-import org.bukkit.ChunkSnapshot;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockState;
 
-import java.awt.*;
+import javax.annotation.Nullable;
+import java.awt.Color;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class BukkitWorldInterface implements WorldInterface
 {
+    protected static boolean BIOME_KEY_WARNING_SENT = false;
+
     protected World world;
 
     protected Configuration config;
 
     protected WorldConfiguration worldConfig;
 
+    protected Logger logger;
+
     protected Map<String, ChunkSnapshot> chunks = new HashMap<>();
+
+    protected UnsafeValues unsafeValues;
+
+    @Nullable
+    protected Method getBiomeKey;
 
     public BukkitWorldInterface(World world, Configuration config)
     {
         this.world = world;
         this.config = config;
         this.worldConfig = new WorldConfiguration(this, config);
+
+        this.unsafeValues = Bukkit.getUnsafe();
+
+        // Detect if we're running under Paper (or a Paper fork) that has this patch:
+        // https://github.com/PaperMC/Paper/commit/5bf259115c1ce29dd96df5fcf53739c94d39f902
+        try {
+            Class<?> regionAccessor = Class.forName("org.bukkit.RegionAccessor");
+
+            this.getBiomeKey = this.unsafeValues.getClass().getMethod("getBiomeKey", regionAccessor, int.class, int.class, int.class);
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            if (!BIOME_KEY_WARNING_SENT) {
+                this.getLogger().warning("Custom biomes are not supported on this server.");
+
+                BIOME_KEY_WARNING_SENT = true;
+            }
+        }
+    }
+
+    public void setLogger(Logger logger)
+    {
+        this.logger = logger;
+    }
+
+    public Logger getLogger()
+    {
+        return logger;
     }
 
     @Override
     public WorldInterface newInstance()
     {
-        return new BukkitWorldInterface(this.world, this.config);
+        BukkitWorldInterface newInstace = new BukkitWorldInterface(this.world, this.config);
+
+        newInstace.setLogger(this.getLogger());
+
+        return newInstace;
     }
 
     protected ChunkSnapshot getChunk(int x, int z)
@@ -142,7 +183,18 @@ public class BukkitWorldInterface implements WorldInterface
     @Override
     public String getBiomeAt(int x, int z)
     {
-        return this.getChunk(x, z).getBiome(Coordinates.blockToChunkRelative(x), this.getSeaLevel(), Coordinates.blockToChunkRelative(z)).getKey().toString();
+        NamespacedKey key = this.getChunk(x, z).getBiome(Coordinates.blockToChunkRelative(x), this.getSeaLevel(), Coordinates.blockToChunkRelative(z)).getKey();
+
+        // If the server just reports "custom" and we have access to getBiomeKey, try to get the correct biome name.
+        if (key.toString().equals("minecraft:custom") && this.getBiomeKey != null) {
+            try {
+                key = (NamespacedKey) this.getBiomeKey.invoke(this.unsafeValues, this.world, x, this.getSeaLevel(), z);
+            } catch (IllegalAccessException | InvocationTargetException exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        return key.toString();
     }
 
     @Override

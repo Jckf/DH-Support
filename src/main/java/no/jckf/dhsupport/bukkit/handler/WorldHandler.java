@@ -42,7 +42,11 @@ public class WorldHandler implements Listener
 
     protected void addWorldInterface(World world)
     {
-        this.plugin.getDhSupport().setWorldInterface(world.getUID(), new BukkitWorldInterface(world, this.plugin.getDhSupport().getConfig()));
+        BukkitWorldInterface worldInterface = new BukkitWorldInterface(world, this.plugin.getDhSupport().getConfig());
+
+        worldInterface.setLogger(this.plugin.getDhSupport().getLogger());
+
+        this.plugin.getDhSupport().setWorldInterface(world.getUID(), worldInterface);
     }
 
     protected void removeWorldInterface(World world)
